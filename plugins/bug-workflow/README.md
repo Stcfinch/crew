@@ -1,4 +1,4 @@
-# Bug Workflow Plugin `v3.5.1`
+# Bug Workflow Plugin `v3.5.2`
 
 整合 Notion 與 Claude Code，自動化 Bug 生命週期管理。
 
@@ -18,21 +18,28 @@
 
 ## 前置條件
 
-1. **Notion Plugin** — 需先安裝 Notion MCP Server
+1. **Node.js ≥ 18** — 所有 MCP Server 的執行環境
+   - macOS：`brew install node` 或 [nodejs.org](https://nodejs.org/)
+   - Windows：[nodejs.org](https://nodejs.org/) 下載 LTS 版（安裝時勾選 Add to PATH）
+   - Linux：`sudo apt install nodejs npm`
+
+2. **Notion Plugin** — 需先安裝 Notion MCP Server
    ```bash
    claude plugin install notion
    ```
 
-2. **Notion Workspace** — 需有以下資料庫（或由 `/bug-setup` 引導建立）：
+3. **Notion Workspace** — 需有以下資料庫（或由 `/bug-setup` 引導建立）：
    - **任務追蹤工具**：Bug 生命週期管理（主要資料庫）
    - **Bug 知識庫**（選用）：精簡索引，結案時自動同步
    - **專案資料庫**：管理專案對應
 
-3. **Notion 權限** — Claude Code 需授權以下 Notion 工具：
+4. **Notion 權限** — Claude Code 需授權以下 Notion 工具：
    - `notion-search`、`notion-fetch`（搜尋與讀取）
    - `notion-create-pages`（建立 Bug 條目）
    - `notion-update-page`（更新頁面內容與屬性）
    - `notion-update-data-source`（新增欄位，僅 setup 時使用）
+
+> **Windows 使用者**：詳細的 Windows 環境設定指南請見[根目錄 README](../../README.md#windows-使用者指南)。`/bug-setup` 會自動偵測作業系統並顯示對應的安裝指令。
 
 ## 安裝
 

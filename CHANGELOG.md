@@ -27,6 +27,19 @@
 - **bug-close** 新增學習捕捉步驟（自動判斷是否有可複用的洞察）
 - **bug-start** 新增初始證據自動收集（最近 commit + 環境 + 知識庫 + 學習歷史）
 
+## [bug-workflow@3.5.2] - 2026-04-25
+
+### 改善
+- **Node.js / Git 前置檢查** — setup 時自動偵測 Node.js 和 Git，未安裝時依作業系統顯示對應安裝指令（macOS / Windows / Linux）
+- **Windows 完整支援** — prerequisites.md 新增 OS 偵測邏輯，所有安裝引導提供 Windows 對應指令
+- **README 新增 Node.js 前置條件** — 明確標示 Node.js ≥ 18 為必要依賴，附各平台安裝方式
+
+## [feature-workflow@4.11.2] - 2026-04-25
+
+### 改善
+- **README 新增前置條件段落** — 明確列出 Node.js、Notion Plugin、Agent Teams 三項必要依賴
+- **Windows 完整支援** — README 加入 Windows 使用者引導連結
+
 ## [feature-workflow@4.11.1] - 2026-04-25
 
 ### 改善

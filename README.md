@@ -279,6 +279,7 @@ claude mcp remove dbhub      # 移除 DBHub
 
 | 檢查項目 | 未通過時 | 適用 Skill |
 |---------|---------|-----------|
+| **Node.js + Git 已安裝？** | 顯示 OS 對應安裝指令 | bug-setup、plan-setup（初始化時） |
 | **CLAUDE.md 存在？** | 提示執行 `/init` | bug-start/update/close、plan-start/build/verify/review/close |
 | **設定檔存在？** | 提示執行 `/bug-setup` 或 `/plan-setup` | 所有 Skill |
 | **專案已註冊？** | 提示執行 `/project-add` | bug-start/update/close、plan-start/close/sync |
@@ -287,11 +288,83 @@ claude mcp remove dbhub      # 移除 DBHub
 
 ---
 
+## 系統需求
+
+### 完整依賴矩陣
+
+| 依賴 | 層級 | 用途 | 安裝方式 | 適用 Skill |
+|------|------|------|---------|-----------|
+| **Node.js ≥ 18** | 🔴 必要 | 所有 MCP Server 的執行環境 | [nodejs.org](https://nodejs.org/) | 全部 |
+| **Git** | 🔴 必要 | 版本控制、專案識別 | 系統內建或安裝 | 全部（14/17 skills） |
+| **Notion MCP** | 🔴 必要 | Notion 資料庫讀寫 | `claude plugin install notion` | 15/17 skills |
+| **Agent Teams** | 🔴 必要 | 多人協作程式碼產生與審查 | 設定環境變數（見下方） | plan-build、plan-review |
+| **Playwright MCP** | 🟡 強烈建議 | 瀏覽器自動化驗收 | `claude mcp add playwright ...` | plan-verify、bug-fix |
+| **Maven / Gradle** | 🟡 強烈建議 | 編譯驗證 | 專案本身自帶 | plan-build、bug-fix |
+| **DBHub MCP** | 🟢 選配 | 資料庫直連（MSSQL/MySQL/PostgreSQL） | `claude mcp add dbhub ...` | plan-build、plan-review |
+| **Chrome DevTools MCP** | 🟢 選配 | Console / Network 除錯 | `claude mcp add chrome-devtools ...` | plan-verify --deep |
+| **minimax-skills Plugin** | 🟢 選配 | Word 驗收報告產出 | `claude plugin install minimax-skills` | plan-verify 報告 |
+| **curl** | 🔵 標準工具 | API 測試 | 系統內建 | plan-verify、bug-fix |
+| **python3** | 🔵 標準工具 | JSON 格式化 | 系統內建或安裝 | plan-verify |
+| **grep / find** | 🔵 標準工具 | 安全掃描、日誌搜尋 | 系統內建 | plan-security、bug-investigate |
+
+> 🔴 必要 = 缺少無法運作 ｜ 🟡 強烈建議 = 核心功能受限 ｜ 🟢 選配 = 有更好 ｜ 🔵 標準工具 = macOS/Linux 內建
+
+### Agent Teams 環境變數
+
+`/plan-build`（多人產碼）和 `/plan-review`（3 人審查）需要啟用 Agent Teams：
+
+```jsonc
+// ~/.claude/settings.json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+> `/plan-setup` 會自動檢查並引導設定。
+
+### Windows 使用者指南
+
+CREW 完整支援 Windows，但需注意以下環境差異：
+
+**Claude Code 執行環境（擇一）：**
+
+| 方式 | 適用情境 | 說明 |
+|------|---------|------|
+| **Claude Code 桌面版**（推薦） | 一般開發 | 直接安裝，內建終端支援 |
+| **VS Code / JetBrains 擴充** | IDE 整合 | 透過 IDE 內建終端執行 |
+| **WSL2 + CLI** | 進階使用者 | Linux 環境，所有工具原生支援 |
+
+**必要工具安裝：**
+
+| 工具 | Windows 安裝方式 |
+|------|-----------------|
+| Node.js | [nodejs.org](https://nodejs.org/) 下載 LTS 版，安裝時勾選 **Add to PATH** |
+| Git | [git-scm.com](https://git-scm.com/download/win) 下載，或 `winget install Git.Git` |
+| python3 | [Microsoft Store](https://apps.microsoft.com/detail/9NRWMJP3717K) 安裝，或 `winget install Python.Python.3.12` |
+| curl | Windows 10+ 內建，無需安裝 |
+
+**常見問題：**
+
+- **`npx` 找不到**：Node.js 安裝後需**重啟終端**（或重啟 Claude Code），PATH 才會生效
+- **`grep` / `find` 不可用**：Windows 原生 CMD 沒有這些指令。解法：
+  - 使用 Claude Code 桌面版（自帶 shell 環境）
+  - 或安裝 [Git for Windows](https://git-scm.com/download/win)（附帶 Git Bash，含 grep/find）
+  - 或使用 WSL2
+- **Chrome DevTools MCP 連線失敗**：確認 Chrome 啟動時有加 `--remote-debugging-port=9222` 參數
+- **路徑分隔符**：CREW 使用 `/` 路徑（Unix 風格），Claude Code 會自動處理轉換，一般不需手動調整
+
+> `/bug-setup` 和 `/plan-setup` 會自動偵測作業系統，在安裝引導中顯示對應的指令。
+
+---
+
 ## 前置條件
 
-1. **Claude Code** — <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank">安裝指南</a>
-2. **瀏覽器自動化工具**（擇一）— `/plan-verify` 和 `/bug-fix` 驗證需要（其他指令不需要）
-3. **Notion Workspace** — 需有以下資料庫（或由 setup 引導建立）：
+1. **Node.js ≥ 18** — [安裝指南](https://nodejs.org/)（所有 MCP Server 的執行環境）
+2. **Claude Code** — <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank">安裝指南</a>
+3. **瀏覽器自動化工具**（擇一）— `/plan-verify` 和 `/bug-fix` 驗證需要（其他指令不需要）
+4. **Notion Workspace** — 需有以下資料庫（或由 setup 引導建立）：
    - **任務追蹤工具**：Bug / 功能 生命週期管理（兩個 Plugin 共用）
    - **專案資料庫**：管理專案對應（兩個 Plugin 共用）
    - **Bug 知識庫**（選用）：Bug 精簡索引

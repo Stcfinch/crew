@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.11.1`
+# Feature Workflow Plugin `v4.11.2`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
@@ -126,6 +126,19 @@ flowchart TD
 /plan-browse --patterns              # 分析共通模式
 /plan-browse --timeline              # 時間軸瀏覽
 ```
+
+---
+
+## 前置條件
+
+1. **Node.js ≥ 18** — 所有 MCP Server 的執行環境
+   - macOS：`brew install node` 或 [nodejs.org](https://nodejs.org/)
+   - Windows：[nodejs.org](https://nodejs.org/) 下載 LTS 版（安裝時勾選 Add to PATH）
+   - Linux：`sudo apt install nodejs npm`
+2. **Notion Plugin** — `claude plugin install notion`
+3. **Agent Teams 環境變數** — plan-build 和 plan-review 必須（見下方設定）
+
+> **Windows 使用者**：詳細的 Windows 環境設定指南請見[根目錄 README](../../README.md#windows-使用者指南)。`/plan-setup` 會自動偵測作業系統並顯示對應的安裝指令。
 
 ---
 
