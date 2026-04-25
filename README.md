@@ -97,7 +97,7 @@ flowchart TD
 | `/bug-setup` | 首次設定引導 |
 | `/bug-start <問題簡述>` | 建立 Bug 條目 |
 | `/bug-investigate` | 假說驅動根因調查（五階段 + 3-Strike） |
-| `/bug-fix` | 修復紀律（鐵律 + 迴歸測試 + gstack 驗證） |
+| `/bug-fix` | 修復紀律（鐵律 + 迴歸測試 + 瀏覽器驗證） |
 | `/bug-update <內容>` | 更新調查資訊（Log、SQL、判斷） |
 | `/bug-update reopen <Bug>` | 重新開啟已結案 Bug |
 | `/bug-close` | 結案 + 同步知識庫 |
@@ -108,7 +108,7 @@ flowchart TD
 
 ### Feature Workflow
 
-功能開發全生命週期管理 — 本地規劃、Agent Teams 產生程式碼與審查、Chrome DevTools 驗收驗證、結案同步 Notion。
+功能開發全生命週期管理 — 本地規劃、Agent Teams 產生程式碼與審查、瀏覽器驗收驗證、結案同步 Notion。
 
 含 4 個 Opus Agent，在規格、DB、架構、程式碼產生階段提供專家級輸出。
 
@@ -121,7 +121,7 @@ flowchart TD
     build["/plan-build<br/><i>Agent Teams 產生程式碼</i>"]
     security["/plan-security<br/><i>三層安全掃描</i>"]
     ide(["IDE 啟動 + Chrome 開啟頁面"])
-    verify["/plan-verify<br/><i>chrome-cdp 驗收驗證</i>"]
+    verify["/plan-verify<br/><i>瀏覽器驗收驗證 + Health Score</i>"]
     review["/plan-review<br/><i>Agent Teams 3 人審查</i>"]
     close["/plan-close<br/><i>批次同步 Notion</i>"]
 
@@ -145,7 +145,7 @@ flowchart TD
 | `/plan-arch` | 架構設計 | **0 次** |
 | `/plan-build [--dry-run]` | Agent Teams 最多 5 人產生程式碼（含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描 | **0 次** |
-| `/plan-verify [--api-only]` | chrome-devtools-mcp 或 cdp.mjs 驗證驗收條件 | **0 次** |
+| `/plan-verify [--api-only]` | 瀏覽器驗收驗證 + Health Score | **0 次** |
 | `/plan-review [--quick]` | Agent Teams 3 人審查（邏輯/品質/效能） | **0 次** |
 | `/plan-close` | 一次性批次同步到 Notion + 知識庫 + Git 提交 | **3-5 次** |
 | `/plan-sync` | 手動中途同步（按需） | **2-3 次** |

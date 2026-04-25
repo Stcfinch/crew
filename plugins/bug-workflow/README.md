@@ -9,7 +9,7 @@
 | `/bug-setup` | 首次設定引導，自動偵測 Notion 資料庫並產出設定檔 |
 | `/bug-start <問題簡述>` | 在 Notion 建立 Bug 條目，填入標準化模板 |
 | `/bug-investigate` | 假說驅動根因調查 — 證據收集、模式比對、假說驗證、3-Strike 升級 |
-| `/bug-fix` | 修復紀律 — 鐵律檢查（根因確認才能修）、迴歸測試、gstack 驗證 |
+| `/bug-fix` | 修復紀律 — 鐵律檢查（根因確認才能修）、迴歸測試、瀏覽器驗證 |
 | `/bug-update <內容>` | 調查過程中更新 Bug 頁面（Log、SQL、判斷等） |
 | `/bug-update reopen <Bug>` | 重新開啟已結案的 Bug（復發處理） |
 | `/bug-close` | 從 Git diff 自動擷取修復細節，結案並同步知識庫 |

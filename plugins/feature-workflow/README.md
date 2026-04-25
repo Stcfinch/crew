@@ -1,6 +1,6 @@
 # Feature Workflow Plugin `v4.10.0`
 
-功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，Chrome DevTools 驗收驗證，結案時批次同步 Notion。
+功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
 不綁定特定專案架構，所有 Skill 執行時讀取當前專案的 CLAUDE.md 動態適配。
 
@@ -50,7 +50,7 @@ flowchart TD
         build["/plan-build<br/><i>Agent Teams 最多 5 人產生程式碼</i>"]
         security["/plan-security<br/><i>三層安全掃描</i>"]
         ide(["IDE 啟動本地服務<br/>Chrome 開啟頁面"])
-        verify["/plan-verify<br/><i>chrome-cdp 驗收驗證</i>"]
+        verify["/plan-verify<br/><i>瀏覽器驗收驗證 + Health Score</i>"]
         review["/plan-review<br/><i>Agent Teams 3 人程式碼審查</i>"]
         close["/plan-close<br/><i>批次同步 Notion + Git 提交</i>"]
 
@@ -91,7 +91,7 @@ flowchart TD
 | `/plan-arch` | 架構設計 | **0 次** |
 | `/plan-build` | Agent Teams 最多 5 人產生程式碼（含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描（靜態規則/上下文感知/對抗性思維） | **0 次** |
-| `/plan-verify` | chrome-devtools-mcp 或 cdp.mjs 操作瀏覽器驗證驗收條件 | **0 次** |
+| `/plan-verify` | 瀏覽器驗收驗證 + Health Score（--deep 可搭配 chrome-devtools 查 console/network） | **0 次** |
 | `/plan-review` | Agent Teams 3 人審查（邏輯/品質/效能） | **0 次** |
 | `/plan-close` | 批次同步 Notion + Git 提交 | **3-5 次** |
 | `/plan-sync` | 手動中途同步 .spec/ 到 Notion | **2-3 次** |
@@ -156,31 +156,26 @@ flowchart TD
 
 ### plan-verify 前置條件
 
-`/plan-verify` 透過 Chrome DevTools Protocol 連接已開啟的 Chrome session，直接操作已登入的頁面驗證驗收條件。對需要 SSO/VPN 的內部系統特別有用。
+`/plan-verify` 透過瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。支援 chrome-devtools-mcp、Playwright MCP 等瀏覽器工具。
 
-**方式 A：chrome-devtools-mcp（推薦）**
+**方式 A：chrome-devtools-mcp**
 
 ```bash
 claude mcp add chrome-devtools --scope user -- \
   npx chrome-devtools-mcp@latest --autoConnect
 ```
 
-Google 官方維護，29 種工具，安裝後重啟 Claude Code。需 Chrome 144+。
+Google 官方維護，可連接已登入的 Chrome session，適合需要 SSO/VPN 的內部系統。`--deep` 模式可查 console log 和 network。
 
-**方式 B：cdp.mjs（內建 fallback）**
+**方式 B：Playwright MCP**
 
-- Node.js 22+
-- 無需額外安裝，Plugin 內建
-
-兩種方式都需要 Chrome 啟用 Remote Debugging：
-Chrome 網址列 → `chrome://inspect/#remote-debugging` → 開啟切換開關。
-也支援 Chromium、Brave、Edge、Vivaldi。
+若已安裝 Playwright MCP，也可使用。兩者能力類似，擇一即可。
 
 ```bash
-/plan-verify                    # 完整驗證（自動偵測 MCP 或 cdp.mjs）
-/plan-verify --manual           # 互動模式，每步驟等待確認
+/plan-verify                    # 瀏覽器驗收驗證 + Health Score
+/plan-verify --deep             # + chrome-devtools 查 console/network
 /plan-verify <URL>              # 指定目標頁面
-/plan-verify --api-only         # 只驗證 API（不需 Chrome）
+/plan-verify --api-only         # 只驗證 API（不需瀏覽器）
 /plan-verify --recheck          # 僅重新驗證上次失敗的項目
 ```
 
