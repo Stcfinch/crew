@@ -22,6 +22,18 @@
 - **bug-close** 新增學習捕捉步驟（自動判斷是否有可複用的洞察）
 - **bug-start** 新增初始證據自動收集（最近 commit + 環境 + 知識庫 + 學習歷史）
 
+## [feature-workflow@4.11.0] - 2026-04-25
+
+### 新增
+- **Word 驗收報告** — 驗證完成後可產出正式 Word 驗收報告（封面 + 簽核欄位 + 測試環境 + 驗收明細 + 待處理事項 + 附錄），使用 `/minimax-docx` 產出
+- **人話操作敘述** — 驗證時同步記錄人話操作步驟（Playwright 操作 → 人話翻譯），寫入 verify.md 的 `<!-- human_steps -->` 註解
+- **封面資訊快取** — `report-config.md` 跨專案快取承辦單位與製作人，首次詢問後自動存檔
+
+### 改善
+- **移除 PDF 報告選項** — 簡化為只產 Word（Y/n 詢問），需要 PDF 可從 Word 轉存
+- **Playwright 改為預設驗證工具** — chrome-devtools 改為 `--deep` 模式除錯輔助
+- **向下相容** — 舊版 verify.md 無 `human_steps` 時自動進入降級模式
+
 ## [feature-workflow@4.10.0] - 2026-04-25
 
 ### 新增

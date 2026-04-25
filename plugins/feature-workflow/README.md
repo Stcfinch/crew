@@ -156,7 +156,7 @@ flowchart TD
 
 ### plan-verify 前置條件
 
-`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。驗證完成後可選擇產出 PDF 或 Word 格式報告。
+`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。驗證完成後可選擇產出 Word 驗收報告（封面 + 簽核 + 驗收明細）。
 
 **Playwright MCP（推薦，預設驗證工具）**
 

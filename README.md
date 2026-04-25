@@ -145,7 +145,7 @@ flowchart TD
 | `/plan-arch` | 架構設計 | **0 次** |
 | `/plan-build [--dry-run]` | Agent Teams 最多 5 人產生程式碼（含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描 | **0 次** |
-| `/plan-verify [--api-only]` | 瀏覽器驗收驗證 + Health Score | **0 次** |
+| `/plan-verify [--api-only]` | 瀏覽器驗收驗證 + Health Score + Word 驗收報告 | **0 次** |
 | `/plan-review [--quick]` | Agent Teams 3 人審查（邏輯/品質/效能） | **0 次** |
 | `/plan-close` | 一次性批次同步到 Notion + 知識庫 + Git 提交 | **3-5 次** |
 | `/plan-sync` | 手動中途同步（按需） | **2-3 次** |
