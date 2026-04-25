@@ -27,6 +27,20 @@
 - **bug-close** 新增學習捕捉步驟（自動判斷是否有可複用的洞察）
 - **bug-start** 新增初始證據自動收集（最近 commit + 環境 + 知識庫 + 學習歷史）
 
+## [bug-workflow@3.6.0] - 2026-04-25
+
+### 新增
+- **notion-local 後端支援** — 新增 `references/notion-backend.md` 工具映射表，CREW 自動偵測 Notion Plugin 或 notion-local 並選擇對應工具，既有使用者不受影響
+- **Notion 後端偵測邏輯** — `prerequisites.md` 新增第 0.5 項，所有需要 Notion 的 Skill 首次呼叫時自動偵測可用後端（優先 Notion Plugin）
+
+### 改善
+- **適用範圍表格重構** — 改為矩陣式，清楚標示每個 Skill 需要哪些前置檢查項目
+
+## [feature-workflow@4.12.0] - 2026-04-25
+
+### 新增
+- **notion-local 後端支援** — 共享 bug-workflow 的 Notion 後端偵測與映射機制，所有 Notion 操作自動適配
+
 ## [bug-workflow@3.5.2] - 2026-04-25
 
 ### 改善
