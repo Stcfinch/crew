@@ -4,9 +4,12 @@
 
 升版時**必須完成以下所有步驟**，缺一不可：
 
-### 1. 修改版號
+### 1. 修改版號（兩個地方）
 
+- `plugins/{plugin}/.claude-plugin/plugin.json` 的 `"version"` 欄位 — **這是 `claude plugin update` 判斷是否有新版的依據**
 - `plugins/{plugin}/README.md` 第一行的 `` `vX.Y.Z` `` 標記
+
+> **易錯點**：只改 README 不改 plugin.json，會導致 update 認為「已是最新」不會重新安裝。
 
 ### 2. 更新 CHANGELOG.md
 

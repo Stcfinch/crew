@@ -7,6 +7,11 @@
 
 ---
 
+## [bug-workflow@3.5.1] - 2026-04-25
+
+### 修正
+- **crew-upgrade Skill 未被安裝** — plugin.json 在 3.5.0 版本的 cache 中缺少 crew-upgrade 條目，升版觸發重新安裝
+
 ## [bug-workflow@3.5.0] - 2026-04-25
 
 ### 新增
