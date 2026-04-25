@@ -170,6 +170,64 @@ git remote get-url origin 2>/dev/null || echo ""
 
 若使用者在初始輸入中已提供問題描述內容，將其預填入「問題描述」區塊的「實際行為」欄位。
 
+### 6.5 初始證據收集（自動，不需使用者介入）
+
+建立 Notion 頁面後，自動收集環境資訊寫入「調查過程」區塊。
+
+#### 收集項目
+
+1. **最近 commit**：
+   ```bash
+   git log --oneline -5
+   ```
+   寫入「調查過程 > 最近變更」
+
+2. **當前環境狀態**：
+   ```bash
+   git branch --show-current
+   git status --short
+   ```
+   寫入「調查過程 > 環境狀態」
+
+3. **知識庫快速搜尋**：
+   用 bug 標題關鍵字搜尋 Notion Bug 知識庫（Data Source ID 見設定檔）
+   若有相似案例 → 寫入「調查過程 > 歷史參考」
+   格式：「[{日期}] {類似 bug 標題} — 根因：{摘要}」
+
+4. **學習快速搜尋**：
+   ```bash
+   LEARN_FILE="$HOME/.claude-company/bug-workflow/learnings/{project-slug}.jsonl"
+   [ -f "$LEARN_FILE" ] && grep -i "<keywords>" "$LEARN_FILE" | tail -3
+   ```
+   若有匹配 → 寫入「調查過程 > 歷史學習」
+
+#### 寫入格式
+
+使用 `notion-update-page` 的 `update_content`，在「調查過程」區塊寫入：
+
+```markdown
+### [HH:mm] 初始環境快照
+
+**最近 5 筆 commit**：
+- abc1234 fix: 修正推播排程的 cron 表達式
+- def5678 feat: 新增推播統計 API
+- ...
+
+**環境狀態**：
+- 分支：{branch}
+- 未提交變更：{N} 個檔案
+
+**歷史參考**：
+- [{日期}] {類似 bug 標題} — 根因：{摘要}
+
+**歷史學習**：
+- {insight}（confidence {N}/10，{date}）
+```
+
+#### 不阻擋流程
+
+任何收集步驟失敗（如知識庫未設定、不在 Git repo 中、學習檔案不存在）都靜默跳過，不影響 bug-start 的主流程。
+
 ### 7. 回傳結果
 
 向使用者回傳：
