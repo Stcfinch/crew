@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.11.0`
+# Feature Workflow Plugin `v4.11.1`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
@@ -156,7 +156,7 @@ flowchart TD
 
 ### plan-verify 前置條件
 
-`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。驗證完成後可選擇產出 Word 驗收報告（封面 + 簽核 + 驗收明細）。
+`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。驗證完成後可選擇產出 Word 驗收報告（封面 + 簽核 + 驗收明細 + API 測試紀錄）。
 
 **Playwright MCP（推薦，預設驗證工具）**
 
