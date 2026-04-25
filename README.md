@@ -290,36 +290,36 @@ claude mcp remove dbhub      # 移除 DBHub
 ## 前置條件
 
 1. **Claude Code** — <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank">安裝指南</a>
-2. **Chrome DevTools MCP**（推薦）或 **Node.js 22+** — `/plan-verify` 驗收驗證需要（其他指令不需要）
-3. **Chrome Remote Debugging** — `/plan-verify` 需要（其他指令不需要）
-4. **Notion Workspace** — 需有以下資料庫（或由 setup 引導建立）：
+2. **瀏覽器自動化工具**（擇一）— `/plan-verify` 和 `/bug-fix` 驗證需要（其他指令不需要）
+3. **Notion Workspace** — 需有以下資料庫（或由 setup 引導建立）：
    - **任務追蹤工具**：Bug / 功能 生命週期管理（兩個 Plugin 共用）
    - **專案資料庫**：管理專案對應（兩個 Plugin 共用）
    - **Bug 知識庫**（選用）：Bug 精簡索引
    - **功能設計庫**（選用）：設計文件索引
 
-### Chrome DevTools（plan-verify）
+### 瀏覽器驗證工具（plan-verify / bug-fix）
 
-`/plan-verify` 透過 Chrome DevTools Protocol 連接已開啟的 Chrome，直接操作已登入的 session 驗證驗收條件。
+`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。`/bug-fix` 在修復前端 Bug 時也會使用瀏覽器驗證。以下工具擇一安裝即可：
 
-**方式 A：chrome-devtools-mcp（推薦）**
+**方式 A：Playwright MCP（推薦）**
+
+```bash
+claude mcp add playwright --scope user -- \
+  npx @anthropic-ai/mcp-server-playwright@latest
+```
+
+Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航等。安裝後重啟 Claude Code。
+
+**方式 B：chrome-devtools-mcp**
 
 ```bash
 claude mcp add chrome-devtools --scope user -- \
   npx chrome-devtools-mcp@latest --autoConnect
 ```
 
-Google 官方維護，29 種工具。安裝後重啟 Claude Code。
+Google 官方維護，可連接已登入的 Chrome session，適合需要 SSO/VPN 的內部系統。額外提供 console log 串流、network 請求分析、performance trace（`--deep` 模式）。
 
-**方式 B：cdp.mjs（內建 fallback）**
-
-需 Node.js 22+，Plugin 內建無需額外安裝。
-
-兩種方式都需要 Chrome 啟用 Remote Debugging：
-1. Chrome 網址列輸入 `chrome://inspect/#remote-debugging`
-2. 開啟「Remote debugging」切換開關
-
-> 也支援 Chromium、Brave、Edge、Vivaldi。
+> 💡 兩者可同時安裝：Playwright 負責 QA 驗收，chrome-devtools 負責除錯診斷（console/network）。
 
 ---
 
