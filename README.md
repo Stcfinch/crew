@@ -296,7 +296,7 @@ claude mcp remove dbhub      # 移除 DBHub
 |------|------|------|---------|-----------|
 | **Node.js ≥ 18** | 🔴 必要 | 所有 MCP Server 的執行環境 | [nodejs.org](https://nodejs.org/) | 全部 |
 | **Git** | 🔴 必要 | 版本控制、專案識別 | 系統內建或安裝 | 全部（14/17 skills） |
-| **Notion MCP** | 🔴 必要 | Notion 資料庫讀寫 | `claude plugin install notion` | 15/17 skills |
+| **Notion MCP** | 🔴 必要 | Notion 資料庫讀寫 | `claude plugin install notion`（推薦）或 notion-local（見下方） | 15/17 skills |
 | **Agent Teams** | 🔴 必要 | 多人協作程式碼產生與審查 | 設定環境變數（見下方） | plan-build、plan-review |
 | **Playwright MCP** | 🟡 強烈建議 | 瀏覽器自動化驗收 | `claude mcp add playwright ...` | plan-verify、bug-fix |
 | **Maven / Gradle** | 🟡 強烈建議 | 編譯驗證 | 專案本身自帶 | plan-build、bug-fix |
@@ -398,7 +398,9 @@ Google 官方維護，可連接已登入的 Chrome session，適合需要 SSO/VP
 
 ## 首次設定
 
-### Step 1：安裝 Notion MCP Server
+### Step 1：安裝 Notion MCP Server（擇一）
+
+**方式 A：Notion Plugin（推薦）**
 
 ```bash
 claude plugin install notion
@@ -412,6 +414,21 @@ claude plugin install notion
 4. 授權完成後回到 Claude Code
 
 > 每位使用者需各自完成 OAuth 授權，授權範圍僅限自己選擇的 Workspace。
+
+**方式 B：notion-local（API Token，適合 CI/CD 或 Plugin 無法使用時）**
+
+```bash
+claude mcp add notion-local --scope user -- \
+  npx @anthropic-ai/notion-mcp-server
+```
+
+需額外設定：
+1. 到 [notion.so/my-integrations](https://www.notion.so/my-integrations) 建立 Integration
+2. 在 `~/.claude/settings.json` 設定 `"env": { "NOTION_TOKEN": "ntn_xxx" }`
+3. 在 Notion 中將 Integration 加入要存取的頁面（頁面右上角 `···` → Connections）
+
+> 限制：notion-local 無法自動建立資料庫 View（setup 時會提示手動建立，不影響日常使用）。
+> CREW 會自動偵測已安裝的 Notion 後端，優先使用 Notion Plugin。
 
 ### Step 2：安裝 Workflow Plugin
 

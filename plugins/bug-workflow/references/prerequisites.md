@@ -89,6 +89,24 @@ uname -s 2>/dev/null || echo "Windows"
 # 指令不存在 → Windows (CMD / PowerShell)
 ```
 
+### 0.5 Notion 後端偵測（所有需要 Notion 的 Skill）
+
+每個 session 第一次需要 Notion 操作時執行偵測，結果在 session 中復用。
+
+```
+1. 嘗試使用 Notion Plugin 工具（如 notion-search）
+   → 可用 → NOTION_BACKEND = "plugin"（優先）
+
+2. 不可用 → 嘗試使用 notion-local 工具（如 API-post-search 或 API-get-self）
+   → 可用 → NOTION_BACKEND = "local"
+
+3. 都不可用 → 提示安裝（兩種方式擇一）並中止
+```
+
+偵測成功後，依據 `NOTION_BACKEND` 參照 `references/notion-backend.md` 的映射表選擇對應工具。
+
+> 此偵測不限於 setup — 任何需要 Notion 操作的 Skill 首次呼叫時都會觸發。
+
 ### 1. CLAUDE.md 是否存在？
 
 檢查當前專案根目錄（`pwd` 或 Git root）是否有 `CLAUDE.md`。
@@ -139,20 +157,22 @@ uname -s 2>/dev/null || echo "Windows"
 
 ## 適用範圍
 
-| Skill | 需要前置檢查？ | 說明 |
-|-------|:---:|------|
-| `bug-setup` | ⚠️ | 只檢查第 0 項（基礎環境），其餘跳過 |
-| `plan-setup` | ⚠️ | 只檢查第 0 項（基礎環境），其餘跳過 |
-| `project-add` | ⚠️ | 只檢查第 2 項（設定檔），不檢查第 1、3 項 |
-| `bug-start` | ✅ | 完整檢查 1 + 2 + 3 |
-| `bug-update` | ✅ | 完整檢查 1 + 2 + 3 |
-| `bug-close` | ✅ | 完整檢查 1 + 2 + 3 |
-| `plan-start` | ✅ | 完整檢查 1 + 2 + 3 |
-| `plan` | ✅ | 只檢查第 1 項 |
-| `plan-build` | ✅ | 只檢查第 1 項 |
-| `plan-verify` | ✅ | 只檢查第 1 項 |
-| `plan-review` | ✅ | 只檢查第 1 項 |
-| `plan-close` | ✅ | 完整檢查 1 + 2 + 3 |
-| `plan-sync` | ✅ | 完整檢查 1 + 2 + 3 |
-| `plan-status` | ✅ | 只檢查第 1 項 |
-| `plan-stack` | ✅ | 只檢查第 1 項 |
+| Skill | 基礎環境(0) | Notion 偵測(0.5) | CLAUDE.md(1) | 設定檔(2) | 專案註冊(3) |
+|-------|:---:|:---:|:---:|:---:|:---:|
+| `bug-setup` | ✅ | ✅ | — | — | — |
+| `plan-setup` | ✅ | ✅ | — | — | — |
+| `project-add` | — | ✅ | — | ✅ | — |
+| `bug-start` | — | ✅ | ✅ | ✅ | ✅ |
+| `bug-investigate` | — | — | ✅ | — | — |
+| `bug-update` | — | ✅ | ✅ | ✅ | ✅ |
+| `bug-fix` | — | — | ✅ | — | — |
+| `bug-close` | — | ✅ | ✅ | ✅ | ✅ |
+| `plan-start` | — | ✅ | ✅ | ✅ | ✅ |
+| `plan` | — | — | ✅ | — | — |
+| `plan-build` | — | — | ✅ | — | — |
+| `plan-verify` | — | — | ✅ | — | — |
+| `plan-review` | — | — | ✅ | — | — |
+| `plan-close` | — | ✅ | ✅ | ✅ | ✅ |
+| `plan-sync` | — | ✅ | ✅ | ✅ | ✅ |
+| `plan-status` | — | — | ✅ | — | — |
+| `plan-stack` | — | — | ✅ | — | — |
