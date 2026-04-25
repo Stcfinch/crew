@@ -37,6 +37,13 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 ---
 
+## 紀律護欄
+
+> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-build 專用」段落。在任何步驟中感到「可以跳過」的衝動時，查表確認是否為已知偏離模式。
+> **動作邊界**：遵循 `references/boundaries.md` 的「plan-build」段落。🟢 自動做、🟡 先問、🔴 絕不。
+
+---
+
 ## 使用方式
 
 ```
@@ -70,21 +77,11 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 ### 3. 判斷團隊組成
 
-從 `spec.md` 的「判斷」區塊讀取：
-- `FRONTEND_REQUIRED`: true/false
-- `FRONTEND_TECH`: JSP/Vue/React/無
+依據 `references/team-composition.md` 的判斷規則決定團隊配置。
 
-另外檢查 DB MCP 可用性：
-- `DB_MCP_AVAILABLE`: 執行 `claude mcp list` 檢查是否有 `dbhub`
+讀取 spec.md 的「判斷」區塊，取得 TASK_TYPE、CHANGE_SCOPE、FRONTEND_REQUIRED、DB_MCP_AVAILABLE 等欄位，按規則判斷。
 
-根據判斷結果決定團隊規模：
-
-| 情境 | 團隊組成 |
-|------|---------|
-| `--backend-only` 或無前端 | 後端工程師（Subagent 模式） |
-| 有前端需求，無 DB MCP | 4 人 Agent Teams（後端 + API + 前端 + 測試） |
-| 有前端需求，有 DB MCP | 5 人 Agent Teams（DB + 後端 + API + 前端 + 測試） |
-| 無前端需求，有 DB MCP | 4 人 Agent Teams（DB + 後端 + API + 測試） |
+若判斷區塊缺少 TASK_TYPE / CHANGE_SCOPE → 回退到 v4.9.0 邏輯（只看 FRONTEND_REQUIRED × DB_MCP）。
 
 ### 4. 確認執行計畫
 
@@ -104,168 +101,42 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 確認開始？[Y/n]
 ```
 
-### 5. 讀取專案上下文（給 Teammates 的共用上下文）
+### 5. 準備分層脈絡
 
-收集一次，嵌入到 Team 建立指令中：
+依據 `references/build-context-layers.md` 的四層策略，為每個 Teammate 準備定制化的脈絡。
 
-- 專案 CLAUDE.md 內容
-- 技術棧 ID 和定義（依 `references/config-resolver.md` 第 3 層載入：內建 → `stacks/_builtin.md`，自訂 → `stacks/{id}.md`）
-- 1-2 個現有程式碼範本（POJO、Mapper、Service、Controller 各一個）的檔案路徑
-- **DB MCP 可用性**：檢查 `claude mcp list` 是否有 `dbhub`，若有則在後端工程師和測試工程師的提示詞中啟用 DB 查詢能力
+#### 5a. 擷取共用核心（Layer 0）
+從 CLAUDE.md 擷取技術棧、命名慣例、禁止事項，格式化為 5 行以內。
+
+#### 5b. 準備角色脈絡（Layer 1）
+按 Teammate 角色，從 .spec/ 文件中擷取該角色需要的段落（見 build-context-layers.md 的角色分配表）。
+
+#### 5c. 預篩選範本（Layer 2）
+1. 用 Glob 找到同層級的候選範本
+2. 讀取每個候選，選出最簡單、最標準的
+3. 擷取關鍵片段（class 宣告 + 1 個方法 + import 區塊）
+4. 附帶學習重點指引
+
+#### 5d. 預備交叉引用清單（Layer 3）
+從設計文件中提取跨角色約束（NOT NULL、UNIQUE、必填參數、外鍵、分頁限制）。
 
 ### 6. 啟動 Agent Teams
 
-#### 僅後端（Subagent）
+讀取 `references/build-prompts.md` 取得 Teammate prompt 模板。
 
-若 `FRONTEND_REQUIRED = false` 或 `--backend-only`，使用 **Agent tool** 啟動 subagent：
+根據步驟 3 的團隊組成判斷，選擇對應的模板（Subagent / Agent Teams），將步驟 5 準備的分層脈絡嵌入各 Teammate 的 prompt 中。
 
-```
-你是後端程式碼產生器。
+> 模板中的 `{placeholder}` 需替換為實際值。見 build-prompts.md 的變數說明。
 
-## 設計文件
-{arch.md 內容}
+#### Teammate prompt 組裝規則
 
-## DB 設計
-{db.md 內容}
+每個 Teammate 的最終 prompt = Layer 0 共用核心 + Layer 1 角色脈絡 + Layer 2 範本片段 + Layer 3 交叉引用 + build-prompts.md 的角色模板
 
-## 專案上下文
-{CLAUDE.md 內容}
+#### Subagent vs Agent Teams 選擇
 
-## 技術棧
-{技術棧 ID 和定義}
-
-## 現有程式碼範本
-請讀取以下檔案作為風格參考：
-{範本檔案路徑清單}
-
-## DB MCP（若可用）
-{db_mcp_instruction}
-
-## 任務
-按架構設計的類別清單，依序產生所有後端程式碼骨架：
-1. POJO/Entity（含 Lombok、表註解）
-2. Mapper/DAO（tk.mybatis 或 JPA Repository）
-3. Mapper XML（若使用 MyBatis）
-4. Service Interface
-5. Service Impl（方法含 TODO 標記待實作邏輯）
-6. Controller（含 @RequestMapping、參數驗證）
-
-風格必須與專案完全一致（package、import 順序、註解、縮排）。
-{dry_run_instruction}
-
-使用繁體中文撰寫註解。
-```
-
-#### 完整團隊（Agent Teams）
-
-使用自然語言要求 Claude 建立 Agent Team（根據步驟 3 判斷結果決定成員數）：
-
-```
-建立一個 Agent Team 來開發 {功能名稱} 功能，生成 {N} 個 Teammate：
-
-{若 DB_MCP_AVAILABLE = true，包含以下成員：}
-【成員 0：DB 工程師】DB Engineer
-- 📊 專職資料庫工程師，透過 DB MCP（DBHub）直接操作資料庫
-- 讀取設計文件：
-  * .spec/{slug}/db.md（DB 設計 — 新增/修改的表結構）
-  * .spec/{slug}/db.sql（SQL 檔案，若存在）
-- 使用 execute_sql 和 search_objects 工具查詢真實資料庫
-- 任務：
-  * 查詢現有表結構，確認 db.md 設計與 DB 現狀的差異
-  * 產生 Migration SQL（CREATE TABLE / ALTER TABLE），放入 db.sql 或專案指定的 migration 目錄
-  * 檢查既有索引，為新查詢場景建議索引（WHERE / JOIN / ORDER BY 欄位）
-  * 查詢 sys.dm_exec_query_stats（MSSQL）或 pg_stat_statements（PostgreSQL），找出與本功能相關的慢查詢
-  * 若發現效能風險，產出索引建議或查詢改寫方案，寫入 .spec/{slug}/db-optimization.md
-  * 確認欄位命名慣例（大小寫、前綴、型別）與既有表一致
-  * 檢查 FK / UNIQUE / NOT NULL 約束是否合理
-- **最先開始**，完成後通知 Lead 並向後端工程師分享：
-  * 確認後的表結構（欄位名、型別、約束）
-  * 索引建議清單
-  * 效能風險提醒（若有）
-- 使用 Opus 模型
-- 使用繁體中文
-
-【成員 1：後端工程師】Backend Engineer
-- 讀取專案 CLAUDE.md 了解架構慣例
-- 讀取設計文件：
-  * .spec/{slug}/arch.md（架構設計 — 類別清單、介面定義）
-  * .spec/{slug}/db.md（DB 設計 — 表結構）
-- 掃描專案現有程式碼學習風格（POJO、Mapper、Service 各一個範本）
-{若有 DB 工程師：等待 DB 工程師完成，取得確認後的表結構和索引建議}
-- 任務：
-  * 產生 POJO/Entity（含 Lombok、表註解）
-  * 產生 Mapper/DAO（tk.mybatis 或 JPA Repository）
-  * 產生 Mapper XML（若使用 MyBatis）
-  * 產生 Service Interface + Service Impl
-  * Service 方法含 TODO 標記待實作邏輯
-- 風格必須與專案完全一致（package、import 順序、註解、縮排）
-- 完成後通知 Lead，並向其他成員分享產出的類別清單和介面定義
-- 使用 Opus 模型
-- 使用繁體中文
-
-【成員 2：API 工程師】API Engineer
-- 讀取設計文件：
-  * .spec/{slug}/spec.md（技術規格 — API 設計、參數驗證規則）
-  * .spec/{slug}/arch.md（架構設計）
-- 等待後端工程師完成 Service 層後開始
-- 任務：
-  * 產生 Controller（含 @RequestMapping、路由設定）
-  * 產生 DTO（Request/Response 物件）
-  * 實作 API 參數驗證邏輯
-  * 實作例外處理（BizException、ApiResult）
-  * 確保 API 回應格式與專案現有風格一致
-- 完成後通知 Lead，並向前端工程師分享 API 端點清單（URL + Method + 請求/回應格式）
-- 使用 Opus 模型
-- 使用繁體中文
-
-【成員 3：前端工程師】Frontend Engineer
-- 前端技術棧：{FRONTEND_TECH}
-- 讀取設計文件：
-  * .spec/{slug}/spec.md（技術規格 — 畫面需求、操作流程）
-- 掃描專案前端目錄，讀取 2-3 個現有頁面作為風格範本
-- 可與後端工程師同時開始（前端不依賴後端實作）
-- 任務：
-  * 產生前端頁面（HTML/JSP/Vue）
-  * 產生 API 呼叫邏輯（待 API 工程師確認端點後對齊）
-  * 產生表單驗證、表格展示、分頁元件
-- 風格必須與專案完全一致
-- 完成後通知 Lead
-- 使用繁體中文
-
-【成員 4：測試工程師】Test Engineer
-- 讀取專案的測試慣例（掃描 src/test/ 下現有測試檔案）
-- 等待後端工程師完成後開始
-{若有 DB 工程師：參考 DB 工程師提供的約束條件和索引資訊，設計更完整的測試案例}
-- 任務：
-  * 為 Service 層產生單元測試（JUnit + Mockito）
-  * 為 Controller 層產生整合測試（MockMvc / SpringBootTest）
-  * 測試案例涵蓋：正常流程、邊界條件、異常處理
-  * 測試命名遵循專案慣例
-- 完成後通知 Lead
-- 使用繁體中文
-
-【任務依賴關係】
-{若有 DB 工程師：}
-- 成員 0（DB 工程師）最先開始，驗證表結構和索引
-- 成員 1（後端工程師）等成員 0 完成後開始，依據確認後的表結構產生程式碼
-{若無 DB 工程師：}
-- 成員 1（後端工程師）最先開始，是核心
-{共同：}
-- 成員 2（API 工程師）和測試工程師等成員 1 完成後再開始
-- 成員 3（前端工程師）可以跟成員 1 同時開始（前端不依賴後端實作）
-- API、前端、測試之間可並行
-
-重要：各 Teammate 負責不同目錄，不會衝突。
-完成後：互相確認 API 契約是否一致（端點 URL、參數、回應格式），
-不一致的地方由 API 工程師為準，其他成員調整。
-{dry_run_instruction}
-
-請使用 delegate mode，Lead 只負責協調，不要自己寫 code。
-每個 Teammate 完成後要通知 Lead。
-所有輸出使用繁體中文。
-```
-
-> `{dry_run_instruction}`：若 `--dry-run`，加入「只展示檔案清單和關鍵程式碼片段，不實際建立檔案」。
+根據步驟 3 的判斷結果（見 `references/team-composition.md`）：
+- 1 人 → Subagent 模式
+- 2+ 人 → Agent Teams 模式（或多個 Subagent）
 
 ### 7. 更新 .spec/ 檔案
 
@@ -290,6 +161,42 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 2. 更新 `README.md` 的 `status: 開發中`
 3. 在 `log.md` 追加紀錄
+
+### 7.5 退出驗證（強制，不可跳過）
+
+Leader 在回傳結果前，逐項檢查以下退出條件：
+
+#### 自動驗證項目
+
+| # | 檢查項目 | 驗證方式 | 失敗處理 |
+|---|---------|---------|---------|
+| E1 | 所有 Teammate 都已完成 | 確認每個 Teammate 回報了完成訊息 | 等待或重試未完成的 Teammate |
+| E2 | files.md 已產出 | 檢查 .spec/{slug}/files.md 存在且非空 | 從 Teammate 產出中彙整產出 files.md |
+| E3 | 產出檔案真的存在 | 讀取 files.md，用 ls 或 Read 確認每個檔案路徑存在 | 列出缺失檔案，要求使用者決定：重試 / 移除 |
+| E4 | 無編譯錯誤（若可驗證） | 若專案有 build 指令（mvn compile / gradle build），執行一次 | 顯示錯誤訊息，標記 ⚠️ 但不阻擋 |
+| E5 | API 契約一致性 | 比對 Controller 的 @RequestMapping 與 spec.md 的 API 端點 | 列出不一致項目，標記 ⚠️ |
+| E6 | spec.md 驗收條件有對應程式碼 | 讀取 spec.md 的驗收條件 checkbox，grep 產出檔案確認有相關實作 | 列出無對應的驗收條件，標記 ⚠️ |
+
+#### 驗證結果分級
+
+- **🔴 BLOCK**（E1, E2, E3）：必須解決後才能標記完成
+- **⚠️ WARN**（E4, E5, E6）：記錄到 log.md，不阻擋但提醒使用者
+
+#### 驗證報告格式
+
+寫入 `.spec/{slug}/log.md` 並在回傳結果中顯示：
+
+```
+退出驗證結果：
+  ✅ E1 所有 Teammate 完成
+  ✅ E2 files.md 已產出（12 個檔案）
+  ✅ E3 所有檔案存在
+  ⚠️  E4 編譯未驗證（專案無標準 build 指令）
+  ✅ E5 API 契約一致（4/4 端點吻合）
+  ⚠️  E6 驗收條件 #3「支援匯出 Excel」無對應程式碼
+
+  結論：可繼續，但建議處理 E6 後再進 plan-verify
+```
 
 ### 8. 回傳結果
 
@@ -317,26 +224,11 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 ## DB MCP 提示詞模版
 
-步驟 5 檢查 DB MCP 可用性後，根據結果決定是否加入 DB 工程師：
+> 完整的 DB MCP 提示詞模板見 `references/build-prompts.md` 的「DB MCP 提示詞模版」段落。
 
-### 若 DBHub 已安裝
-
-- Agent Teams 模式：加入「成員 0：DB 工程師」，成為最先開始的成員
-- Subagent 模式：在後端工程師提示詞中嵌入 `{db_mcp_instruction}`：
-```
-專案已安裝 DB MCP（DBHub），你可以直接查詢資料庫：
-- 使用 execute_sql 查詢現有表結構，確認 db.md 設計與實際 DB 是否一致
-- 使用 search_objects 搜尋相關的表、欄位、索引、預存程序
-- 查詢既有資料表的欄位命名慣例（大小寫、前綴、型別偏好），確保新表設計風格一致
-- 檢查是否有可複用的既有表或欄位，避免重複建立
-- 查詢慢查詢統計，為新 SQL 設計提供效能參考
-- 產出索引建議或查詢改寫方案
-```
-
-### 若 DBHub 未安裝
-
-- Agent Teams 模式：不加入 DB 工程師，維持原有成員配置
-- Subagent 模式：`{db_mcp_instruction}` 替換為空字串
+步驟 5 檢查 DB MCP 可用性（`claude mcp list` 是否有 `dbhub`）後，根據結果決定是否加入 DB 工程師：
+- **已安裝**：Agent Teams 加入「成員 0：DB 工程師」；Subagent 模式嵌入 `{db_mcp_instruction}`
+- **未安裝**：不加入 DB 工程師；`{db_mcp_instruction}` 替換為空字串
 
 ---
 

@@ -65,6 +65,31 @@ git diff HEAD~1..HEAD
 3. 若有多個候選 → 列出清單讓使用者選擇
 4. 若無候選 → 提示使用者先用 `/bug-start` 建立
 
+### 2.5 退出驗證門檻
+
+結案前執行 4 項檢查，確保修復品質達標：
+
+| # | 檢查項 | 驗證方式 | 失敗處理 |
+|---|--------|---------|---------|
+| C1 | 根因分析已填寫 | Notion 頁面「根因分析」區塊非空 | WARN：提醒補填，允許繼續但狀態強制為「測試中」 |
+| C2 | 修復 commit 存在 | `git log --oneline -10` 中有相關 commit | BLOCK：必須先 commit |
+| C3 | 迴歸測試存在 | grep test 目錄中含 "Regression: {bug 相關關鍵字}" | WARN：建議用 /bug-fix 產出 |
+| C4 | 驗證項目至少一項勾選 | Notion 頁面 checkbox 狀態 | WARN：提醒驗證 |
+
+驗證結果顯示：
+
+```
+退出驗證：
+  ✅ C1 根因分析已填寫
+  ✅ C2 修復 commit 存在（abc1234）
+  ⚠️  C3 無迴歸測試
+  ⚠️  C4 驗證項目未勾選
+
+結論：可結案，建議處理 C3 和 C4
+```
+
+若 C1 為 WARN → 目標狀態選項中移除「已完成」，只能選「測試中」。
+
 ### 3. 互動式補充資訊
 
 詢問使用者（若未在初始輸入中提供）：
@@ -132,6 +157,55 @@ git diff HEAD~1..HEAD
 ```
 
 若設定檔中「Bug 知識庫」ID 為空，則跳過此步驟。
+
+### 6.5 學習捕捉
+
+AI 分析本次 bug 的根因、修復和調查過程，判斷是否有可複用的洞察。
+
+#### 學習類型
+
+| 類型 | 說明 | 範例 |
+|------|------|------|
+| pattern | 可複用的 bug 模式 | 「此專案的 token 過期 bug 常發生在推播模組」 |
+| pitfall | 應避免的陷阱 | 「LINE API 的 503 需要特別處理，不能只處理 401」 |
+| architecture | 架構層面的洞察 | 「PushService 和 TokenService 的耦合度太高」 |
+| environment | 環境相關的知識 | 「正式環境的 LINE API rate limit 是 100 req/min」 |
+
+#### 學習格式
+
+寫入 `~/.claude-company/bug-workflow/learnings/{project-slug}.jsonl`：
+
+```json
+{
+  "date": "2026-04-24",
+  "skill": "bug-close",
+  "bug_title": "推播排程發送失敗",
+  "root_cause": "LINE API refresh 回傳 503 未處理",
+  "pattern": "third-party-api",
+  "type": "pitfall",
+  "insight": "LINE API 的 refresh token 端點偶爾回傳 503，retry 邏輯必須涵蓋 503 且加入 exponential backoff",
+  "confidence": 9,
+  "files": ["PushService.java"],
+  "notion_url": "https://www.notion.so/xxx"
+}
+```
+
+`project-slug` 來自 Git Repo 識別碼（`/` 替換為 `-`）。每行一筆 JSON（JSONL 格式）。
+
+#### 自動 vs 手動
+
+AI 自動判斷是否有學習價值：
+- **有明確洞察** → 自動寫入，在結案訊息中顯示「學習已捕捉：{insight}」
+- **不確定** → 詢問使用者：「這次 bug 有什麼值得記下來的嗎？」
+- **太泛/太明顯** → 不記錄（如「要注意 null check」太泛，不記）
+
+#### 學習目錄建立
+
+```bash
+mkdir -p ~/.claude-company/bug-workflow/learnings
+```
+
+若目錄不存在，首次使用時自動建立。
 
 ### 7. 回傳結果
 

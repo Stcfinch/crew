@@ -18,6 +18,7 @@
     "./skills/plan-db",
     "./skills/plan-arch",
     "./skills/plan-build",
+    "./skills/plan-security",
     "./skills/plan-verify",
     "./skills/plan-review",
     "./skills/plan-close",

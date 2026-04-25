@@ -1,7 +1,7 @@
 {
   "name": "bug-workflow",
   "description": "Bug 文件工作流 — 整合 Notion 與 Claude Code，自動化 Bug 生命週期管理（建立、調查、結案、搜尋、復發處理）",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "author": {
     "name": "Cheng"
   },
@@ -10,7 +10,9 @@
   "skills": [
     "./skills/bug-setup",
     "./skills/bug-start",
+    "./skills/bug-investigate",
     "./skills/bug-update",
+    "./skills/bug-fix",
     "./skills/bug-close",
     "./skills/project-add"
   ],

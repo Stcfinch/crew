@@ -48,6 +48,13 @@ CDP="node ~/.claude-company/company-marketplace/plugins/feature-workflow/scripts
 
 ---
 
+## 紀律護欄
+
+> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-verify 專用」段落。在任何步驟中感到「可以跳過」的衝動時，查表確認是否為已知偏離模式。
+> **動作邊界**：遵循 `references/boundaries.md` 的「plan-verify」段落。🟢 自動做、🟡 先問、🔴 絕不。
+
+---
+
 ## 前置檢查流程
 
 執行前**依序檢查**，決定使用模式：

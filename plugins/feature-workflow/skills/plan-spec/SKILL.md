@@ -48,10 +48,18 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
 在文件最後附加判斷區塊：
 ---
 ## 判斷
+
+### 任務屬性
+- TASK_TYPE: {根據需求分析判斷：feature/adjustment/bugfix/refactor/performance}
+- CHANGE_SCOPE: {根據影響範圍判斷：full/backend-only/frontend-only/api-only/db-only}
+
+### 技術需求
 - FRONTEND_REQUIRED: true/false
 - FRONTEND_TECH: JSP/Vue/React/無
 - DB_REQUIRED: true/false
 - DB_TABLES: 預估的表清單
+- NEW_API: true/false
+- EXISTING_API_CHANGE: true/false
 ```
 
 完成後更新 README.md 的 `status: 規格設計`。

@@ -1,6 +1,6 @@
 ---
 name: plan-review
-description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/安全），完成後互相分享發現並交叉審查，產出審查報告寫入 .spec/ 目錄。當使用者提到「plan-review」、「程式碼審查」、「code review」、「Agent Teams 審查」時觸發此 Skill。
+description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/效能），完成後互相分享發現並交叉審查，產出審查報告寫入 .spec/ 目錄。當使用者提到「plan-review」、「程式碼審查」、「code review」、「Agent Teams 審查」時觸發此 Skill。
 ---
 
 # plan-review — Agent Teams 程式碼審查
@@ -20,6 +20,13 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/安全�
 建議已執行 `/plan-build` 產生程式碼，或已有開發中的程式碼。
 
 > **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+
+---
+
+## 紀律護欄
+
+> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-review 專用」段落。在任何步驟中感到「可以跳過」的衝動時，查表確認是否為已知偏離模式。
+> **動作邊界**：遵循 `references/boundaries.md` 的「plan-review」段落。🟢 自動做、🟡 先問、🔴 絕不。
 
 ---
 
@@ -66,7 +73,7 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/安全�
 📊 Reviewer 配置：
   • Reviewer 1 — 邏輯正確性（Opus）
   • Reviewer 2 — 程式碼品質（Sonnet）
-  • Reviewer 3 — 安全性與效能（Opus）
+  • Reviewer 3 — 效能審查（Opus）
 
 確認開始？[Y/n]
 ```
@@ -117,22 +124,11 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/安全�
 - 可使用 Sonnet 模型
 - 使用繁體中文
 
-【Reviewer 3：安全性與效能】Security Reviewer
-- 讀取專案 CLAUDE.md 了解安全框架（ESAPI? AntiSamy?）
+【Reviewer 3：效能審查】Performance Reviewer
+- 讀取專案 CLAUDE.md 了解效能相關配置
 - 讀取 .spec/{slug}/db.md 了解 DB 設計
 - 讀取本次新增/修改的所有程式碼檔案：
   {檔案清單}
-- 安全性檢查：
-  * SQL Injection（MyBatis ${} vs #{}）
-  * XSS（輸入未轉義、前端的 XSS 防護）
-  * API 的 input validation
-  * 權限控制遺漏
-  * 敏感資料外洩
-  * CSRF 防護
-- 三角色對抗性檢查（Audit Discipline）：
-  * 壞蛋（Scoundrel）：設定能否關閉安全機制？參數能否注入繞過驗證？
-  * 懶惰開發者（Lazy）：預設值是否安全？零值/空值行為是否安全？未初始化的狀態是否有害？
-  * 搞混開發者（Confused）：參數能否交換而無型別錯誤？安全檢查失敗是否被靜默忽略？錯誤路徑是否洩漏資訊？
 - 效能檢查：
   * N+1 查詢
   * 缺少分頁
@@ -140,7 +136,11 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/安全�
   * 迴圈內 DB 呼叫
   * 大量資料未串流
   * 潛在的效能問題（大數據量回測）
-- 標記：🔴 安全漏洞 / 🟡 效能風險 / 🟢 良好
+  * 查詢執行計畫分析（若 DB MCP 可用）
+  * 效能指標預估（回應時間、吞吐量）
+  * 快取策略建議
+  * 連線池配置
+- 標記：🔴 效能瓶頸 / 🟡 效能風險 / 🟢 良好
 - 使用 Opus 模型
 - 使用繁體中文
 
@@ -196,7 +196,7 @@ Leader 收集所有 Reviewer 的發現（含交叉分享結果），彙整寫入
 |------|---------|---------|---------|
 | 邏輯正確性 | {N} | {N} | {N} |
 | 程式碼品質 | — | {N} | {N} |
-| 安全與效能 | {N} | {N} | {N} |
+| 效能 | {N} | {N} | {N} |
 | **合計** | **{N}** | **{N}** | **{N}** |
 
 ## 🔴 嚴重問題
