@@ -138,15 +138,23 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 ```
 即將驗證 {N} 條驗收條件：
 
-| # | 驗收條件 | 類型 | 驗證方式 |
-|---|---------|------|---------|
-| 1 | 可依日期範圍查詢 | API | GET /api/xxx |
-| 2 | 支援分頁顯示 | UI | 點擊下一頁 |
-| 3 | 支援匯出 Excel | UI | 點擊匯出按鈕 |
+| # | 驗收條件 | 類型 | 驗證方式 | 截圖 |
+|---|---------|------|---------|------|
+| 1 | 可依日期範圍查詢 | API | GET /api/xxx | — |
+| 2 | 支援分頁顯示 | UI | 點擊下一頁 | 自動 📸 |
+| 3 | 後台可查詢紀錄 | API | GET /admin/xxx | 後台 📸 |
+| 4 | 支援匯出 Excel | UI | 點擊匯出按鈕 | 自動 📸 |
 
 驗證模式：{MCP 工具 / Bash cdp.mjs}
 {--api-only: 將跳過 UI 類型驗證}
 {--manual: 每步驟等待確認}
+
+截圖欄說明：
+  —      純 API 驗證，無對應頁面
+  自動 📸  UI 操作自動截圖
+  後台 📸  API 驗證完後額外開啟後台頁面截圖（AI 從 arch.md 推斷）
+
+使用者可在確認時覆寫（如「第 1 項也加截圖」或「第 3 項不需要截圖」）。
 
 確認開始？[Y/n]
 ```
@@ -201,6 +209,54 @@ curl -s "http://localhost:8080/api/xxx" -H "Cookie: {cookie}" | head -100
 ```
 
 檢查：HTTP 狀態碼、回應格式、資料筆數、欄位完整性。
+
+#### 記錄 Evidence 檔案（API 驗證時必做）
+
+每次 curl 呼叫完成後，**立即**將完整請求與回應寫入 evidence 目錄：
+
+```bash
+mkdir -p .spec/{slug}/evidence
+
+# 寫入完整請求（含 method、URL、headers）
+cat > .spec/{slug}/evidence/verify-{N}-request.txt << 'EOF'
+GET http://localhost:8080/ap/pushTagQuery/list?startDate=2026-01-01&endDate=2026-03-18&pageNum=1&pageSize=20
+Headers:
+  Cookie: JSESSIONID=abc123def456
+  Content-Type: application/json
+EOF
+
+# 寫入完整回應 body（JSON 用 .json，其餘用 .txt）
+curl -s "..." | python3 -m json.tool > .spec/{slug}/evidence/verify-{N}-response.json
+# 若非 JSON：
+curl -s "..." > .spec/{slug}/evidence/verify-{N}-response.txt
+```
+
+此檔案為**原始內容、不遮蔽**，供內部技術驗證用。Word 報告中引用時會自動遮蔽敏感資訊（見步驟 10.3）。
+
+#### 後台頁面截圖（API 有對應後台頁面時）
+
+若驗證計畫中標記為「後台 📸」的 API 項目，curl 驗證完成後**額外**執行：
+
+**MCP 模式：**
+```
+# 開啟對應後台頁面
+browser_navigate({ url: "http://localhost:8080/admin/xxx" })
+
+# 等待頁面載入
+browser_wait_for({ text: "{關鍵文字}" })
+
+# 截圖存證
+browser_take_screenshot()
+```
+
+**Bash 模式：**
+```bash
+$CDP navigate {target} "http://localhost:8080/admin/xxx"
+$CDP snap {target}
+$CDP shot {target}
+```
+
+截圖命名：`verify-{N}-admin-{desc}.png`，存入 `screenshots/`。
 
 #### UI 驗證
 
@@ -270,6 +326,7 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 | 證據 | API 回應摘要 / snap 關鍵節點 / 截圖路徑 |
 | 失敗原因 | 僅 FAIL 時記錄 |
 | 操作敘述 | 人話描述的操作步驟清單（用於 Word 報告） |
+| evidence 檔案 | API 類型時記錄：`evidence/verify-{N}-request.txt`、`evidence/verify-{N}-response.json` |
 
 - `PASS`：驗證通過
 - `FAIL`：驗證失敗（含原因）
@@ -309,14 +366,16 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 3. 合併連續操作（`click` → `wait_for` → `snapshot` → 「點擊 XX 按鈕，等待頁面載入完成」）
 4. 結果用白話（「HTTP 200, 15 rows」→「系統成功回傳 15 筆資料」）
 5. 省略技術診斷操作（`evaluate_script`、`list_console_messages` 不納入）
+6. `<!-- evidence -->` 區塊不翻譯，原樣保留（供 Word 報告「測試紀錄」段落使用）
 
-### 6. 收集截圖
+### 6. 收集截圖與 Evidence
 
 ```bash
 mkdir -p .spec/{slug}/screenshots
+mkdir -p .spec/{slug}/evidence
 ```
 
-將驗證過程中的截圖複製到 `.spec/{slug}/screenshots/`：
+將驗證過程中的截圖複製到 `.spec/{slug}/screenshots/`，API 測試的完整請求/回應存入 `.spec/{slug}/evidence/`：
 
 **MCP 模式**：`take_screenshot` 回傳截圖內容，直接儲存。
 
@@ -326,7 +385,8 @@ mkdir -p .spec/{slug}/screenshots
 cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 ```
 
-命名規則：`verify-{序號}-{簡述}.png`，如 `verify-1-query-result.png`。
+截圖命名規則：`verify-{序號}-{簡述}.png`，如 `verify-1-query-result.png`。
+Evidence 命名規則：`verify-{序號}-request.txt`、`verify-{序號}-response.json`（非 JSON 用 `.txt`）。
 
 ### 7. 產出 verify.md
 
@@ -359,10 +419,19 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 - **類型**：API
 - **驗證**：`GET /api/xxx?startDate=2026-01-01&endDate=2026-03-16` → HTTP 200, 15 筆
 - **截圖**：screenshots/verify-1-query-result.png
+- **Evidence**：evidence/verify-1-request.txt, evidence/verify-1-response.json
 <!-- human_steps
 - 操作：透過系統 API 查詢推播統計（日期範圍：2026-01-01 至 2026-03-16）
 - 預期：系統回傳查詢結果，資料筆數大於 0
 - 實際：系統成功回傳 15 筆資料，格式正確
+-->
+<!-- evidence
+request: |
+  GET http://localhost:8080/ap/pushTagQuery/list?startDate=2026-01-01&endDate=2026-03-16&pageNum=1&pageSize=20
+  Cookie: JSESSIONID=abc123def456
+response_status: 200
+response_file: evidence/verify-1-response.json
+response_lines: 42
 -->
 
 ### [2] ❌ 支援匯出 Excel
@@ -375,6 +444,7 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 - 預期：頁面應有「匯出 Excel」按鈕，點擊後下載 .xlsx 檔案
 - 實際：頁面上未找到「匯出」相關按鈕，功能尚未實作
 -->
+<!-- evidence 不適用（UI 驗證，無 API 呼叫） -->
 
 ### [3] ⏭️ 支援分頁顯示
 - **類型**：UI
@@ -551,7 +621,7 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 - 有 FAIL → 「共 N 項驗收條件，M 項未通過，需修正後重新驗證。」
 - 有 MANUAL 無 FAIL → 「共 N 項驗收條件，M 項通過、K 項待人工確認。」
 
-**5. 驗收明細**（每條一個段落，使用 `<!-- human_steps -->` 中的操作敘述）
+**5. 驗收明細**（每條一個段落，使用 `<!-- human_steps -->` 和 `<!-- evidence -->` 中的內容）
 
 ```markdown
 ### 驗收項目 {N}：{驗收條件名稱}
@@ -567,9 +637,59 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 
 **實際結果**：{人話實際}
 
+**測試紀錄**：（API 類型必填，UI 類型若有 curl 呼叫也須附上）
+
+  請求：
+    GET http://localhost:8080/ap/pushTagQuery/list
+        ?startDate=2026-01-01
+        &endDate=2026-03-18
+        &pageNum=1&pageSize=20
+    Headers:
+      Cookie: JSES****f456
+
+  回應（HTTP 200）：
+    {
+      "code": "0000",
+      "data": {
+        "list": [
+          {"pushCode": "P001", "sendCount": 5000, "openCount": 1230},
+          {"pushCode": "P002", "sendCount": 3200, "openCount": 890},
+
+          ... （省略 5 筆，共 15 筆）
+
+          {"pushCode": "P014", "sendCount": 210, "openCount": 58},
+          {"pushCode": "P015", "sendCount": 100, "openCount": 22}
+        ],
+        "total": 15
+      }
+    }
+
+  > 完整回應請見：evidence/verify-{N}-response.json
+
 **截圖**：
 ![{描述}](screenshots/verify-{N}-{desc}.png)
 ```
+
+**測試紀錄截斷規則**：
+
+| 回應行數 | 處理方式 | evidence 檔案 |
+|---------|---------|--------------|
+| ≤ 20 行 | 完整顯示於報告 | 不產出（報告即完整內容） |
+| > 20 行 | 前 10 行 + 省略提示 + 後 10 行 | 產出 `evidence/verify-{N}-response.json` |
+
+省略提示格式：`... （省略 {M} 行，共 {total} 行）`
+
+若單條驗收項目涉及**多次 API 呼叫**（如先查詢再更新），每次呼叫各自記錄為獨立的請求/回應區塊，evidence 檔案命名加上子序號：`verify-{N}-a-response.json`、`verify-{N}-b-response.json`。
+
+**敏感資訊遮蔽規則**（僅 Word 報告，evidence 原始檔不遮蔽）：
+
+| Header / 值 | 遮蔽方式 | 範例 |
+|-------------|---------|------|
+| Cookie | 保留名稱前 4 字元 + `****` + 後 4 字元 | `JSES****f456` |
+| Authorization | 保留 scheme + 前 4 字元 + `****` | `Bearer eyJh****` |
+| X-API-Key / Token | 前 4 字元 + `****` | `sk-l****` |
+
+原則：讓讀者知道「有帶認證」但無法還原實際值。
 
 **6. 待處理事項**（僅 FAIL / MANUAL 時）
 
@@ -634,6 +754,10 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 1. 進入降級模式：AI 從 verify.md 的技術驗證內容反推操作敘述
 2. 在報告封面加註：「※ 操作步驟由系統自動轉譯，可能與實際操作有微差異」
 
+若 verify.md 中無 `<!-- evidence -->` 區塊（舊版或 UI-only 驗證）：
+1. Word 報告的「測試紀錄」段落顯示：「（本次驗證未記錄測試過程詳情）」
+2. 不阻斷報告產出，其餘段落正常生成
+
 ---
 
 ## --recheck 模式
@@ -672,6 +796,9 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 - **Word 報告依賴 `/minimax-docx` Skill**：需要 minimax-skills plugin 已安裝。若不可用，提示使用者安裝（`找不到 /minimax-docx Skill，請確認 minimax-skills plugin 已安裝`），並跳過報告產出。
 - **截圖嵌入 Word**：`/minimax-docx` 接受 Markdown 格式的圖片引用（`![](path)`）。確保截圖路徑使用相對於 `.spec/{slug}/` 的相對路徑。
 - **封面資訊快取**：`report-config.md` 儲存於 `~/.claude-company/feature-workflow/` 下，跨專案共用（公司名稱、作者）。首次產出報告時建立。
+- **Evidence 檔案是原始內容**：`evidence/` 目錄下的檔案包含未遮蔽的 Cookie、Token 等敏感資訊，僅供內部技術驗證。Word 報告中的「測試紀錄」段落會自動遮蔽。若報告需交付客戶，不要連同 `evidence/` 目錄一起交付。
+- **回應截斷以行數判斷**：使用 `wc -l` 計算回應行數。JSON 先經過 `python3 -m json.tool` pretty-print 後再計算行數，避免單行 JSON 永遠不觸發截斷。
+- **多次 API 呼叫的 evidence**：若單條驗收項目涉及多次 curl（如 POST 建立 + GET 查詢驗證），每次呼叫各自產出 evidence 檔案，子序號用 a/b/c 區分。
 
 ---
 
@@ -684,6 +811,9 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 - **`report-config.md` 不存在**：首次詢問所有封面欄位，產出後自動建立
 - **截圖路徑無效**：報告中標註「（截圖不可用）」，不阻斷報告產出
 - **verify.md 無 `human_steps` 註解**（舊版 verify.md）：從 verify.md 技術內容反推操作敘述（降級模式）
+- **verify.md 無 `evidence` 區塊**（舊版或 UI-only）：Word 報告該項「測試紀錄」顯示「（本次驗證未記錄測試過程詳情）」
+- **evidence 檔案寫入失敗**（磁碟空間不足等）：記錄警告，verify.md 中標註 `evidence_error: {原因}`，不阻斷驗證流程
+- **回應非 UTF-8**（如二進位下載）：evidence 檔案存為 `.bin`，Word 報告測試紀錄顯示「（二進位回應，{N} bytes，請見 evidence 檔案）」
 - **--api-only 跳過 UI**：UI 類型標記為 SKIP，不影響其他驗證
 - **截圖失敗**：記錄警告，不阻斷流程
 - **verify.md 已存在**：詢問覆蓋或追加（--recheck 自動合併）

@@ -38,11 +38,21 @@
     "data": { "list": [...], "total": 15, "pageNum": 1 }
   }
   ```
+- **Evidence**：evidence/verify-1-request.txt, evidence/verify-1-response.json
 <!-- human_steps
 - 操作：透過系統 API 查詢推播統計（日期範圍：2026-01-01 至 2026-03-18，分頁：第 1 頁，每頁 20 筆）
 - 操作：檢查回傳資料格式與筆數
 - 預期：系統回傳查詢結果，資料筆數大於 0，格式正確
 - 實際：系統成功回傳 15 筆資料，包含推播代碼、發送數、開封數等欄位，格式正確
+-->
+<!-- evidence
+request: |
+  GET http://localhost:8080/ap/pushTagQuery/list?startDate=2026-01-01&endDate=2026-03-18&pageNum=1&pageSize=20
+  Cookie: JSESSIONID=abc123def456
+  Content-Type: application/json
+response_status: 200
+response_file: evidence/verify-1-response.json
+response_lines: 42
 -->
 
 ### [2] ✅ 日期範圍超過 90 天回傳錯誤
@@ -54,10 +64,19 @@
   ```json
   { "code": "DATE_RANGE_EXCEEDED", "message": "查詢區間不可超過 90 天" }
   ```
+- **Evidence**：evidence/verify-2-request.txt, evidence/verify-2-response.json
 <!-- human_steps
 - 操作：透過系統 API 以超過 90 天的日期範圍進行查詢（2025-01-01 至 2026-03-18）
 - 預期：系統回傳錯誤訊息，說明查詢區間不可超過 90 天
 - 實際：系統正確回傳「查詢區間不可超過 90 天」錯誤訊息
+-->
+<!-- evidence
+request: |
+  GET http://localhost:8080/ap/pushTagQuery/list?startDate=2025-01-01&endDate=2026-03-18
+  Cookie: JSESSIONID=abc123def456
+response_status: 400
+response_file: evidence/verify-2-response.json
+response_lines: 3
 -->
 
 ### [3] ✅ 支援分頁顯示
@@ -172,6 +191,48 @@
 
 **實際結果**：系統成功回傳 15 筆資料，包含推播代碼、發送數、開封數等欄位，格式正確
 
+**測試紀錄**：
+
+請求：
+
+```
+GET http://localhost:8080/ap/pushTagQuery/list
+    ?startDate=2026-01-01
+    &endDate=2026-03-18
+    &pageNum=1&pageSize=20
+Headers:
+  Cookie: JSES****f456
+  Content-Type: application/json
+```
+
+回應（HTTP 200）：
+
+```json
+{
+  "code": "0000",
+  "data": {
+    "list": [
+      {"pushCode": "P001", "sendCount": 5000, "openCount": 1230},
+      {"pushCode": "P002", "sendCount": 3200, "openCount": 890},
+      {"pushCode": "P003", "sendCount": 1800, "openCount": 520},
+      {"pushCode": "P004", "sendCount": 1500, "openCount": 410},
+      {"pushCode": "P005", "sendCount": 1200, "openCount": 380},
+
+      ... （省略 5 筆，共 15 筆）
+
+      {"pushCode": "P011", "sendCount": 600, "openCount": 180},
+      {"pushCode": "P012", "sendCount": 450, "openCount": 120},
+      {"pushCode": "P013", "sendCount": 380, "openCount": 95},
+      {"pushCode": "P014", "sendCount": 210, "openCount": 58},
+      {"pushCode": "P015", "sendCount": 100, "openCount": 22}
+    ],
+    "total": 15
+  }
+}
+```
+
+> 完整回應請見：evidence/verify-1-response.json
+
 ### 驗收項目 2：日期範圍超過 90 天回傳錯誤
 
 **結果：通過** ✅
@@ -183,6 +244,24 @@
 **預期結果**：系統回傳錯誤訊息，說明查詢區間不可超過 90 天
 
 **實際結果**：系統正確回傳「查詢區間不可超過 90 天」錯誤訊息
+
+**測試紀錄**：
+
+請求：
+
+```
+GET http://localhost:8080/ap/pushTagQuery/list
+    ?startDate=2025-01-01
+    &endDate=2026-03-18
+Headers:
+  Cookie: JSES****f456
+```
+
+回應（HTTP 400）：
+
+```json
+{ "code": "DATE_RANGE_EXCEEDED", "message": "查詢區間不可超過 90 天" }
+```
 
 ### 驗收項目 3：支援分頁顯示
 
@@ -210,6 +289,8 @@
 **預期結果**：頁面應有「匯出 Excel」按鈕，點擊後下載 .xlsx 檔案
 
 **實際結果**：頁面上未找到「匯出」相關按鈕，功能尚未實作
+
+**測試紀錄**：（UI 驗證，無 API 呼叫）
 
 **截圖**：
 ![匯出功能缺失](screenshots/verify-4-export-missing.png)
@@ -259,3 +340,4 @@
 - 技術規格書：.spec/push-tag-query/spec.md
 - 架構設計：.spec/push-tag-query/arch.md
 - 驗證技術紀錄：.spec/push-tag-query/verify.md
+- API 測試原始記錄：.spec/push-tag-query/evidence/
