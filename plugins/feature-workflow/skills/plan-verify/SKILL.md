@@ -1,6 +1,6 @@
 ---
 name: plan-verify
-description: 透過 Playwright MCP 操作瀏覽器，逐條驗證 .spec/ 中的驗收條件，產出 verify.md 驗證報告與 Health Score。可選搭配 chrome-devtools-mcp 查 console/network（--deep 模式）。驗證完成後可選擇產出 PDF 或 Word 報告。當使用者提到「plan-verify」、「驗證」、「verify」、「驗收」時觸發此 Skill。
+description: 透過 Playwright MCP 操作瀏覽器，逐條驗證 .spec/ 中的驗收條件，產出 verify.md 驗證報告與 Health Score。可選搭配 chrome-devtools-mcp 查 console/network（--deep 模式）。驗證完成後可選擇產出 Word 驗收報告。當使用者提到「plan-verify」、「驗證」、「verify」、「驗收」時觸發此 Skill。
 ---
 
 # plan-verify — 瀏覽器驗收驗證
@@ -269,11 +269,46 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 | 狀態 | `PASS` / `FAIL` / `SKIP` / `MANUAL` |
 | 證據 | API 回應摘要 / snap 關鍵節點 / 截圖路徑 |
 | 失敗原因 | 僅 FAIL 時記錄 |
+| 操作敘述 | 人話描述的操作步驟清單（用於 Word 報告） |
 
 - `PASS`：驗證通過
 - `FAIL`：驗證失敗（含原因）
 - `SKIP`：`--api-only` 跳過 UI 驗證，或使用者手動跳過
 - `MANUAL`：需人工確認的項目（如視覺效果）
+
+#### 操作敘述記錄
+
+每條驗證項目執行時，AI **同步**產生一份「人話操作步驟」。此敘述：
+- 用非技術人員可讀的語言撰寫
+- 描述「做了什麼」而非「用了什麼指令」
+- 包含預期結果與實際結果的比對
+
+此資料暫存於 AI 工作記憶中，寫入 verify.md 的 `<!-- human_steps -->` 註解區塊，
+並在步驟 10 產出 Word 報告時使用。
+
+**翻譯對照表**：
+
+| Playwright 操作 | 人話敘述 |
+|----------------|---------|
+| `browser_navigate({ url })` | 開啟「{頁面名稱}」頁面 |
+| `browser_click({ element })` | 點擊「{元素描述}」按鈕/連結 |
+| `browser_type({ element, text })` | 在「{欄位名稱}」欄位輸入 {值} |
+| `browser_fill_form({ fields })` | 依序填入表單：{欄位1}={值1}、{欄位2}={值2} |
+| `browser_select_option({ element, value })` | 在「{欄位名稱}」下拉選單選擇「{選項}」 |
+| `browser_snapshot()` | 觀察頁面內容 |
+| `browser_take_screenshot()` | 截取畫面存證 |
+| `browser_wait_for({ text })` | 等待頁面顯示「{文字}」 |
+| `browser_press_key({ key })` | 按下 {按鍵} 鍵 |
+| `curl GET /api/xxx?params` | 透過系統 API 查詢{功能描述}（參數：{參數說明}） |
+| `curl POST /api/xxx` | 透過系統 API 新增{功能描述} |
+| HTTP 狀態碼回傳 | 系統回應{狀態描述} |
+
+**翻譯原則**：
+1. 不出現程式碼（selector、URL path、HTTP method）
+2. 使用頁面上的實際文字（「查詢」不是 `#queryBtn`）
+3. 合併連續操作（`click` → `wait_for` → `snapshot` → 「點擊 XX 按鈕，等待頁面載入完成」）
+4. 結果用白話（「HTTP 200, 15 rows」→「系統成功回傳 15 筆資料」）
+5. 省略技術診斷操作（`evaluate_script`、`list_console_messages` 不納入）
 
 ### 6. 收集截圖
 
@@ -324,12 +359,22 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 - **類型**：API
 - **驗證**：`GET /api/xxx?startDate=2026-01-01&endDate=2026-03-16` → HTTP 200, 15 筆
 - **截圖**：screenshots/verify-1-query-result.png
+<!-- human_steps
+- 操作：透過系統 API 查詢推播統計（日期範圍：2026-01-01 至 2026-03-16）
+- 預期：系統回傳查詢結果，資料筆數大於 0
+- 實際：系統成功回傳 15 筆資料，格式正確
+-->
 
 ### [2] ❌ 支援匯出 Excel
 - **類型**：UI
 - **驗證**：點擊匯出按鈕 `#exportBtn`
 - **失敗原因**：按鈕不存在（snap 中未找到匹配元素）
 - **截圖**：screenshots/verify-2-export.png
+<!-- human_steps
+- 操作：在推播統計頁面尋找「匯出 Excel」按鈕
+- 預期：頁面應有「匯出 Excel」按鈕，點擊後下載 .xlsx 檔案
+- 實際：頁面上未找到「匯出」相關按鈕，功能尚未實作
+-->
 
 ### [3] ⏭️ 支援分頁顯示
 - **類型**：UI
@@ -376,43 +421,218 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
   • /plan-close           — 結案並同步 Notion
 ```
 
-### 10. 報告產出（選項）
+### 10. 報告產出（Word 驗收報告）
 
-驗證完成後，詢問使用者是否產出正式報告：
+驗證完成後，詢問使用者是否產出正式 Word 驗收報告：
 
 ```
-是否需要產出正式驗證報告？
-  1. PDF 格式（適合歸檔和列印）
-  2. Word 格式（適合編輯和簽核）
-  3. 不需要（只保留 verify.md）
+是否產出 Word 驗收報告？[Y/n]
 ```
 
-#### PDF 報告
+使用者輸入 `n` → 跳過，結束流程。
+使用者輸入 `Y`（或直接 Enter）→ 進入報告產出流程。
 
-使用 `/minimax-pdf` 或 `/make-pdf` Skill 產出：
-- 來源：`.spec/{slug}/verify.md`
-- 輸出：`.spec/{slug}/verify-report.pdf`
-- 含：摘要表格、Health Score、逐條驗證結果、截圖嵌入
+#### 10.1 收集封面資訊
 
-#### Word 報告
+依以下優先順序取得每項封面資訊：
 
+| 欄位 | 自動來源 | 備用來源 | 存檔位置 |
+|------|---------|---------|---------|
+| 專案名稱 | `projects/{id}.md` 的 `notion_name` | 詢問使用者 | `report-config.md` |
+| 功能名稱 | `.spec/{slug}/README.md` 的 `name` | 詢問使用者 | — |
+| 驗證日期 | verify.md 的驗證日期 | 當天日期 | — |
+| 版本號 | `.spec/{slug}/README.md` 的 frontmatter | 詢問使用者（如 `v1.0`） | — |
+| 承辦單位 | `report-config.md` 的 `company_name` | 詢問使用者 | `report-config.md` |
+| 製作人 | `report-config.md` 的 `author` | 詢問使用者 | `report-config.md` |
+
+**`report-config.md` 位置**：`~/.claude-company/feature-workflow/report-config.md`
+
+**確認流程**：
+
+1. 自動帶入所有能找到的欄位值
+2. 展示給使用者確認：
+   ```
+   📋 報告封面資訊：
+     專案名稱：{自動帶入或待填}
+     功能名稱：{自動帶入}
+     驗證日期：{自動帶入}
+     版本號：{自動帶入或待填}
+     承辦單位：{自動帶入或待填}
+     製作人：{自動帶入或待填}
+
+   確認？[Y/n] 或輸入欄位名稱修改（如「版本號 v2.0」）
+   ```
+3. 使用者確認後，將 `company_name` 和 `author` 存入 `report-config.md`（若不存在則建立）
+
+#### 10.2 收集測試環境資訊
+
+| 欄位 | 自動來源 | 備用來源 |
+|------|---------|---------|
+| 測試 URL | verify.md 摘要的「環境」欄位 | 詢問使用者 |
+| 瀏覽器 | 自動偵測（Playwright 預設 Chromium） | `Chromium（Playwright 控制）` |
+| 測試帳號角色 | 詢問使用者 | 「系統管理員」 |
+| 測試資料說明 | 詢問使用者（可選） | 「使用測試環境既有資料」 |
+| 前置條件 | `.spec/{slug}/spec.md` 的前置條件區塊 | 詢問使用者 |
+
+展示後一次確認：
+
+```
+🔧 測試環境：
+  URL：{自動帶入}
+  瀏覽器：Chromium（Playwright 控制）
+  測試帳號角色：（請輸入，如「系統管理員」）
+  測試資料說明：（請輸入，或 Enter 跳過）
+  前置條件：{自動帶入或待填}
+
+確認？[Y/n]
+```
+
+#### 10.3 組裝報告內容
+
+AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx` 的輸入）：
+
+**1. 封面**
+
+```markdown
+# {專案名稱}
+
+## {功能名稱} — 驗收報告
+
+| 項目 | 值 |
+|------|-----|
+| 驗證日期 | {YYYY-MM-DD} |
+| 版本號 | {vX.Y} |
+| 承辦單位 | {公司全名} |
+```
+
+**2. 簽核欄位**
+
+```markdown
+## 簽核
+
+| 角色 | 姓名 | 簽章 | 日期 |
+|------|------|------|------|
+| 製作人 | {author} | | |
+| 審核人 | | | |
+| 客戶確認 | | | |
+```
+
+**3. 測試環境說明**
+
+```markdown
+## 測試環境
+
+| 項目 | 說明 |
+|------|------|
+| 測試 URL | {URL} |
+| 瀏覽器 | {瀏覽器} |
+| 測試帳號角色 | {角色} |
+| 測試資料說明 | {說明} |
+| 前置條件 | {前置條件} |
+```
+
+**4. 驗收摘要**
+
+```markdown
+## 驗收摘要
+
+| 狀態 | 數量 |
+|------|------|
+| 通過 | {N} |
+| 未通過 | {N} |
+| 略過 | {N} |
+| 待人工確認 | {N} |
+
+**結論**：{AI 依統計生成一句話結論}
+```
+
+結論生成規則：
+- 全部 PASS → 「共 N 項驗收條件全數通過，建議進入正式上線流程。」
+- 有 FAIL → 「共 N 項驗收條件，M 項未通過，需修正後重新驗證。」
+- 有 MANUAL 無 FAIL → 「共 N 項驗收條件，M 項通過、K 項待人工確認。」
+
+**5. 驗收明細**（每條一個段落，使用 `<!-- human_steps -->` 中的操作敘述）
+
+```markdown
+### 驗收項目 {N}：{驗收條件名稱}
+
+**結果：{通過/未通過/略過/待人工確認}** {✅/❌/⏭️/🔍}
+
+**操作步驟**：
+1. {人話操作步驟 1}
+2. {人話操作步驟 2}
+...
+
+**預期結果**：{人話預期}
+
+**實際結果**：{人話實際}
+
+**截圖**：
+![{描述}](screenshots/verify-{N}-{desc}.png)
+```
+
+**6. 待處理事項**（僅 FAIL / MANUAL 時）
+
+```markdown
+## 待處理事項
+
+| # | 驗收條件 | 狀態 | 建議處理方式 |
+|---|---------|------|------------|
+| {N} | {條件} | {未通過/待人工確認} | {建議} |
+```
+
+**7. 附錄**
+
+```markdown
+## 附錄
+
+### 版本紀錄
+
+| 日期 | 版本 | 說明 |
+|------|------|------|
+| {日期} | {版本} | 初次驗收 |
+
+### 工具版本
+
+| 工具 | 版本 |
+|------|------|
+| Playwright MCP | @anthropic-ai/mcp-server-playwright@latest |
+| Claude Code | {版本} |
+
+### 參考文件
+
+- 技術規格書：.spec/{slug}/spec.md
+- 驗證技術紀錄：.spec/{slug}/verify.md
+```
+
+#### 10.4 呼叫 /minimax-docx 產出
+
+```
 使用 `/minimax-docx` Skill 產出：
-- 來源：`.spec/{slug}/verify.md`
+- 輸入：AI 組裝的 Markdown 報告內容
 - 輸出：`.spec/{slug}/verify-report.docx`
-- 含：同 PDF，但可編輯，適合加簽核欄位
-
-#### 報告內容結構
-
-```
-1. 封面（專案名稱、驗證日期、驗證工具）
-2. 摘要（Health Score、統計表、結論）
-3. 驗證結果明細（每條驗收條件 + 截圖）
-4. {若 --deep} 除錯分析（console、network）
-5. 後續建議
+- 含：封面、簽核表、環境說明、摘要、逐條驗證明細（含截圖嵌入）、待處理事項、附錄
 ```
 
-使用者選擇後，呼叫對應 Skill 產出報告，回傳檔案路徑。
-若使用者選「不需要」→ 跳過，結束流程。
+#### 10.5 完成提示
+
+```
+📄 驗收報告已產出：.spec/{slug}/verify-report.docx
+
+報告包含：
+  • 封面與簽核欄位
+  • 測試環境說明
+  • {N} 條驗收明細（含操作步驟與截圖）
+  • {若有} 待處理事項 {M} 項
+
+提示：可用 Word 開啟後自行調整格式或轉存 PDF。
+```
+
+#### 向下相容：舊版 verify.md
+
+若 verify.md 中無 `<!-- human_steps -->` 註解（舊版產出）：
+1. 進入降級模式：AI 從 verify.md 的技術驗證內容反推操作敘述
+2. 在報告封面加註：「※ 操作步驟由系統自動轉譯，可能與實際操作有微差異」
 
 ---
 
@@ -449,7 +669,9 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 - **httpOnly cookie 無法用 document.cookie 取得**：session cookie 常設為 httpOnly。API 驗證若需登入態，用 Playwright 的 `browser_evaluate` 中 `fetch()` 直接發請求。
 - **Playwright 和 chrome-devtools 的截圖路徑不同**：Playwright 的 `browser_take_screenshot` 存到指定路徑；chrome-devtools 的 `take_screenshot` 回傳 base64。收集截圖到 `.spec/{slug}/screenshots/` 時需注意。
 - **--deep 模式需要 chrome-devtools-mcp**：若未安裝，`--deep` 功能不可用但不影響標準驗證。提示使用者安裝。
-- **PDF/Word 報告依賴外部 Skill**：`/minimax-pdf`、`/make-pdf`、`/minimax-docx` 需要對應的 plugin 已安裝。若不可用，提示使用者安裝或跳過報告產出。
+- **Word 報告依賴 `/minimax-docx` Skill**：需要 minimax-skills plugin 已安裝。若不可用，提示使用者安裝（`找不到 /minimax-docx Skill，請確認 minimax-skills plugin 已安裝`），並跳過報告產出。
+- **截圖嵌入 Word**：`/minimax-docx` 接受 Markdown 格式的圖片引用（`![](path)`）。確保截圖路徑使用相對於 `.spec/{slug}/` 的相對路徑。
+- **封面資訊快取**：`report-config.md` 儲存於 `~/.claude-company/feature-workflow/` 下，跨專案共用（公司名稱、作者）。首次產出報告時建立。
 
 ---
 
@@ -458,7 +680,10 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 - **無驗收條件**：提示使用者手動輸入，或建議先執行 `/plan-spec`
 - **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @anthropic-ai/mcp-server-playwright@latest`）
 - **Playwright 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
-- **PDF/Word Skill 不可用**：跳過報告產出，提示使用者安裝對應 plugin
+- **`/minimax-docx` 不可用**：跳過報告產出，提示使用者安裝 minimax-skills plugin
+- **`report-config.md` 不存在**：首次詢問所有封面欄位，產出後自動建立
+- **截圖路徑無效**：報告中標註「（截圖不可用）」，不阻斷報告產出
+- **verify.md 無 `human_steps` 註解**（舊版 verify.md）：從 verify.md 技術內容反推操作敘述（降級模式）
 - **--api-only 跳過 UI**：UI 類型標記為 SKIP，不影響其他驗證
 - **截圖失敗**：記錄警告，不阻斷流程
 - **verify.md 已存在**：詢問覆蓋或追加（--recheck 自動合併）

@@ -4,3 +4,4 @@
 |------|------|------|------|------|
 | crew-optimization | CREW 深層優化 | 規格設計 | feat/crew-deep-optimization | feature |
 | bug-optimization | Bug Workflow 深層優化 | 規格設計 | feat/bug-deep-optimization | feature |
+| verify-word-report | plan-verify 報告產出改版 — Word 驗收報告 | 開發中 | | feature |
