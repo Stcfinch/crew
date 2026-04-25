@@ -156,20 +156,27 @@ flowchart TD
 
 ### plan-verify 前置條件
 
-`/plan-verify` 透過瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。支援 chrome-devtools-mcp、Playwright MCP 等瀏覽器工具。
+`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。驗證完成後可選擇產出 PDF 或 Word 格式報告。
 
-**方式 A：chrome-devtools-mcp**
+**Playwright MCP（推薦，預設驗證工具）**
+
+```bash
+claude mcp add playwright --scope user -- \
+  npx @anthropic-ai/mcp-server-playwright@latest
+```
+
+Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航。
+
+**chrome-devtools-mcp（選配，--deep 模式除錯用）**
 
 ```bash
 claude mcp add chrome-devtools --scope user -- \
   npx chrome-devtools-mcp@latest --autoConnect
 ```
 
-Google 官方維護，可連接已登入的 Chrome session，適合需要 SSO/VPN 的內部系統。`--deep` 模式可查 console log 和 network。
+Google 官方維護，提供 console log、network 分析、performance trace。可連接已登入的 Chrome（SSO/VPN）。
 
-**方式 B：Playwright MCP**
-
-若已安裝 Playwright MCP，也可使用。兩者能力類似，擇一即可。
+> 💡 兩者定位不同可同時安裝：Playwright 做 QA 驗收，chrome-devtools 做除錯診斷。
 
 ```bash
 /plan-verify                    # 瀏覽器驗收驗證 + Health Score

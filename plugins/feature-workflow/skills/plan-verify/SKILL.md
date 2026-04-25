@@ -1,23 +1,24 @@
 ---
 name: plan-verify
-description: 透過 chrome-devtools-mcp 或 cdp.mjs 操作使用者已開啟的 Chrome 瀏覽器，逐條驗證 .spec/ 中的驗收條件，產出 verify.md 驗證報告。當使用者提到「plan-verify」、「驗證」、「verify」、「驗收」時觸發此 Skill。
+description: 透過 Playwright MCP 操作瀏覽器，逐條驗證 .spec/ 中的驗收條件，產出 verify.md 驗證報告與 Health Score。可選搭配 chrome-devtools-mcp 查 console/network（--deep 模式）。驗證完成後可選擇產出 PDF 或 Word 報告。當使用者提到「plan-verify」、「驗證」、「verify」、「驗收」時觸發此 Skill。
 ---
 
-# plan-verify — Chrome 驗收驗證
+# plan-verify — 瀏覽器驗收驗證
 
-連接使用者**已開啟的 Chrome 瀏覽器**（含登入態），透過 Chrome DevTools Protocol 逐條驗證驗收條件，產出 `.spec/{slug}/verify.md` 驗證報告與截圖。
+透過 **Playwright MCP** 操作瀏覽器，逐條驗證驗收條件，產出 `.spec/{slug}/verify.md` 驗證報告、Health Score 與截圖。
 
-對需要 SSO/VPN 登入的內部系統特別有價值 — 直接使用已登入的 Chrome session，無需另行驗證。
+可選搭配 **chrome-devtools-mcp** 做 console log 和 network 除錯分析（`--deep` 模式）。
 
 ---
 
 ## 使用方式
 
 ```
-/plan-verify                    # 完整驗證所有驗收條件
+/plan-verify                    # 完整驗證所有驗收條件（Playwright）
+/plan-verify --deep             # + chrome-devtools 查 console/network
 /plan-verify --manual           # 互動模式，每步驟等待確認
 /plan-verify <URL>              # 指定目標頁面
-/plan-verify --api-only         # 只驗證 API（不操作 UI，不需 Chrome）
+/plan-verify --api-only         # 只驗證 API（不操作 UI，不需瀏覽器）
 /plan-verify --recheck          # 僅重新驗證上次失敗的項目
 ```
 
@@ -25,26 +26,26 @@ description: 透過 chrome-devtools-mcp 或 cdp.mjs 操作使用者已開啟的 
 
 ## 前置條件
 
-### 方式 A：chrome-devtools-mcp（推薦）
+### Playwright MCP（必要，預設驗證工具）
 
-已安裝 Chrome DevTools MCP Server（Google 官方維護，29 種工具）：
+```bash
+claude mcp add playwright --scope user -- \
+  npx @anthropic-ai/mcp-server-playwright@latest
+```
+
+Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航。安裝後**重啟 Claude Code**。
+
+### chrome-devtools-mcp（選配，--deep 模式除錯用）
 
 ```bash
 claude mcp add chrome-devtools --scope user -- \
   npx chrome-devtools-mcp@latest --autoConnect
 ```
 
-安裝後**重啟 Claude Code**。需 Chrome 144+ 且已開啟 Remote Debugging。
+Google 官方維護，提供 console log 串流、network 請求分析、performance trace。
+可連接已登入的 Chrome session，適合需要 SSO/VPN 的內部系統。
 
-### 方式 B：cdp.mjs（fallback）
-
-若未安裝 chrome-devtools-mcp，自動退回使用 vendored cdp.mjs。
-
-```bash
-CDP="node ~/.claude-company/company-marketplace/plugins/feature-workflow/scripts/cdp.mjs"
-```
-
-需 Node.js 22+、Chrome Remote Debugging。
+> 💡 兩者定位不同可同時安裝：Playwright 做 QA 驗收，chrome-devtools 做除錯診斷。
 
 ---
 
@@ -57,46 +58,30 @@ CDP="node ~/.claude-company/company-marketplace/plugins/feature-workflow/scripts
 
 ## 前置檢查流程
 
-執行前**依序檢查**，決定使用模式：
+執行前**依序檢查**，決定使用工具：
 
 ```
-1. 檢查 claude mcp list 輸出是否含 "chrome-devtools"
-   → 有 → 使用 MCP 工具模式（方式 A）
-         → 顯示版本資訊（從 MCP Server 回應或 npm view 取得）
+1. 檢查 claude mcp list 是否含 "playwright"
+   → 有 → 使用 Playwright MCP（預設）
    → 沒有 → 進入步驟 2
 
-2. 檢查 cdp.mjs 存在且 Node.js 22+
-   → 通過 → 使用 Bash 模式（方式 B）
-   → 失敗 → 提示安裝 chrome-devtools-mcp（推薦）或升級 Node.js
+2. 檢查 claude mcp list 是否含 "chrome-devtools"
+   → 有 → 退回使用 chrome-devtools-mcp
+   → 沒有 → 提示安裝 Playwright MCP（推薦）
 
-3. --api-only 模式跳過 Chrome 連接檢查，只需 curl 可用
+3. --deep 模式額外檢查 chrome-devtools-mcp 是否可用
+   → 可用 → 驗證後追加 console/network 分析
+   → 不可用 → 跳過 --deep 功能，僅提示
+
+4. --api-only 模式跳過瀏覽器檢查，只需 curl 可用
 ```
 
-偵測完成後顯示版本摘要：
+偵測完成後顯示摘要：
 
 ```
-🔧 驗證工具：chrome-devtools-mcp v0.20.1（MCP 模式）
-🌐 Chrome：已連接（3 個分頁）
+🔧 驗證工具：Playwright MCP
+🔍 除錯工具：chrome-devtools-mcp（--deep 可用）
 ```
-
-或：
-
-```
-🔧 驗證工具：cdp.mjs（Bash 模式）
-📦 Node.js：v22.14.0
-🌐 Chrome：已連接（3 個 tab）
-```
-
-版本取得方式：
-- MCP 模式：`npm view chrome-devtools-mcp version`（取已安裝的 npx 快取版本）
-- Bash 模式：cdp.mjs 為 vendored 檔案，版本固定為 pasky/chrome-cdp-skill v1.0.2
-
-| # | 項目 | MCP 模式 | Bash 模式 |
-|---|------|---------|----------|
-| 1 | MCP / cdp.mjs | `claude mcp list` 含 chrome-devtools | `test -f cdp.mjs` + `node --version` ≥ 22 |
-| 2 | 版本資訊 | `npm view chrome-devtools-mcp version` | 固定 v1.0.2 |
-| 3 | Chrome 連接 | `list_pages` 回傳分頁清單 | `$CDP list` 回傳 tab 清單 |
-| 4 | `--api-only` | 跳過第 3 項 | 跳過第 3 項 |
 
 > **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
@@ -377,7 +362,7 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 📋 報告：.spec/{slug}/verify.md
 📸 截圖：.spec/{slug}/screenshots/ ({N} 張)
 📊 統計：✅ {PASS} / ❌ {FAIL} / ⏭️ {SKIP} / 👤 {MANUAL}
-🔧 工具：{chrome-devtools-mcp / cdp.mjs}
+🔧 工具：Playwright MCP{，chrome-devtools-mcp（--deep）}
 
 {若有 FAIL}
 ⚠️  發現 {N} 個驗收條件未通過，建議修復後執行 /plan-verify --recheck
@@ -390,6 +375,44 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
   • /plan-review          — Agent Teams 程式碼審查
   • /plan-close           — 結案並同步 Notion
 ```
+
+### 10. 報告產出（選項）
+
+驗證完成後，詢問使用者是否產出正式報告：
+
+```
+是否需要產出正式驗證報告？
+  1. PDF 格式（適合歸檔和列印）
+  2. Word 格式（適合編輯和簽核）
+  3. 不需要（只保留 verify.md）
+```
+
+#### PDF 報告
+
+使用 `/minimax-pdf` 或 `/make-pdf` Skill 產出：
+- 來源：`.spec/{slug}/verify.md`
+- 輸出：`.spec/{slug}/verify-report.pdf`
+- 含：摘要表格、Health Score、逐條驗證結果、截圖嵌入
+
+#### Word 報告
+
+使用 `/minimax-docx` Skill 產出：
+- 來源：`.spec/{slug}/verify.md`
+- 輸出：`.spec/{slug}/verify-report.docx`
+- 含：同 PDF，但可編輯，適合加簽核欄位
+
+#### 報告內容結構
+
+```
+1. 封面（專案名稱、驗證日期、驗證工具）
+2. 摘要（Health Score、統計表、結論）
+3. 驗證結果明細（每條驗收條件 + 截圖）
+4. {若 --deep} 除錯分析（console、network）
+5. 後續建議
+```
+
+使用者選擇後，呼叫對應 Skill 產出報告，回傳檔案路徑。
+若使用者選「不需要」→ 跳過，結束流程。
 
 ---
 
@@ -404,40 +427,38 @@ cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 
 ---
 
-## MCP 模式額外功能
+## --deep 模式（chrome-devtools-mcp 除錯增強）
 
-chrome-devtools-mcp 提供 cdp.mjs 沒有的進階工具，在驗證時可視情況使用：
+標準驗證（Playwright）完成後，`--deep` 模式額外使用 chrome-devtools-mcp 做除錯分析：
 
 | 工具 | 用途 | 場景 |
 |------|------|------|
-| `fill_form` | 批次填寫表單 | 表單驗證測試 |
-| `handle_dialog` | 處理 alert/confirm/prompt | 操作觸發 JS 對話框時 |
-| `upload_file` | 上傳檔案 | 匯入功能驗證 |
-| `wait_for` | 等待文字出現 | 非同步載入驗證 |
-| `list_console_messages` | 讀取 console 輸出 | 偵測前端錯誤 |
+| `list_console_messages` | console 完整掃描（含 warning） | 偵測前端錯誤和警告 |
+| `list_network_requests` | network 請求分析 | 失敗/慢請求偵測 |
 | `performance_start/stop_trace` | 效能追蹤 | 頁面載入效能驗證 |
 | `lighthouse_audit` | Lighthouse 稽核 | 效能/可及性報告 |
 | `emulate` | 裝置/網路模擬 | 行動裝置驗證 |
+
+結果追加到 verify.md 的「除錯分析」段落。
 
 ---
 
 ## Gotchas
 
-- **snap 輸出是 accessibility tree 不是 DOM**：`take_snapshot` / `$CDP snap` 回傳的是無障礙樹（accessibility tree），隱藏的 `<input type="hidden">`、純裝飾的 `<div>` 在結果中不可見。需要查 DOM 結構時，改用 `evaluate_script` / `$CDP eval` 執行 `document.querySelector()`。
-- **httpOnly cookie 無法用 document.cookie 取得**：session cookie 常設為 httpOnly，`document.cookie` 讀不到。API 驗證若需登入態，改用瀏覽器直接發請求（`evaluate_script` 中用 `fetch()`），或從 Chrome DevTools Network panel 取 cookie。
-- **截圖路徑在 MCP 和 Bash 模式不同**：MCP 模式的 `take_screenshot` 回傳 base64 編碼的圖片內容；Bash 模式的 `$CDP shot` 輸出檔案到 `~/.cache/cdp/` 目錄。收集截圖到 `.spec/{slug}/screenshots/` 時需根據模式做不同處理。
-- **autoConnect 只連 localhost:9222**：chrome-devtools-mcp 的 `--autoConnect` 預設連接 `localhost:9222`。Docker 容器或遠端主機上的 Chrome 需手動指定 port（如 `--port 9223`）。
+- **Playwright snapshot 是 accessibility tree**：`browser_snapshot` 回傳的是無障礙樹，隱藏的 `<input type="hidden">`、純裝飾的 `<div>` 不可見。需要查 DOM 時用 `browser_evaluate` 執行 `document.querySelector()`。
+- **httpOnly cookie 無法用 document.cookie 取得**：session cookie 常設為 httpOnly。API 驗證若需登入態，用 Playwright 的 `browser_evaluate` 中 `fetch()` 直接發請求。
+- **Playwright 和 chrome-devtools 的截圖路徑不同**：Playwright 的 `browser_take_screenshot` 存到指定路徑；chrome-devtools 的 `take_screenshot` 回傳 base64。收集截圖到 `.spec/{slug}/screenshots/` 時需注意。
+- **--deep 模式需要 chrome-devtools-mcp**：若未安裝，`--deep` 功能不可用但不影響標準驗證。提示使用者安裝。
+- **PDF/Word 報告依賴外部 Skill**：`/minimax-pdf`、`/make-pdf`、`/minimax-docx` 需要對應的 plugin 已安裝。若不可用，提示使用者安裝或跳過報告產出。
 
 ---
 
 ## 邊界情況
 
 - **無驗收條件**：提示使用者手動輸入，或建議先執行 `/plan-spec`
-- **chrome-devtools-mcp 與 cdp.mjs 都沒有**：優先提示安裝 chrome-devtools-mcp（推薦），附上安裝指令
-- **Chrome 未啟用 remote debugging**：顯示詳細啟用步驟（`chrome://inspect/#remote-debugging`）
-- **Node.js 版本不足**（Bash 模式）：顯示升級指引，或建議改用 chrome-devtools-mcp
-- **目標 tab 找不到**：列出所有可用分頁，請使用者選擇或在 Chrome 開啟目標頁面
-- **CDP 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
+- **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @anthropic-ai/mcp-server-playwright@latest`）
+- **Playwright 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
+- **PDF/Word Skill 不可用**：跳過報告產出，提示使用者安裝對應 plugin
 - **--api-only 跳過 UI**：UI 類型標記為 SKIP，不影響其他驗證
 - **截圖失敗**：記錄警告，不阻斷流程
 - **verify.md 已存在**：詢問覆蓋或追加（--recheck 自動合併）
