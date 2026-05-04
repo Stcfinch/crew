@@ -111,7 +111,17 @@ Git Repo 識別碼解析規則：
 | 專案資料庫 | 關聯的專案頁面 URL |
 | 負責人 | 步驟 5 偵測到的 Notion 使用者（若有） |
 
-頁面 content 使用 `references/notion-page-template.md` 的標準 7 區塊模板。
+#### 兩步法建立頁面
+
+**Step A**：使用 `post-page` 建立頁面（僅 properties，不帶 children）。
+
+> **database_id 解析**：`config.md` 中的 Data Source ID 不能直接用於 `post-page` 的 `parent.database_id`。需先依照 `references/plan-common.md` 的「Notion database_id 解析」邏輯，呼叫 `retrieve-a-data-source` 取得底層 `database_id`。
+
+**Step B**：取得 `page_id` 後，使用 `patch-block-children` 追加 `references/notion-page-template.md` 的標準 8 區塊模板。
+
+**錯誤處理**：
+- Step A 失敗 → 本地 `.spec/` 目錄照常建立，`notion_page_id` 留空
+- Step B 失敗 → 頁面已建立（有 properties 無 body），記錄到 log.md
 
 #### Bug 類型
 
@@ -127,7 +137,7 @@ Git Repo 識別碼解析規則：
 | 專案資料庫 | 關聯的專案頁面 URL |
 | 負責人 | 步驟 5 偵測到的 Notion 使用者（若有） |
 
-頁面 content 使用 bug-start 的標準模板。
+頁面 content 使用 bug-start 的標準模板。建立方式同 Feature 的兩步法（Step A + Step B），但模板內容改用 bug-start 的區塊。
 
 ### 7. 建立 .spec/ 本地規劃目錄
 
@@ -253,6 +263,74 @@ created: {當前日期 YYYY-MM-DD}
 
 > 若 `prod_branch` 未設定（舊專案），回退到從當前分支建立，並提示使用者執行 `/project-add` 補充分支設定。
 
+### 9.5 退出驗證（強制，不可跳過）
+
+在回傳結果前，逐項檢查以下退出條件，確保 Notion 條目與本地 `.spec/` 的完整性。
+
+#### 驗證方式
+
+對 Notion 欄位的驗證，**一律用 `notion-fetch` 讀回頁面確認欄位有值**，不信任 Agent 在步驟 6 的記憶。
+
+#### 自動驗證項目
+
+| # | 檢查項目 | 驗證方式 | 失敗處理 |
+|---|---------|---------|---------|
+| S1 | Notion 頁面已建立 | `.spec/{slug}/README.md` 的 `notion_page_id` 非空 | 若步驟 6 Step A 已失敗（走降級路徑）→ 降為 ⚠️ WARN，提示稍後用 `/plan-sync` 補建；否則重試建立 |
+| S2 | 專案資料庫已設定 | `notion-fetch` 讀回頁面，確認「專案資料庫」relation 欄位非空 | 從 `projects/{repo-id}.md` 取得 `notion_page_id`，用 `notion-update-page` 補上 relation |
+| S3 | 修復分支已設定 | `.spec/{slug}/README.md` 的 `branch` 欄位非空 **且** `notion-fetch` 確認「修復分支」欄位非空 | 見下方 S3 特殊處理 |
+| S4 | 開發階段已設定（僅 Feature） | Feature → `notion-fetch` 確認「開發階段」欄位 = `需求分析`；Bug → 跳過此項 | 用 `notion-update-page` 補上 |
+| S5 | 負責人已設定 | `notion-fetch` 確認「負責人」欄位非空 | 僅提示「負責人未自動設定，請至 Notion 手動指派」 |
+| S6 | .spec/ 目錄已建立 | `.spec/{slug}/README.md` 存在 | 重試建立 |
+| S7 | _index.md 已更新 | `.spec/_index.md` 包含新 slug | 重試寫入 |
+
+> **S1 條件式降級**：步驟 6 的設計允許 Notion API 不可用時繼續建立本地 `.spec/`（offline-first）。若步驟 6 Step A 已失敗，S1 不應阻擋整個流程，改為 WARN 並記錄。僅在 Step A 成功（頁面應已建立）但 `notion_page_id` 為空時才視為 BLOCK。
+
+#### S3 特殊處理（刻意 friction）
+
+若步驟 9 使用者選擇了「否，稍後再建立」，退出驗證時 **必須再次確認**（即使在 auto mode 下，**強制詢問**）：
+
+```
+⚠️ 修復分支尚未建立。
+   Notion 的「修復分支」欄位將為空，可能影響團隊協作（其他成員無法從 Notion 得知開發分支）。
+
+   確定不建立分支嗎？
+   1. 建立分支（回到步驟 9 流程）
+   2. 確定跳過，我稍後自己建立
+```
+
+選 1 → 回到步驟 9 的建立流程。
+選 2 → S3 標記為 ⚠️ WARN（不阻擋），繼續。
+
+#### 驗證結果分級
+
+- **🔴 BLOCK**（S1, S2, S3, S6, S7）：必須解決後才能回傳結果
+- **⚠️ WARN**（S4, S5）：記錄提醒但不阻擋
+
+> S1 在步驟 6 Step A 已失敗（Notion 不可用）時，降級為 ⚠️ WARN。
+> S3 在使用者明確確認跳過後，降級為 ⚠️ WARN。
+> S4 對 Bug 類型自動跳過（Bug 不設定開發階段）。
+
+#### 失敗自動修復
+
+驗證失敗時，Agent **自行修復**（補呼叫 `notion-update-page` 等），不要求使用者手動操作。僅在自動修復也失敗時才提示使用者。
+
+#### 驗證報告格式
+
+寫入 `.spec/{slug}/log.md` 並在回傳結果中顯示：
+
+```
+退出驗證結果：
+  ✅ S1 Notion 頁面已建立
+  ✅ S2 專案資料庫：{專案名稱}
+  ✅ S3 修復分支：{branch}
+  ✅ S4 開發階段：需求分析
+  ⚠️  S5 負責人未自動設定（email 不匹配）
+  ✅ S6 .spec/{slug}/ 已建立
+  ✅ S7 _index.md 已更新
+
+  結論：{全部通過 / 有 N 項 WARN，建議處理後再進 plan-spec}
+```
+
 ### 10. 回傳結果
 
 ```
@@ -262,6 +340,16 @@ created: {當前日期 YYYY-MM-DD}
 📁 本地規劃：.spec/{slug}/
 🔀 Git branch：{branch}（若有）
 📊 類型：{Feature / Bug}
+
+退出驗證結果：
+  {✅/⚠️} S1 Notion 頁面已建立
+  {✅/⚠️} S2 專案資料庫：{專案名稱}
+  {✅/⚠️} S3 修復分支：{branch}
+  {✅/⚠️} S4 開發階段：{階段}
+  {✅/⚠️} S5 負責人：{姓名 或 未設定}
+  {✅/⚠️} S6 .spec/{slug}/ 已建立
+  {✅/⚠️} S7 _index.md 已更新
+  結論：{摘要}
 
 後續可使用：
   • /plan-spec             — 技術規格
@@ -289,5 +377,6 @@ created: {當前日期 YYYY-MM-DD}
 - **設定目錄不存在**：提示先執行 `/plan-setup` 或 `/bug-setup`
 - **不在 Git repo 中**：跳過分支和專案自動偵測
 - **`.spec/` 目錄已存在同名 slug**：加數字後綴或詢問使用者
-- **Notion API 失敗**：仍建立本地 `.spec/` 目錄，`notion_page_id` 留空，提示使用者可稍後用 `/plan-sync` 補建
+- **Notion API 失敗（Step A）**：仍建立本地 `.spec/` 目錄，`notion_page_id` 留空，提示使用者可稍後用 `/plan-sync` 補建
+- **Notion API 失敗（Step B）**：頁面已建立但無 body 內容，記錄到 log.md，提示使用者可用 `/plan-sync` 補寫 body
 - **分支名稱衝突**：提示自訂名稱
