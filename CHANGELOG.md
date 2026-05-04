@@ -7,6 +7,17 @@
 
 ---
 
+## [feature-workflow@4.13.0] - 2026-05-04
+
+### 新增
+- **plan-start 退出驗證（S1~S7）** — 建立 Notion 條目後，強制用 notion-fetch 讀回頁面驗證 7 項必填欄位（專案資料庫、修復分支、開發階段等），防止 auto mode 下遺漏欄位
+
+### 改善
+- **S1 條件式降級** — Notion API 不可用時 S1 降為 WARN，不阻擋 offline-first 流程
+- **S3 刻意 friction** — 修復分支未建立時，即使 auto mode 也強制二次確認
+- **驗證失敗自動修復** — Agent 自行補呼叫 notion-update-page，不要求使用者手動操作
+- **步驟 6 重構為兩步法** — 頁面建立拆分為 Step A（properties）+ Step B（body），配合退出驗證降級邏輯
+
 ## [bug-workflow@3.5.1] - 2026-04-25
 
 ### 修正

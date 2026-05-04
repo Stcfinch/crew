@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.12.0`
+# Feature Workflow Plugin `v4.13.0`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
@@ -84,7 +84,7 @@ flowchart TD
 | `/plan-stack` | 偵測專案分層結構，建立自訂技術棧 | **0 次** |
 | `/plan-explore` | 思考夥伴：探索想法、調查問題、比較方案 | **0 次** |
 | `/plan-browse` | 規劃瀏覽：深度閱讀、跨任務比較、模式搜尋 | **0 次** |
-| `/plan-start` | 建立任務到 .spec/ + Notion | **2-3 次** |
+| `/plan-start` | 建立任務到 .spec/ + Notion（含退出驗證） | **3-5 次** |
 | `/plan` | 完整規劃串接（自動依序 spec→db→arch） | **0 次** |
 | `/plan-spec` | 技術規格書 | **0 次** |
 | `/plan-db` | 資料庫設計 | **0 次** |
