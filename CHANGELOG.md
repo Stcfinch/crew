@@ -7,6 +7,17 @@
 
 ---
 
+## [feature-workflow@4.14.0] - 2026-05-04
+
+### 新增
+- **DB_REQUIRED=insert-only 支援** — plan-build 退出驗證（E7）自動從設計文件擷取 SQL，產出 deploy.sql（含執行順序、驗證 SQL、回滾 SQL）
+- **deploy.sql 標準格式** — Step 註解、驗證 SQL、回滾 SQL 三段式結構，上線時不會遺漏
+- **deploy.sql Notion 同步** — plan-sync / plan-close 自動將 deploy.sql 寫入「🗄️ 資料庫設計 → 部署 SQL」子區塊
+
+### 改善
+- **team-composition.md** 新增 Step 3.5 DB_REQUIRED 三值判斷（true / insert-only / false）
+- **E7 分級** — DB_REQUIRED=true 時為 BLOCK，insert-only 時為 WARN
+
 ## [feature-workflow@4.13.0] - 2026-05-04
 
 ### 新增
