@@ -47,6 +47,8 @@ Bug 類型還需 bug-workflow 設定檔（`~/.claude-company/bug-workflow-config
 | spec.md | 📐 技術規格 | ✅/❌ |
 | db.md | 🗄️ 資料庫設計 | ✅/❌ |
 | arch.md | 🏗️ 架構設計 | ✅/❌ |
+| deploy-checklist.md | 🚀 上線前置作業 | ✅/❌ |
+| deploy.sql | 🗄️ 資料庫設計 → 「部署 SQL」子區塊 | ✅/❌ |
 | files.md | 📁 程式碼清單 | ✅/❌ |
 | review.md | 📋 程式碼審查（新增區塊） | ✅/❌ |
 | verify.md | 🧪 驗證報告（新增區塊） | ✅/❌ |
@@ -84,6 +86,43 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 - 含「測試」、「QA」→ `測試中`
 - 無法判斷 → 詢問，預設 `測試中`
 
+### 4.5 deploy-checklist 勾選檢查
+
+#### 觸發條件
+
+- `.spec/{slug}/deploy-checklist.md` 存在
+- 任務類型為 Feature（Bug 類型跳過）
+
+#### 檢查流程
+
+1. 讀取 `.spec/{slug}/deploy-checklist.md`
+2. 解析所有 checkbox 行（格式：`- [ ]` 未完成 / `- [x]` 已完成）
+3. 統計 checked / total
+4. 全部勾完（或無 checkbox）→ 繼續流程
+5. 有未勾選項目 → 顯示警告：
+
+```
+⚠️ 上線前置作業未完成！
+
+📋 deploy-checklist.md 狀態：{checked}/{total} 項已完成
+
+未完成項目：
+  ❌ {未勾選項目 1}
+  ❌ {未勾選項目 2}
+
+是否仍要繼續結案？
+  1. 繼續（我已確認這些項目不需要，或已透過其他方式完成）
+  2. 中止，先完成前置作業
+```
+
+- 選 1 → 在 log.md 記錄「使用者確認跳過未完成的 deploy-checklist 項目」，繼續步驟 5
+- 選 2 → 終止 plan-close
+
+#### deploy-checklist 不存在時
+
+- 若 db.md 或 db.sql 存在（有 DB 變更但未產生 checklist）→ 提示：「偵測到 DB 設計文件但無 deploy-checklist.md，建議先執行 /plan-db 重新產出」
+- 若無 DB 相關文件 → 靜默跳過
+
 ### 5. 一次性 Notion 批次更新
 
 **5-1. Fetch 現有頁面**（1 次 `notion-fetch`）
@@ -98,8 +137,9 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 
 ```
 📐 技術規格 區塊 ← spec.md 內容
-🗄️ 資料庫設計 區塊 ← db.md 內容
+🗄️ 資料庫設計 區塊 ← db.md 內容 + deploy.sql 內容（若存在，以「部署 SQL」子區塊追加）
 🏗️ 架構設計 區塊 ← arch.md 內容
+🚀 上線前置作業 區塊 ← deploy-checklist.md 內容（含 checkbox 勾選狀態）
 📁 程式碼清單 區塊 ← files.md 內容 + Git diff 產出的分層變更摘要
 📝 開發日誌 區塊 ← 附加結案紀錄：
   ### [{日期}] 開發完成

@@ -52,6 +52,8 @@ description: 手動中途同步 .spec/ 目錄的當前進度到 Notion。按需�
   ✅ spec.md → 📐 技術規格
   ✅ db.md   → 🗄️ 資料庫設計
   ❌ arch.md → 🏗️ 架構設計（不存在）
+  ✅ deploy.sql → 🗄️ 資料庫設計 → 部署 SQL
+  ✅ deploy-checklist.md → 🚀 上線前置作業
   ✅ review.md → 📋 程式碼審查
 
 同步所有？[Y/n] 或輸入要同步的項目（如 spec db）
@@ -76,6 +78,8 @@ description: 手動中途同步 .spec/ 目錄的當前進度到 Notion。按需�
 | spec.md | 📐 技術規格 |
 | db.md | 🗄️ 資料庫設計 |
 | arch.md | 🏗️ 架構設計 |
+| deploy-checklist.md | 🚀 上線前置作業 |
+| deploy.sql | 🗄️ 資料庫設計 → 「部署 SQL」子區塊 |
 | files.md | 📁 程式碼清單 |
 | review.md | 在「📝 開發日誌」前插入「📋 程式碼審查」 |
 | log.md | 📝 開發日誌（附加） |

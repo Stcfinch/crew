@@ -47,7 +47,9 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 ## 使用方式
 
 ```
-/plan-build                # 完整產生（後端 + 前端 + API + 測試）
+/plan-build                # 完整產生（後端 + 前端，預設不含測試）
+/plan-build --with-test    # 包含測試程式碼
+/plan-build --no-test      # 明確不含測試（同預設）
 /plan-build --dry-run      # 預覽不建立檔案
 /plan-build --backend-only # 只產後端
 ```
@@ -94,12 +96,24 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
   • backend-engineer  — 後端核心（POJO/Mapper/Service）
   • api-engineer      — API 層（Controller/DTO/驗證）
   {• frontend-engineer — 前端頁面（{FRONTEND_TECH}）}
-  • test-engineer     — 測試程式碼（單元測試/整合測試）
+
+是否產出測試程式碼？
+  1. 是 — 包含 test-engineer 角色
+  2. 否（預設）— 跳過測試，節省 token
 
 {--dry-run: 預覽模式，不建立檔案}
 
 確認開始？[Y/n]
 ```
+
+#### 測試可選化判斷規則
+
+- 若團隊組成原本只有 1-2 人且不含 test-engineer → 不顯示此選項
+- 若使用者使用 `--with-test` 參數 → 自動選是，不互動
+- 若使用者使用 `--no-test` 參數 → 自動選否（同預設），不互動
+- 使用者選「是」時，在團隊中加入 test-engineer
+- 使用者選「否」或直接 Enter（預設）時，不含 test-engineer
+- test-engineer 的加入/移除在 `references/team-composition.md` 判斷**之後**操作，不修改判斷表本身
 
 ### 5. 準備分層脈絡
 
@@ -157,10 +171,60 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 | 檔案路徑 | 修改說明 |
 |---------|---------|
+
+## 部署 SQL（上線時執行）
+
+| 檔案 | 說明 | 執行順序 |
+|------|------|---------|
+| deploy.sql | {說明，如：權限記錄 INSERT} | 程式更版後 |
 ```
+
+> 「部署 SQL」區段僅在 E7 產出 deploy.sql 時才加入。
 
 2. 更新 `README.md` 的 `status: 開發中`
 3. 在 `log.md` 追加紀錄
+
+### 7.3 偵測設定檔變更並寫入 deploy-checklist.md（僅本地）
+
+#### 7.3a 收集變更清單
+
+來源（合併去重）：
+
+1. `.spec/{slug}/files.md` 中的「新增檔案」和「修改檔案」
+2. `git diff --name-only` 比對本次 plan-build 產生的變更
+
+#### 7.3b 比對設定檔模式
+
+將收集到的檔案路徑逐一比對以下模式清單：
+
+| 模式 | 說明 |
+|------|------|
+| `**/mapper/**/*.xml` | MyBatis Mapper XML |
+| `**/web.xml` | Web 應用設定 |
+| `**/application.properties` | Spring Boot 設定 |
+| `**/application*.yml` | Spring Boot YAML 設定 |
+| `**/pom.xml` | Maven 依賴 |
+| `**/build.gradle` | Gradle 依賴 |
+| `**/Dockerfile` | Docker 映像 |
+| `**/docker-compose*.yml` | Docker Compose |
+| `**/*nginx*.conf` | Nginx 設定 |
+| `**/scheduler/**` | 排程設定 |
+| `**/*.cron` | Cron 設定 |
+| `**/logback*.xml` | Log 設定 |
+| `**/ehcache*.xml` | 快取設定 |
+
+#### 7.3c 更新 deploy-checklist.md
+
+若偵測到設定檔變更：
+
+1. 讀取 `.spec/{slug}/deploy-checklist.md`
+   - 若不存在（例如跳過了 plan-db）→ 建立新檔案，SQL 遷移區段為空
+2. 在「設定檔變更」區段追加偵測到的項目
+3. 每個項目格式：`- [ ] \`{檔案路徑}\` — {變更說明}`
+
+若未偵測到設定檔變更 → 不建立/不更新 deploy-checklist.md。
+
+**API 呼叫**：0 次（僅本地操作，Notion 同步交給 `/plan-sync` 或 `/plan-close`）
 
 ### 7.5 退出驗證（強制，不可跳過）
 
@@ -176,11 +240,50 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
 | E4 | 無編譯錯誤（若可驗證） | 若專案有 build 指令（mvn compile / gradle build），執行一次 | 顯示錯誤訊息，標記 ⚠️ 但不阻擋 |
 | E5 | API 契約一致性 | 比對 Controller 的 @RequestMapping 與 spec.md 的 API 端點 | 列出不一致項目，標記 ⚠️ |
 | E6 | spec.md 驗收條件有對應程式碼 | 讀取 spec.md 的驗收條件 checkbox，grep 產出檔案確認有相關實作 | 列出無對應的驗收條件，標記 ⚠️ |
+| E7 | 部署 SQL 已產出（若 DB_REQUIRED != false） | 檢查 `.spec/{slug}/deploy.sql` 存在 | 掃描設計文件擷取 SQL，產出 deploy.sql（見下方 E7 詳細邏輯） |
+
+> **測試已跳過時**：若使用者選否（不含測試），E6 仍執行但不檢查測試檔案，驗證報告中標記「測試已跳過」。
+
+#### E7 詳細邏輯（部署 SQL 產出）
+
+1. 讀取 spec.md 判斷區塊的 `DB_REQUIRED` 值
+2. 若為 `false` 或不存在 → 跳過
+3. 若為 `true` 或 `insert-only`：
+   a. 檢查 `.spec/{slug}/deploy.sql` 是否存在
+   b. 若不存在 → 掃描 spec.md、db.md、arch.md 中的 SQL 程式碼區塊（` ```sql `），擷取 INSERT / UPDATE / CREATE / ALTER 語句
+   c. 組合成完整的 deploy.sql，格式如下：
+
+```sql
+-- ================================================================
+-- {功能名稱} — 部署 SQL
+-- 執行時機：上線部署時，程式更版後執行
+-- 資料庫：{DB 名稱}
+-- ================================================================
+
+-- Step 1：{描述}
+{SQL}
+
+-- Step 2：{描述}
+{SQL}
+
+-- ================================================================
+-- 驗證 SQL（執行後確認）
+-- ================================================================
+{驗證 SQL}
+
+-- ================================================================
+-- 回滾 SQL（如需還原）
+-- ================================================================
+-- {回滾 SQL，預設註解}
+```
+
+   d. 寫入 `.spec/{slug}/deploy.sql`
+   e. 在 files.md 追加「部署 SQL」區段
 
 #### 驗證結果分級
 
-- **🔴 BLOCK**（E1, E2, E3）：必須解決後才能標記完成
-- **⚠️ WARN**（E4, E5, E6）：記錄到 log.md，不阻擋但提醒使用者
+- **🔴 BLOCK**（E1, E2, E3, E7 當 DB_REQUIRED=true）：必須解決後才能標記完成
+- **⚠️ WARN**（E4, E5, E6, E7 當 DB_REQUIRED=insert-only）：記錄到 log.md，不阻擋但提醒使用者
 
 #### 驗證報告格式
 
@@ -194,11 +297,14 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
   ⚠️  E4 編譯未驗證（專案無標準 build 指令）
   ✅ E5 API 契約一致（4/4 端點吻合）
   ⚠️  E6 驗收條件 #3「支援匯出 Excel」無對應程式碼
+  ✅ E7 deploy.sql 已產出（2 筆 INSERT）
 
   結論：可繼續，但建議處理 E6 後再進 plan-verify
 ```
 
 ### 8. 回傳結果
+
+**包含測試時（使用者選是）**：
 
 ```
 程式碼產生完成！
@@ -214,11 +320,49 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
   ✅ test-engineer     — K 個檔案（測試）
   {✅ API 契約確認 — 一致}
 
+{📋 設定檔變更：偵測到 {N} 個設定檔（已寫入 deploy-checklist.md）}
+{🗄️ 部署 SQL：deploy.sql 已產出（N 筆 SQL）}
+{💡 提示：可用 /plan-sync 同步到 Notion，或等 /plan-close 結案時統一同步}
+
+⚡ 建議執行 /clear 再進行後續步驟（review / verify / close）
+   原因：build 已消耗大量 context，後續步驟全部從 .spec/ 磁碟讀取，不需要本次對話歷史
+
 後續可使用：
   • /plan-verify  — 驗收驗證
   • /plan-review  — Agent Teams 3 人審查
   • /plan-close   — 結案並同步 Notion
 ```
+
+**跳過測試時（預設）**：
+
+```
+程式碼產生完成！
+
+📁 產出清單：.spec/{slug}/files.md
+📊 統計：N 個後端 + M 個前端（測試已跳過）
+
+已完成：
+  {✅ db-engineer       — Migration SQL + 索引建議 + 效能報告}
+  ✅ backend-engineer  — N 個檔案（POJO/Mapper/Service）
+  ✅ api-engineer      — N 個檔案（Controller/DTO）
+  {✅ frontend-engineer — M 個檔案（JSP/JS/CSS）}
+  ⏭️ test-engineer    — 已跳過
+  {✅ API 契約確認 — 一致}
+
+{📋 設定檔變更：偵測到 {N} 個設定檔（已寫入 deploy-checklist.md）}
+{🗄️ 部署 SQL：deploy.sql 已產出（N 筆 SQL）}
+{💡 提示：可用 /plan-sync 同步到 Notion，或等 /plan-close 結案時統一同步}
+
+⚡ 建議執行 /clear 再進行後續步驟（review / verify / close）
+   原因：build 已消耗大量 context，後續步驟全部從 .spec/ 磁碟讀取，不需要本次對話歷史
+
+後續可使用：
+  • /plan-verify  — 驗收驗證
+  • /plan-review  — Agent Teams 3 人審查
+  • /plan-close   — 結案並同步 Notion
+```
+
+> 設定檔變更（📋）那兩行只在步驟 7.3 偵測到變更時顯示。
 
 ---
 

@@ -51,6 +51,18 @@
 | false | false | true | 3 人（後端 + API + 測試）|
 | false | false | false | 後端 + 測試（2 人 Team 或 Subagent）|
 
+### Step 3.5：DB_REQUIRED 處理
+
+spec.md 判斷區塊可能包含 `DB_REQUIRED` 欄位，影響團隊組成和退出驗證：
+
+| DB_REQUIRED 值 | 團隊組成影響 | 退出驗證影響 |
+|---------------|-------------|-------------|
+| `true` | 加入 DB 工程師（若 DB MCP 可用） | 驗證 migration SQL 存在 |
+| `insert-only` | **不加入** DB 工程師 | 退出驗證時強制產出 `deploy.sql`（E7） |
+| `false`（預設） | 不加入 DB 工程師 | 無額外驗證 |
+
+> **insert-only 的典型場景**：新增後台功能頁面需 INSERT auth_program / auth_menu（權限關聯），不需要 CREATE TABLE / ALTER TABLE，但部署時必須執行 INSERT SQL。這類 SQL 不需要 DB 工程師，但若沒有獨立 deploy.sql 檔案，上線時極易遺漏。
+
 ### Step 4：確認計畫
 
 顯示判斷依據，讓使用者確認或覆寫：
