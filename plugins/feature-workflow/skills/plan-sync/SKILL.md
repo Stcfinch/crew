@@ -1,6 +1,6 @@
 ---
 name: plan-sync
-description: 手動中途同步 .spec/ 目錄的當前進度到 Notion。按需使用，不在常規流程中。當使用者提到「plan-sync」、「同步到 Notion」、「同步進度到 Notion」、「中途同步」時觸發此 Skill。
+description: 手動中途同步 .spec/ 目錄的當前進度到 Notion（含 deploy.sql 部署 SQL）。按需使用，不在常規流程中。當使用者提到「plan-sync」、「同步到 Notion」、「同步進度到 Notion」、「中途同步」時觸發此 Skill。
 ---
 
 # plan-sync — 手動中途同步

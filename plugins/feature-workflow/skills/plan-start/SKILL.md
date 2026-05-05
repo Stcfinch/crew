@@ -1,6 +1,6 @@
 ---
 name: plan-start
-description: 建立 Notion 條目 + .spec/ 本地規劃目錄 + Git branch 的統一入口。支援 feature 和 bug 兩種類型。當使用者提到「plan-start」、「新任務」、「開始規劃」時觸發此 Skill。
+description: 建立 Notion 條目 + .spec/ 本地規劃目錄 + Git branch 的統一入口，含退出驗證（S1~S7）確保必填欄位完整。支援 feature 和 bug 兩種類型。當使用者提到「plan-start」、「新任務」、「開始規劃」時觸發此 Skill。
 ---
 
 # plan-start — 統一任務入口（本地規劃模式）

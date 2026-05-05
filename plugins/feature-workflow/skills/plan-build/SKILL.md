@@ -1,6 +1,6 @@
 ---
 name: plan-build
-description: 從 .spec/ 讀取設計文件，以 Agent Teams leader-delegate 模式（最多 5 人團隊）產生程式碼。Leader 只協調不寫 code。當使用者提到「plan-build」、「build」、「產生程式碼」時觸發此 Skill。
+description: 從 .spec/ 讀取設計文件，以 Agent Teams leader-delegate 模式（最多 5 人團隊）產生程式碼，含退出驗證（E1~E7）與 deploy.sql 自動產出（DB_REQUIRED=insert-only 支援）。Leader 只協調不寫 code。當使用者提到「plan-build」、「build」、「產生程式碼」時觸發此 Skill。
 ---
 
 # plan-build — Agent Teams 程式碼產生
