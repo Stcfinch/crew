@@ -228,15 +228,149 @@ git remote get-url origin 2>/dev/null || echo ""
 
 任何收集步驟失敗（如知識庫未設定、不在 Git repo 中、學習檔案不存在）都靜默跳過，不影響 bug-start 的主流程。
 
+### 6.7 自動關聯來源 Feature
+
+建立 Bug 條目後，嘗試在同一資料庫中找到相關的 Feature 條目，透過「相關任務」self-relation 建立關聯。
+
+#### 前置條件
+
+- Bug Notion 頁面已建立（Step 5 成功）
+- 「相關任務」欄位存在（由 `/bug-setup` 建立）
+
+#### 關鍵字擷取
+
+從 Bug 標題擷取搜尋關鍵字，依優先順序：
+
+1. **SRS 編號**：正則 `SRS[-]?\d+`（如 `SRS-042`、`SRS042`）→ 最精確，直接搜尋
+2. **功能模組名**：去除停詞後的實詞（如「SSO」、「推播」、「Rich Menu」、「標籤」）
+3. **完整標題**：作為最後手段的 broadest match
+
+**停詞表**（從標題中剔除）：
+- 錯誤類：錯誤、異常、失敗、問題、故障、無法、找不到、空白、延遲、超時、不正確、不顯示
+- 動作類：修復、修正、處理、調整、更新
+- 環境類：正式、UAT、SIT、測試
+- 技術類：API、回傳、500、404、null、NPE、Exception
+
+#### 查詢同專案 Feature
+
+使用 `API-query-data-source`（Data Source ID = 任務追蹤工具）查詢，filter 條件：
+
+```json
+{
+  "filter": {
+    "and": [
+      {
+        "property": "任務類型",
+        "multi_select": { "contains": "💬 功能要求" }
+      },
+      {
+        "property": "專案資料庫",
+        "relation": { "contains": "<同專案 page ID>" }
+      }
+    ]
+  }
+}
+```
+
+> 「同專案 page ID」來自 Step 5 建立 Bug 時設定的「專案資料庫」relation 目標頁面 ID。
+
+#### 標題比對
+
+對查詢結果逐一比對：
+
+1. 先用 SRS 編號精確匹配 Feature 標題
+2. 再用功能模組名做 `title.includes(keyword)` 比對
+3. 多個匹配時，取**匹配關鍵字最多**的；若仍平手，取**建立時間最近**的
+
+#### 設定 Relation
+
+匹配成功後，使用 `notion-update-page` 設定 Bug 的「相關任務」欄位：
+
+```json
+{
+  "相關任務": {
+    "relation": [
+      {"id": "<feature-page-id>"}
+    ]
+  }
+}
+```
+
+> 因為 Relation 是 DUAL，Notion 自動在 Feature 端的「被關聯任務」欄位加上反向連結。
+
+#### 不阻擋流程
+
+- query-data-source 失敗 → 靜默跳過
+- 查詢結果為空（專案無 Feature）→ 跳過
+- 關鍵字擷取為空（標題太短或全是停詞）→ 跳過
+- patch-page 失敗（如「相關任務」欄位不存在）→ 跳過，提示使用者可手動關聯或執行 `/bug-setup` 更新 schema
+- 匹配不成功 → 在回傳結果中提示：「未自動關聯 Feature，可至 Notion 手動設定『相關任務』欄位」
+
+### 6.8 偵測來源 Feature Branch
+
+若 Step 6.7 成功關聯到 Feature，進一步從 Feature 條目取得原始開發分支，作為 Bug 的修復分支。
+
+#### 前置條件
+
+- Step 6.7 成功關聯到至少一個 Feature
+
+#### 流程
+
+1. 使用 `notion-fetch` 讀取被關聯 Feature 的 Notion 頁面
+2. 取得 Feature 的「修復分支」欄位值（如 `feature/qa-log-user-id-statistics`）
+3. 若「修復分支」欄位為空 → 跳過此步驟
+4. 驗證該分支是否存在：
+   ```bash
+   git branch -a | grep -F "<branch-name>"
+   ```
+
+5. **分支存在**：
+   ```
+   偵測到來源 Feature 的開發分支：feature/qa-log-user-id-statistics
+   依 Git-flow 規定，Bug 修復應在此分支上進行。
+
+   已將「修復分支」設定為此分支。
+
+   要切換到此分支嗎？
+     1. 是，git checkout feature/qa-log-user-id-statistics
+     2. 否，稍後手動切換
+   ```
+   - 更新 Bug Notion 條目的「修復分支」欄位為 feature branch 名稱
+   - 選 1 → 執行 `git checkout <branch>`
+   - 選 2 → 僅更新 Notion 欄位，不切換
+
+6. **分支不存在**：
+   ```
+   ⚠️ 來源 Feature 的分支 feature/qa-log-... 不存在（可能已被刪除或 merge 後清理）
+
+   請選擇：
+     1. 從目前分支建立新的 fix branch
+     2. 直接在當前分支修復
+     3. 手動指定分支
+   ```
+   - 選 1 → 建立 `hotfix/{slug}` 分支
+   - 選 2 → 修復分支設為當前分支
+   - 選 3 → 使用者輸入分支名稱
+
+#### 不阻擋流程
+
+- Step 6.7 未關聯到 Feature → 跳過整個 6.8
+- notion-fetch 失敗 → 跳過
+- Feature 的「修復分支」為空 → 跳過
+- git 操作失敗 → 跳過，修復分支保持 Step 5 設定的值
+
 ### 7. 回傳結果
 
 向使用者回傳：
 - Notion 頁面連結
 - 建立的條目摘要（任務名稱、專案、環境、優先順序）
+- 關聯結果（若 Step 6.7 成功）：「已關聯來源 Feature：{Feature 標題}」
+- 修復分支（若 Step 6.8 調整過）：「修復分支：{branch}（來自關聯 Feature）」
 - 提示後續可用指令：
   ```
   Bug 條目已建立！後續可使用：
   • /bug-update <內容>  — 補充調查資訊（Log、SQL、判斷等）
+  • /bug-fix             — 確認根因後修復
   • /bug-close          — 修復完成後結案
   • /bug-search <關鍵字> — 搜尋過往類似 Bug 的解法
   ```
@@ -249,12 +383,21 @@ git remote get-url origin 2>/dev/null || echo ""
 - **任務類型是 Multi-select 不是 Select**：值必須用陣列格式 `["🐞 錯誤"]`，不是字串 `"🐞 錯誤"`。用字串格式不會報錯但會建立新的標籤。
 - **emoji 是欄位值的一部分**：「🐞 錯誤」、「💬 功能要求」、「💅 細調」中的 emoji 是必要的，不能省略，否則會建立一個新的 Select 選項。
 - **Git Repo 識別碼比對必須精確**：`FUB03P2402/LineBC` 和 `FUB03P2402/linebc` 是不同的識別碼。比對時使用原始大小寫，不做 case-insensitive matching。
+- **相關任務是 self-relation，用 patch 不是 create**：Step 6.7 設定「相關任務」時，Bug 頁面已在 Step 5 建立，必須用 `notion-update-page`（patch）而非 `notion-create-pages`。`notion-update-page` 的 Relation 欄位使用 `{"relation": [{"id": "..."}]}` 格式，id 是 page ID 不是 URL。
+- **同一個 Bug 可能關聯多個 Feature**：「相關任務」relation 是陣列，若標題比對匹配到多個 Feature，可以全部加入 relation 陣列。但建議限制最多 3 個，避免過度關聯。
+- **Feature Branch 可能已被刪除**：Step 6.8 驗證分支存在性時，Feature 可能已 merge 且分支被清理。這是正常情境，不應視為錯誤。
+- **修復分支優先順序**：Step 6.8 取得的 feature branch 會覆蓋 Step 5 設定的「修復分支」（通常是當前分支）。若使用者不希望在 feature branch 上修復，Step 6.8 的互動式選擇允許保留原分支。
 
 ---
 
 ## 邊界情況
 
 - **設定檔不存在**：提示使用者先執行 `/bug-setup` 完成初始設定
-- **不在 Git repo 中**：跳過分支與專案自動偵測，修復分支留空；進入互動式選擇專案
+- **不在 Git repo 中**：跳過分支與專案自動偵測，修復分支留空；進入互動式選擇專案；Step 6.8 跳過
 - **使用者未指定專案**：列出進行中的專案供選擇；若只有一個專案則自動選定
 - **Notion API 失敗**：顯示錯誤訊息，建議使用者手動在 Notion 建立
+- **「相關任務」欄位不存在**（舊版資料庫）：Step 6.7 的 patch-page 會失敗，靜默跳過並提示使用者執行 `/bug-setup` 更新 schema
+- **專案無任何 Feature 條目**：Step 6.7 的 query 結果為空，跳過關聯
+- **Bug 標題全是停詞**（如「錯誤修復」）：關鍵字擷取為空，跳過 Step 6.7
+- **來源 Feature 的「修復分支」為空**：Feature 可能未設定分支（如手動建立的條目），Step 6.8 跳過
+- **來源 Feature 分支已刪除**：Step 6.8 提供三個選項讓使用者決定修復分支

@@ -50,6 +50,59 @@ git diff HEAD~1..HEAD
 
 若使用者指定 commit 範圍（如 `HEAD~3..HEAD`），使用指定的範圍。
 
+### 1.5 Merge 引導（Feature Branch → DEV）
+
+結案前，若偵測到修復在 feature branch 上進行，引導使用者 merge 回開發分支。
+
+#### 判斷條件
+
+同時滿足以下三項才觸發：
+
+1. **當前分支是 Bug 的修復分支**：`git branch --show-current` = Bug Notion 頁面的「修復分支」欄位
+2. **當前分支是 feature/hotfix 分支**（非 DEV/PRD）：不匹配專案設定中的 `dev_branch`、`uat_branch`、`prod_branch`
+3. **能取得 DEV 分支名稱**：從 feature-workflow 的 `projects/{repo-id}.md` 讀取 `dev_branch` 欄位
+
+> `dev_branch` 取得路徑：先嘗試 `~/.claude-company/feature-workflow/projects/{repo-id}.md`，再嘗試 `~/.claude/feature-workflow/projects/{repo-id}.md`。
+
+#### 互動式引導
+
+```
+📋 結案前分支合併
+
+當前在 feature/qa-log-user-id-statistics
+目標 DEV 分支：MOM01P2401_DEV
+
+要合併回 DEV 嗎？
+  1. 是，merge --no-ff 並繼續結案
+  2. 否，我稍後自己合併
+  3. 已經合併過了，直接結案
+```
+
+#### 選 1：執行 Merge
+
+1. 檢查工作區乾淨：`git status --porcelain`
+   - 有未提交變更 → 提示先 commit 或 stash，暫停
+2. 切換到 DEV：`git checkout {dev_branch}`
+3. 拉取最新：`git pull`（若有 remote tracking）
+4. 合併：`git merge {feature_branch} --no-ff`
+   - 成功 → 繼續結案流程
+   - 衝突 → 顯示衝突檔案列表，暫停結案，提示使用者解決衝突後重新執行 `/bug-close`
+5. **不自動 push**，在結案結果中提示：`git push origin {dev_branch}`
+
+#### 選 2 或 3：跳過 Merge
+
+直接進入原有的結案流程。
+
+#### 條件不滿足時
+
+- 當前不在修復分支 → 跳過
+- 當前在 DEV/PRD 分支 → 跳過
+- `dev_branch` 未設定 → 顯示簡化提示：
+  ```
+  💡 目前在 feature branch，結案後記得 merge 回開發分支。
+     若要啟用自動 merge 引導，請在專案設定中新增 dev_branch。
+  ```
+
 ### 2. 搜尋對應的 Bug 條目
 
 搜尋 Notion「任務追蹤工具」（Data Source ID 見設定檔）中符合條件的條目：
@@ -213,11 +266,14 @@ mkdir -p ~/.claude-company/bug-workflow/learnings
 - 更新後的 Notion 頁面連結
 - 變更摘要（修改了幾個檔案、根因分類、目前狀態）
 - 知識庫條目連結（若有同步）
+- Merge 結果（若 Step 1.5 執行了 merge）：「已合併 feature/xxx → {dev_branch}」
 - 提示後續操作：
   ```
   Bug 已結案！後續事項：
+  {若有 merge} • git push origin {dev_branch}  — 推送合併結果
   • 驗證完成後請在 Notion 頁面勾選驗證項目
   • 若上線後問題復發，可使用 /bug-update reopen 重新開啟
+  {若 feature branch 不再需要} • git branch -d feature/xxx  — 清理分支
   ```
 
 ---
@@ -229,6 +285,10 @@ mkdir -p ~/.claude-company/bug-workflow/learnings
 - **知識庫 Tags 推測容易偏離**：自動推測 Tags 時，Claude 傾向選太多標籤。限制最多 3 個，優先選與 bug 直接相關的模組標籤（如「推播」、「排程」），避免選泛用標籤（如「API」、「效能」除非確實是那類問題）。
 - **commit 範圍判斷**：使用者可能在修 bug 過程中穿插了不相關的 commit（如 merge commit）。若 `git log --oneline -10` 中混有非修復用途的 commit，應先確認正確範圍再擷取 diff，不要盲目用 `HEAD~1..HEAD`。
 - **難易度判斷閾值偏保守**：「≤3 檔案且 ≤50 行 → 普通」的規則在重構型修復（改很多檔但每個只改一行）時會誤判為困難。若 diff 中大部分是 import 變更或 rename，應降級為「普通」。
+- **Merge 引導是建議不是強制**：Step 1.5 的 merge 引導可以跳過。有些場景使用者會在其他工具（如 GitLab MR）做 merge，不需要在 CLI 操作。
+- **dev_branch 跨 plugin 讀取**：Merge 引導需要讀取 feature-workflow 的設定檔取得 `dev_branch`，但 bug-close 是 bug-workflow 的 skill。讀取失敗時顯示簡化提示，不阻擋流程。
+- **Merge 衝突不自動解決**：衝突屬於需要人類判斷的操作，遇到衝突時暫停結案流程，等使用者解決後重新執行 `/bug-close`。
+- **不自動 push**：merge 完成後不自動執行 `git push`，因為 push 會影響遠端共享狀態，需使用者明確操作。
 
 參考 `examples/good-closure-report.md` 了解理想的結案報告結構和品質。
 
@@ -241,3 +301,7 @@ mkdir -p ~/.claude-company/bug-workflow/learnings
 - **Notion 頁面內容與模板不符**：使用 `replace_content` 而非 `update_content`，先保留原有內容再附加修復資訊
 - **使用者想手動補充調查過程**：提示可直接在 Notion 頁面編輯「調查過程」區塊
 - **diff 過大（> 500 行）**：僅摘要檔案清單和關鍵變更，不貼完整 diff
+- **merge 衝突**：顯示衝突檔案列表，暫停結案流程，提示使用者解決衝突後重新執行 `/bug-close`
+- **feature-workflow 未安裝或未設定**：Merge 引導改為簡化提示，不阻擋結案
+- **DEV 分支在本地不存在**：嘗試 `git checkout {dev_branch}`（git 會自動從 remote tracking 建立本地分支），若失敗則 `git fetch && git checkout {dev_branch}`
+- **Feature branch 是否應刪除**：不自動刪除，僅在結案提示中建議。若 Feature 仍在開發中，刪除分支會造成問題

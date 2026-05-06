@@ -73,12 +73,12 @@ flowchart TD
 ```mermaid
 flowchart TD
     discover["發現 Bug"]
-    start["/bug-start<br/><i>建立 Notion 條目</i>"]
+    start["/bug-start<br/><i>建立條目 + 關聯 Feature</i>"]
     investigate["/bug-investigate<br/><i>假說驅動根因調查</i>"]
     update["/bug-update<br/><i>補充 Log、SQL、判斷</i>"]
     fix["修復並 commit"]
-    bugfix["/bug-fix<br/><i>鐵律檢查 + 迴歸測試</i>"]
-    close["/bug-close<br/><i>結案（diff → Notion → 知識庫）</i>"]
+    bugfix["/bug-fix<br/><i>分支檢查 + 鐵律 + 迴歸測試</i>"]
+    close["/bug-close<br/><i>merge 引導 + 結案 + 知識庫</i>"]
     reopen{上線後復發？}
     reopenCmd["/bug-update reopen<br/><i>重新開啟</i>"]
 
@@ -95,12 +95,12 @@ flowchart TD
 | 指令 | 說明 |
 |------|------|
 | `/bug-setup` | 首次設定引導 |
-| `/bug-start <問題簡述>` | 建立 Bug 條目 |
+| `/bug-start <問題簡述>` | 建立 Bug 條目 + 自動關聯 Feature + 偵測 Feature Branch |
 | `/bug-investigate` | 假說驅動根因調查（五階段 + 3-Strike） |
-| `/bug-fix` | 修復紀律（鐵律 + 迴歸測試 + 瀏覽器驗證） |
+| `/bug-fix` | 修復紀律（分支檢查 + 鐵律 + 迴歸測試 + merge 引導） |
 | `/bug-update <內容>` | 更新調查資訊（Log、SQL、判斷） |
 | `/bug-update reopen <Bug>` | 重新開啟已結案 Bug |
-| `/bug-close` | 結案 + 同步知識庫 |
+| `/bug-close` | merge 引導 + 結案 + 同步知識庫 |
 | `/project-add` | **偵測專案架構** + Notion 註冊 + DB MCP 安裝 |
 | `/crew-upgrade` | 一次更新所有 CREW plugins |
 

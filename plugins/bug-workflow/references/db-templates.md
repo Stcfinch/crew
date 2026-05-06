@@ -27,9 +27,12 @@
 3. 功能設計庫 ADD COLUMN "專案資料庫" RELATION({專案DS_ID})
 4. 專案資料庫 ADD COLUMN "任務追蹤工具" RELATION({任務DS_ID}, DUAL)
 5. 專案資料庫 ADD COLUMN "bug處理方式" RELATION({BugDS_ID}, DUAL)
+6. 任務追蹤工具 ADD COLUMN "相關任務" RELATION({任務DS_ID}, DUAL)
 ```
 
 > **注意**：DUAL 表示雙向 Relation，會在兩邊資料庫同時顯示關聯欄位。
+
+> **Self-Relation 說明**：步驟 6 的目標 DS_ID 和來源相同（都是任務追蹤工具），形成自我關聯。DUAL 會自動產生反向欄位。建立後需確認反向欄位名稱為「被關聯任務」，若 Notion 自動命名不符，使用 `notion-update-data-source` 的 RENAME COLUMN 語法修正。
 
 ---
 
@@ -96,6 +99,8 @@
 | 負責人 | people | 指派人員 |
 | 到期日 | date | 截止日期 |
 | 建立時間 | created_time | 建立時間（自動） |
+
+> **Self-Relation 欄位**：「相關任務」（反向欄位「被關聯任務」）在第二輪 Relation 補齊步驟中建立，不在初始 Schema 中。用於 Bug ↔ Feature / Bug ↔ Bug 的任務間關聯。
 
 ### Views
 

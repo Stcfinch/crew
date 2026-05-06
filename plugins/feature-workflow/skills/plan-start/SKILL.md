@@ -211,9 +211,11 @@ created: {當前日期 YYYY-MM-DD}
 
 #### 7-3. Bug 自動關聯 Feature
 
+**本地 `.spec/` 層關聯**：
+
 若使用者指定 `--related <feature-slug>`：
 - 驗證 `.spec/{feature-slug}/` 存在
-- 讀取其 `README.md` 取得 `notion_url`
+- 讀取其 `README.md` 取得 `notion_url`、`notion_page_id`
 - 填入 Bug README.md 的 `related_feature` 和 `related_feature_notion`
 
 若未指定，嘗試智慧匹配：
@@ -222,6 +224,39 @@ created: {當前日期 YYYY-MM-DD}
 3. 比對各 feature 的 `spec.md`、`arch.md`、`db.md` 中的類別名和表名
 4. 若匹配成功，提示使用者確認
 5. 若無法判斷，跳過（使用者可後續手動指定）
+
+**Notion 層 relation 關聯**：
+
+本地關聯成功後，同步建立 Notion 的「相關任務」self-relation：
+
+1. 從關聯 feature 的 `README.md` 取得 `notion_page_id`（已在本地關聯時讀取）
+2. 使用 `notion-update-page` 設定 Bug 頁面的「相關任務」：
+   ```json
+   {
+     "相關任務": {
+       "relation": [{"id": "<feature-notion-page-id>"}]
+     }
+   }
+   ```
+3. 失敗 → 記錄到 `log.md`，不阻擋流程
+
+若本地關聯未成功（`.spec/` 中無匹配 feature），嘗試 Notion 層盲搜（同 `/bug-start` Step 6.7 邏輯）：
+
+1. 從 Bug 標題擷取關鍵字（去除停詞）
+2. 使用 `API-query-data-source` 查詢同專案的 Feature 條目（任務類型 contains 💬 功能要求）
+3. 標題比對，找到最相關的 Feature
+4. 匹配成功 → patch-page 設定 relation
+5. 匹配失敗 → 跳過，在回傳結果中提示可手動關聯
+
+**Feature Branch 偵測**（同 `/bug-start` Step 6.8）：
+
+若成功關聯到 Feature（本地或 Notion 層），進一步偵測 Feature 的開發分支：
+
+1. 從 feature 的 `.spec/` README.md 取得 `branch` 欄位，或從 Notion 頁面讀取「修復分支」欄位
+2. 驗證分支存在：`git branch -a | grep -F "<branch-name>"`
+3. 分支存在 → 設定 Bug 的修復分支為 feature branch，詢問是否切換
+4. 分支不存在 → 提示使用者選擇（建新分支 / 當前分支 / 手動指定）
+5. 失敗 → 跳過，修復分支保持步驟 9 的設定
 
 ### 8. 更新 .spec/_index.md
 
@@ -369,6 +404,9 @@ created: {當前日期 YYYY-MM-DD}
 - **_index.md 的 Markdown 表格格式脆弱**：如果使用者手動編輯了 `_index.md` 破壞了表格格式（缺少 `|` 或對齊跑掉），後續 `/plan-status` 讀取會解析失敗。寫入時確保表格格式正確。
 - **Bug 類型的 Notion 模板與 bug-start 不同步**：plan-start 建立 Bug 時用的模板要和 `bug-start` 的完全一致。如果 bug-start 更新了模板但 plan-start 沒跟上，會導致 `/bug-close` 找不到預期的區塊標題。
 - **.gitignore 追加位置**：追加 `.spec/` 到 `.gitignore` 時，如果檔案末尾沒有換行，新增的行會和最後一行黏在一起。追加前確認末尾有換行。
+- **Notion 層 relation 用 page ID 不是 URL**：`notion-update-page` 設定「相關任務」relation 時，`id` 欄位要填 page ID（UUID 格式），不是頁面 URL。`.spec/` README.md 的 `notion_page_id` 就是正確的值。
+- **本地關聯和 Notion 關聯可能不一致**：`.spec/` 中的 `related_feature` 和 Notion 的「相關任務」是兩個獨立的關聯。使用者在 Notion 手動刪除關聯不會更新 `.spec/`，反之亦然。這是已知的 offline-first 限制。
+- **Bug 的 Feature Branch 偵測依賴關聯結果**：Feature Branch 偵測是步驟 7-3 的延伸邏輯，若關聯 Feature 失敗則整個分支偵測都跳過。不要獨立於關聯結果執行分支偵測。
 
 ---
 

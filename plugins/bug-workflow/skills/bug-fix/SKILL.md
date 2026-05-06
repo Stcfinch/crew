@@ -68,6 +68,34 @@ description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修�
 
 選定後使用 `notion-fetch` 讀取頁面完整內容。
 
+### 1.5 分支檢查
+
+確保修復在正確的分支上進行（依 Git-flow 規定：修改應在 feature branch 提交，再 merge 回 DEV）。
+
+1. 從 Bug Notion 頁面讀取「修復分支」欄位
+2. 取得當前分支：`git branch --show-current`
+3. 比對：
+
+**修復分支有值 且 ≠ 當前分支**：
+
+```
+⚠️ 分支不一致
+
+當前分支：MOM01P2401_DEV
+修復分支：feature/qa-log-user-id-statistics
+
+依 Git-flow 規定，修改應在 feature branch 提交，再 merge 回 DEV。
+
+要切換嗎？
+  1. 是，切換到 feature/qa-log-user-id-statistics
+  2. 否，繼續在當前分支修復
+```
+
+- 選 1 → 執行 `git checkout <修復分支>`，繼續流程
+- 選 2 → 繼續，不改變分支
+
+**修復分支無值 或 = 當前分支**：跳過，繼續原流程。
+
 ### 2. 鐵律檢查
 
 讀取 Notion 頁面「根因分析」區塊：
@@ -205,6 +233,27 @@ Bug 修復驗證完成！
   • 部署到 UAT 後在 Notion 勾選「UAT 驗證通過」
 ```
 
+**分支引導**（若當前在 feature branch 且不是 DEV/PRD 分支）：
+
+讀取 feature-workflow 的 `projects/{repo-id}.md` 取得 `dev_branch`。若取得成功，額外顯示：
+
+```
+🔀 分支引導：
+  目前在 feature/qa-log-user-id-statistics
+  修復已 commit，後續請 merge 回 DEV：
+
+  git checkout {dev_branch} && git merge feature/qa-log-user-id-statistics --no-ff
+
+  或使用 /bug-close 時自動引導 merge。
+```
+
+若 `dev_branch` 未設定，顯示通用提示：
+
+```
+🔀 分支引導：
+  目前在 feature branch，記得修復完成後 merge 回開發分支。
+```
+
 ---
 
 ## Gotchas
@@ -215,6 +264,8 @@ Bug 修復驗證完成！
 - **--skip-test 的使用場景**：僅限以下情況：環境問題（如無法在本地跑測試）、設定類修復（如改 properties 檔）、純 SQL 修復（如改 DB 資料）。其他場景不應跳過。
 - **gstack browse 可用性**：不是所有環境都有安裝 gstack。先偵測 `$HOME/.claude/skills/gstack/browse/dist/browse` 是否存在且可執行，再決定是否進行 UI 驗證。
 - **update_content 語意是覆蓋不是附加**：`notion-update-page` 的 `update_content` 對同一區塊寫入時會覆蓋該區塊內容。寫入「驗證」區塊時，必須先 `notion-fetch` 取得現有內容，串接新內容後再寫回。
+- **分支檢查是引導不是強制**：Step 1.5 的分支不一致提示是建議性的，使用者可以選擇繼續在當前分支修復。不要因為分支不一致就 BLOCK 整個流程。
+- **dev_branch 取得路徑**：分支引導需要讀取 feature-workflow 的 `projects/{repo-id}.md`，但 bug-fix 是 bug-workflow 的 skill。需跨 plugin 讀取設定：先嘗試 `~/.claude-company/feature-workflow/projects/{repo-id}.md`，再嘗試 `~/.claude/feature-workflow/projects/{repo-id}.md`。讀取失敗時顯示通用提示。
 
 ---
 
@@ -229,3 +280,5 @@ Bug 修復驗證完成！
 - **API 驗證服務未啟動**：跳過 API 驗證，在 Notion 標記「API 驗證：⏭️ 跳過（服務未啟動）」
 - **--verify-only 模式**：跳過步驟 3（修復建議），直接從步驟 4（修復後驗證）開始
 - **diff 過大（> 500 行）**：提示使用者確認是否所有變更都與 bug 修復相關，遵循最小 diff 原則
+- **Bug 無「修復分支」欄位**：Step 1.5 跳過分支檢查
+- **feature-workflow 未安裝或未設定**：分支引導顯示通用提示，不阻擋流程
