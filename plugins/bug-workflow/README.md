@@ -1,4 +1,4 @@
-# Bug Workflow Plugin `v3.6.0`
+# Bug Workflow Plugin `v3.7.0`
 
 整合 Notion 與 Claude Code，自動化 Bug 生命週期管理。
 
@@ -7,12 +7,12 @@
 | 指令 | 說明 |
 |------|------|
 | `/bug-setup` | 首次設定引導，自動偵測 Notion 資料庫並產出設定檔 |
-| `/bug-start <問題簡述>` | 在 Notion 建立 Bug 條目，填入標準化模板 |
+| `/bug-start <問題簡述>` | 在 Notion 建立 Bug 條目，自動關聯來源 Feature + 偵測 Feature Branch |
 | `/bug-investigate` | 假說驅動根因調查 — 證據收集、模式比對、假說驗證、3-Strike 升級 |
-| `/bug-fix` | 修復紀律 — 鐵律檢查（根因確認才能修）、迴歸測試、瀏覽器驗證 |
+| `/bug-fix` | 修復紀律 — 分支檢查 + 鐵律檢查 + 迴歸測試 + merge 引導 |
 | `/bug-update <內容>` | 調查過程中更新 Bug 頁面（Log、SQL、判斷等） |
 | `/bug-update reopen <Bug>` | 重新開啟已結案的 Bug（復發處理） |
-| `/bug-close` | 從 Git diff 自動擷取修復細節，結案並同步知識庫 |
+| `/bug-close` | 結案前引導 merge 回 DEV + 從 Git diff 擷取修復細節 + 同步知識庫 |
 | `/project-add` | **偵測專案架構**（簡單型/產品型）→ Notion 註冊 → 可選安裝 DB MCP |
 | `/crew-upgrade` | 一次更新 bug-workflow + feature-workflow，顯示 CHANGELOG 摘要 |
 
@@ -78,12 +78,12 @@ claude plugin update bug-workflow@company-marketplace
 ```mermaid
 flowchart TD
     discover["發現 Bug"]
-    start["/bug-start<br/><i>建立 Notion 條目 + 初始證據</i>"]
+    start["/bug-start<br/><i>建立條目 + 關聯 Feature + 偵測分支</i>"]
     investigate["/bug-investigate<br/><i>假說驅動根因調查</i>"]
     update["/bug-update<br/><i>補充 Log、SQL、判斷</i>"]
     fix["修復並 commit"]
-    bugfix["/bug-fix<br/><i>鐵律檢查 + 迴歸測試</i>"]
-    close["/bug-close<br/><i>退出驗證 + 結案 + 知識庫 + 學習</i>"]
+    bugfix["/bug-fix<br/><i>分支檢查 + 鐵律 + 迴歸測試</i>"]
+    close["/bug-close<br/><i>merge 引導 + 結案 + 知識庫</i>"]
     reopen{上線後復發？}
     reopenCmd["/bug-update reopen<br/><i>重新開啟</i>"]
 

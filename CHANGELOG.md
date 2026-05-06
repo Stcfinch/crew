@@ -7,6 +7,28 @@
 
 ---
 
+## [bug-workflow@3.7.0] - 2026-05-06
+
+### 新增
+- **自動關聯來源 Feature** — bug-start 建立 Bug 後，自動從同專案 Feature 中比對標題，設定「相關任務」self-relation（Step 6.7）
+- **偵測來源 Feature Branch** — 從關聯 Feature 取得開發分支作為 Bug 修復分支，支援 Git-flow 規範（Step 6.8）
+- **bug-fix 分支檢查** — 修復前檢查是否在正確分支，不一致時提示切換（Step 1.5）
+- **bug-fix merge 引導** — 修復完成後提示 merge 回 DEV 分支
+- **bug-close merge 引導** — 結案前偵測 feature branch，引導 `merge --no-ff` 回 DEV 分支（Step 1.5）
+- **bug-setup self-relation** — 首次設定時自動建立「相關任務」self-relation 欄位
+
+### 改善
+- **config.template** 欄位對照新增「相關任務」Relation (self) 說明
+- **db-templates** 第二輪 Relation 新增步驟 6（self-relation）+ 任務追蹤工具 Schema 說明
+
+## [feature-workflow@4.15.0] - 2026-05-06
+
+### 新增
+- **plan-start Notion relation** — Bug 類型本地關聯 Feature 成功後，同步建立 Notion「相關任務」relation
+- **plan-start 盲搜 fallback** — 本地 .spec/ 無匹配 Feature 時，走 Notion 層標題比對（同 bug-start Step 6.7）
+- **plan-start Feature Branch 偵測** — 關聯 Feature 後偵測開發分支作為修復分支
+- **dev_branch 設定** — projects/ frontmatter 新增 dev_branch 欄位，供 bug-close merge 引導使用
+
 ## [feature-workflow@4.14.0] - 2026-05-04
 
 ### 新增
