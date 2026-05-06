@@ -47,6 +47,7 @@ Skill 透過 `git remote get-url origin` 取得 Git 遠端 URL，解析為識別
 | 根因分類 | Select | `邏輯錯誤` / `資料異常` / `設定問題` / `第三方API` / `效能` / `權限` / `前端UI` |
 | 修復分支 | Text | Git branch 名稱 |
 | 專案資料庫 | Relation | 關聯至專案資料庫 |
+| 相關任務 | Relation (self) | 自我關聯：Bug ↔ Feature / Bug ↔ Bug。反向欄位名「被關聯任務」 |
 
 ### Bug 知識庫
 

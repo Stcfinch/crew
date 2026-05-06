@@ -145,6 +145,7 @@ git_repo: FUB03P2402/PushAPIService
 stack: spring-boot-jpa
 prod_branch: production
 uat_branch: uat
+dev_branch: FUB03P2402_DEV
 ---
 富邦銀行 LINE 推播微服務
 ```
@@ -155,6 +156,7 @@ frontmatter 欄位：
 - `stack`（選填）：技術棧 ID（內建或自訂）
 - `prod_branch`（必要）：正式環境分支名稱（`/plan-start` 從此分支建立 feature branch）
 - `uat_branch`（選填）：測試環境分支名稱
+- `dev_branch`（選填）：開發分支名稱（`/bug-close` merge-back 目標）
 
 body：專案說明（一句話）。
 

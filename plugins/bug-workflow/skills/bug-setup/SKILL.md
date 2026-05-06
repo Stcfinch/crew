@@ -187,6 +187,13 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 > **注意**：僅對本次新建的資料庫補 Relation。若資料庫是既有的且已有 Relation 欄位，跳過該步驟。
 > 若某個資料庫被跳過（使用者選擇「跳過」），則不建立與該資料庫的 Relation。
 
+5. **任務追蹤工具** → 自我關聯（self-relation）：若任務追蹤工具缺少「相關任務」欄位
+   ```
+   ADD COLUMN "相關任務" RELATION({任務DS_ID}, DUAL)
+   ```
+   > DUAL 自動產生反向欄位「被關聯任務」。建立後用 `notion-fetch` 確認反向欄位名稱正確，若 Notion 自動命名不符預期，使用 RENAME COLUMN 修正為「被關聯任務」。
+   > 此欄位用於 Bug ↔ Feature / Bug ↔ Bug 的任務間關聯，供 `/bug-start` 自動關聯來源 Feature 使用。
+
 #### 2-5. 建立/更新工作區總覽頁面
 
 所有資料庫建立完成後，更新工作區頁面內容，將所有資料庫以 inline linked view 嵌入。
