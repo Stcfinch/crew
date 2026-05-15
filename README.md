@@ -302,7 +302,8 @@ claude mcp remove dbhub      # 移除 DBHub
 | **Maven / Gradle** | 🟡 強烈建議 | 編譯驗證 | 專案本身自帶 | plan-build、bug-fix |
 | **DBHub MCP** | 🟢 選配 | 資料庫直連（MSSQL/MySQL/PostgreSQL） | `claude mcp add dbhub ...` | plan-build、plan-review |
 | **Chrome DevTools MCP** | 🟢 選配 | Console / Network 除錯 | `claude mcp add chrome-devtools ...` | plan-verify --deep |
-| **minimax-skills Plugin** | 🟢 選配 | Word 驗收報告產出 | `claude plugin install minimax-skills` | plan-verify 報告 |
+| **minimax-skills Plugin** | 🟢 選配 | Word 驗收報告產出 | `claude plugin install minimax-skills` | plan-verify --word |
+| **Node.js + ExcelJS** | 🟢 選配 | Excel 驗收報告產出 | ExcelJS 自動安裝（需 Node.js） | plan-verify --excel |
 | **curl** | 🔵 標準工具 | API 測試 | 系統內建 | plan-verify、bug-fix |
 | **python3** | 🔵 標準工具 | JSON 格式化 | 系統內建或安裝 | plan-verify |
 | **grep / find** | 🔵 標準工具 | 安全掃描、日誌搜尋 | 系統內建 | plan-security、bug-investigate |
