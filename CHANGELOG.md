@@ -21,6 +21,19 @@
 - **測試骨架產出** — 驗證完成後可選產出 80% 完成度的 E2E 測試骨架
 - **plan-common 第 4 層** — 產品知識庫偵測邏輯，projects/{id}.md 新增 product_id 選填欄位
 
+## [bug-workflow@3.8.0] - 2026-05-15
+
+### 新增
+- **investigate 為主入口** — 流程從「start → investigate」改為「investigate（自動建立條目 + 調查）」，bug-start 降為可選的手動入口
+- **釐清問題機制** — 調查完成後，若根因涉及商業邏輯疑問或環境差異，條件觸發 1-3 個釐清問題請使用者回答
+- **動態建議指令** — 調查回傳結果根據根因確認狀態（已確認/需更多資訊/未確認）動態建議後續指令
+
+### 改善
+- **README 流程圖** — 以 bug-investigate 為主入口，bug-start 改為虛線可選路徑
+- **根目錄 README** — 同步更新 Phase 2 摘要流程、詳細流程圖、指令表
+- **feature-workflow 交叉引用** — plan SKILL.md 和 team-composition.md 的 bug 流程描述同步更新
+- **marketplace.json 版本同步** — 修正 bug-workflow 和根目錄 marketplace.json 的落後版本號，補齊遺漏的 skills 清單
+
 ## [bug-workflow@3.7.0] - 2026-05-06
 
 ### 新增

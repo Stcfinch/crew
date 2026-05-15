@@ -81,7 +81,7 @@ spec.md 判斷區塊可能包含 `DB_REQUIRED` 欄位，影響團隊組成和退
 
 ## Bug-workflow 相容
 
-bugfix 任務可能從 bug-workflow（/bug-start）進入，此時有 fix.md 而非 spec.md。
+bugfix 任務可能從 bug-workflow（/bug-investigate）進入，此時有 fix.md 而非 spec.md。
 
 判斷區塊讀取優先順序：
 1. `.spec/{slug}/spec.md` 的「判斷」區塊

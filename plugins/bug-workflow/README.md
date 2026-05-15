@@ -1,4 +1,4 @@
-# Bug Workflow Plugin `v3.7.0`
+# Bug Workflow Plugin `v3.8.0`
 
 整合 Notion 與 Claude Code，自動化 Bug 生命週期管理。
 
@@ -78,38 +78,41 @@ claude plugin update bug-workflow@company-marketplace
 ```mermaid
 flowchart TD
     discover["發現 Bug"]
-    start["/bug-start<br/><i>建立條目 + 關聯 Feature + 偵測分支</i>"]
-    investigate["/bug-investigate<br/><i>假說驅動根因調查</i>"]
-    update["/bug-update<br/><i>補充 Log、SQL、判斷</i>"]
-    fix["修復並 commit"]
-    bugfix["/bug-fix<br/><i>分支檢查 + 鐵律 + 迴歸測試</i>"]
+    investigate["/bug-investigate<br/><i>自動建立條目 + 假說驅動根因調查</i>"]
+    clarify{"需要釐清？"}
+    clarifyStep["列出釐清問題<br/><i>使用者回答後建議指令</i>"]
+    fix["/bug-fix<br/><i>修復 + 鐵律檢查 + 迴歸測試</i>"]
     close["/bug-close<br/><i>merge 引導 + 結案 + 知識庫</i>"]
     reopen{上線後復發？}
     reopenCmd["/bug-update reopen<br/><i>重新開啟</i>"]
+    startOpt["/bug-start<br/><i>僅建立條目（可選）</i>"]
 
-    discover --> start --> investigate --> update --> fix --> bugfix --> close --> reopen
+    discover --> investigate
+    investigate --> clarify
+    clarify -- "是" --> clarifyStep --> fix
+    clarify -- "否" --> fix
+    fix --> close --> reopen
     reopen -- "是" --> reopenCmd --> investigate
     reopen -- "否" --> done(["完成"])
+
+    discover -. "只想先建條目" .-> startOpt .-> investigate
 
     style discover fill:#fee,stroke:#f66
     style done fill:#efe,stroke:#6c6
     style investigate fill:#e3f2fd,stroke:#2196f3
-    style bugfix fill:#e3f2fd,stroke:#2196f3
+    style fix fill:#e3f2fd,stroke:#2196f3
+    style clarify fill:#fff3e0,stroke:#ff9800
+    style startOpt fill:#f5f5f5,stroke:#bbb,stroke-dasharray: 5 5
 ```
 
 ## 使用範例
 
-### 建立 Bug
+### 調查 Bug（主入口）
 
 ```bash
-/bug-start 推播排程發送失敗，部分使用者未收到訊息
-```
-
-### 調查 Bug
-
-```bash
-/bug-investigate                        # 調查當前進行中的 bug
-/bug-investigate NullPointerException   # 帶症狀描述開始調查
+/bug-investigate 推播排程發送失敗         # 帶症狀描述開始（自動建立 Notion 條目 + 調查）
+/bug-investigate NullPointerException   # 帶 stacktrace 關鍵字開始
+/bug-investigate                        # 調查已存在的進行中 bug
 /bug-investigate --resume               # 繼續上次的調查
 ```
 
@@ -120,18 +123,18 @@ flowchart TD
 /bug-fix --verify-only    # 已修復，只要驗證 + 產出測試
 ```
 
-### 更新調查資訊
-
-```bash
-/bug-update 關鍵 log：NullPointerException at PushService.java:235
-/bug-update 初步判斷：推播排程在取得 access token 時發生空指標，可能是 token 過期未更新
-/bug-update log /opt/tomcat/logs/catalina.out    # 從檔案擷取 ERROR
-```
-
 ### 結案
 
 ```bash
 /bug-close    # merge 引導 + 從 Git diff 擷取修復細節 + 結案 + 同步知識庫
+```
+
+### 輔助指令
+
+```bash
+/bug-start 推播排程發送失敗               # 只建立條目，不調查（適合先立案再安排）
+/bug-update 關鍵 log：NPE at PushService.java:235  # 補充調查資訊
+/bug-update log /opt/tomcat/logs/catalina.out       # 從檔案擷取 ERROR
 ```
 
 ### 重新開啟已結案 Bug
