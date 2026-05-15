@@ -169,7 +169,9 @@ flowchart TD
 
 ### plan-verify 前置條件
 
-`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。驗證完成後可選擇產出 Word 驗收報告（封面 + 簽核 + 驗收明細 + API 測試紀錄）。
+`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。含截圖穩定化（6 步 SOP）、元素定位 Fallback（6 級策略）、⚠️ WARN 狀態、i18n 四語系支援、驗證記憶系統（三層架構，驗證越做越快）。驗證完成後可選擇產出 Word / Excel 驗收報告。
+
+**Excel 報告**需 Node.js 環境（ExcelJS 自動安裝，不污染專案）。**Word 報告**需 minimax-skills plugin。
 
 **Playwright MCP（推薦，預設驗證工具）**
 
@@ -294,12 +296,23 @@ flowchart LR
 ├── stacks/                # 技術棧定義
 │   ├── _builtin.md        # 內建技術棧總表
 │   └── spring-mvc-jpa.md  # 自訂技術棧（/plan-stack 產生）
-└── projects/              # 專案對應（/project-add 產生）
-    ├── FUB02P2101--LineBC.md
-    └── FUB03P2402--PushAPIService.md
+├── projects/              # 專案對應（/project-add 產生）
+│   ├── FUB02P2101--LineBC.md
+│   └── FUB03P2402--PushAPIService.md
+└── report-config.md       # Word/Excel 報告封面設定（首次產出時建立）
 ```
 
 Skill 按需載入 — 只讀取當前專案需要的層級，不載入全部。詳見 `references/config-resolver.md`。
+
+此外，plugin 內建產品知識庫（`products/` 目錄），供 plan-verify 的產品模式使用：
+
+```
+plugins/feature-workflow/products/
+├── smartrobot.md          # SmartRobot 導航地圖、Selector、i18n 對照、Recipe
+└── smartrobot-memory.md   # SmartRobot 產品級驗證記憶（Layer 3）
+```
+
+若 `projects/{id}.md` 設有 `product_id` 欄位（選填），plan-verify 會載入對應的產品知識庫加速驗證。
 
 ---
 
