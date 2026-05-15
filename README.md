@@ -117,20 +117,26 @@ flowchart TD
     setup["/plan-setup<br/><i>首次設定</i>"]
     stack["/plan-stack<br/><i>自訂技術棧（可選）</i>"]
     start["/plan-start<br/><i>建立 Notion + .spec/ + Git branch</i>"]
+    explore["/plan-explore<br/><i>思考夥伴（可選）</i>"]
+    browse["/plan-browse<br/><i>規劃瀏覽（可選）</i>"]
     plan["/plan-spec → /plan-db → /plan-arch<br/><i>本地規劃</i>"]
     build["/plan-build<br/><i>Agent Teams 產生程式碼</i>"]
     security["/plan-security<br/><i>三層安全掃描</i>"]
     ide(["IDE 啟動 + Chrome 開啟頁面"])
-    verify["/plan-verify<br/><i>瀏覽器驗收驗證 + Health Score</i>"]
+    verify["/plan-verify<br/><i>驗收驗證 + 驗證記憶</i>"]
     review["/plan-review<br/><i>Agent Teams 3 人審查</i>"]
     close["/plan-close<br/><i>批次同步 Notion</i>"]
 
     setup --> stack -.-> start --> plan --> build --> security --> ide --> verify --> review --> close
+    start -.-> explore -.-> plan
+    start -.-> browse -.-> plan
     verify -- "❌ FAIL" --> build
     review -- "🔴 嚴重" --> build
 
     style setup fill:#f0f0f0,stroke:#999
     style stack fill:#fff3cd,stroke:#ffc107
+    style explore fill:#fff3cd,stroke:#ffc107
+    style browse fill:#fff3cd,stroke:#ffc107
     style ide fill:#fff3cd,stroke:#ffc107
 ```
 
@@ -139,6 +145,8 @@ flowchart TD
 | `/plan-setup` | 首次設定引導（Notion 偵測 + Agent 安裝） | 一次性 |
 | `/plan-stack` | 偵測專案分層結構，建立自訂技術棧 | **0 次** |
 | `/plan-start <任務簡述>` | 建立 Notion 條目 + `.spec/` 目錄 + Git branch（含退出驗證） | **3-5 次** |
+| `/plan-explore [主題]` | 思考夥伴：探索想法、調查問題、比較方案 | **0 次** |
+| `/plan-browse [slug]` | 規劃瀏覽：深度閱讀、跨任務比較、模式搜尋 | **0 次** |
 | `/plan` | 完整規劃串接（自動依序 spec→db→arch） | **0 次** |
 | `/plan-spec` | 技術規格書 | **0 次** |
 | `/plan-db` | 資料庫設計 | **0 次** |
