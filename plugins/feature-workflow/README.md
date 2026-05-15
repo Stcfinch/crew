@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.15.0`
+# Feature Workflow Plugin `v4.16.0`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
@@ -91,7 +91,7 @@ flowchart TD
 | `/plan-arch` | 架構設計 | **0 次** |
 | `/plan-build` | Agent Teams 最多 5 人產生程式碼（含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描（靜態規則/上下文感知/對抗性思維） | **0 次** |
-| `/plan-verify` | 瀏覽器驗收驗證 + Health Score（--deep 可搭配 chrome-devtools 查 console/network） | **0 次** |
+| `/plan-verify` | 瀏覽器驗收驗證 + Health Score + 驗證記憶（--excel 產出 Excel 報告 / --e2e E2E Runner 模式） | **0 次** |
 | `/plan-review` | Agent Teams 3 人審查（邏輯/品質/效能） | **0 次** |
 | `/plan-close` | 批次同步 Notion + Git 提交 | **3-5 次** |
 | `/plan-sync` | 手動中途同步 .spec/ 到 Notion | **2-3 次** |
@@ -197,6 +197,9 @@ Google 官方維護，提供 console log、network 分析、performance trace。
 /plan-verify <URL>              # 指定目標頁面
 /plan-verify --api-only         # 只驗證 API（不需瀏覽器）
 /plan-verify --recheck          # 僅重新驗證上次失敗的項目
+/plan-verify --excel            # 產出 Excel 驗收報告
+/plan-verify --word --excel     # 同時產出 Word + Excel 報告
+/plan-verify --e2e              # E2E Runner 模式（需 e2e_repo 設定）
 ```
 
 ---

@@ -104,3 +104,125 @@
 - **找不到活躍任務**：提示先執行 `/plan-start` 或檢查 `_index.md`
 - **前置檔案不存在**：提示建議先執行前置步驟，但不強制阻擋
 - **重新執行同一 Skill**：覆蓋已有檔案（先備份舊版到 `{file}.bak`）
+
+---
+
+## Notion database_id 解析
+
+### 使用場景
+
+所有需要呼叫 `post-page` 建立 Notion 頁面的 Skill 都需要此解析：
+- plan-start（建立任務頁面）
+- plan-sync（補建 Notion 條目）
+- plan-close（同步到知識庫：功能設計庫 / Bug 知識庫）
+
+### 解析步驟
+
+1. 從 config.md 讀取目標資料庫的 Data Source ID
+2. 呼叫 `retrieve-a-data-source`，傳入 `data_source_id`
+3. 從回傳結果的 `parent` 欄位中取得 `database_id`
+4. 使用 `database_id` 作為 `post-page` 的 `parent.database_id`
+
+### 快取策略
+
+- 同一 Skill 執行期間，同一個 Data Source ID 只解析一次
+- 解析結果不持久化到檔案（避免 database_id 變更時過期）
+
+### 錯誤處理
+
+- `retrieve-a-data-source` 失敗 → 嘗試直接用 Data Source ID 作為 database_id（向下相容）
+- 回傳結果中無 `parent.database_id` 欄位 → 同上
+
+---
+
+## deploy-checklist.md 格式規範
+
+### 檔案路徑
+
+`.spec/{slug}/deploy-checklist.md`
+
+### 檔案結構
+
+```markdown
+---
+slug: {slug}
+created: {YYYY-MM-DD}
+last_synced: {最後一次同步到 Notion 的時間，初始為空}
+notion_block_id: {🚀 區塊的 block ID，首次同步後回填}
+---
+
+# 上線前置作業
+
+## SQL 遷移
+
+- [ ] `CREATE TABLE {table_name}` — {說明}
+- [ ] `CREATE INDEX {index_name} ON {table_name}` — {說明}
+
+## 設定檔變更
+
+- [ ] `{檔案路徑}` — {變更說明}
+
+## 其他前置作業
+
+（使用者手動新增）
+```
+
+### 生命週期
+
+| 階段 | 動作 | 觸發者 |
+|------|------|--------|
+| plan-db 完成 | 建立檔案，填入 SQL 遷移項目 | plan-db 自動 |
+| plan-build 完成 | 追加設定檔變更項目（若有偵測到） | plan-build 自動 |
+| 開發中 | 使用者手動勾選已完成的項目 | 使用者 |
+| plan-sync | 同步到 Notion 🚀 區塊 | 使用者手動觸發 |
+| plan-close | 讀取並檢查所有 checkbox 狀態 + 同步 Notion | plan-close 自動 |
+
+### SQL 擷取規則
+
+從 `.spec/{slug}/db.sql` 中擷取以下 DDL/DML：
+
+| SQL 類型 | 擷取內容 |
+|---------|---------|
+| CREATE TABLE | 表名 |
+| ALTER TABLE | 表名 + 操作類型 |
+| CREATE INDEX | 索引名 + 表名 |
+| INSERT INTO | 表名（初始資料） |
+| DROP TABLE | 表名（高風險標記 ⚠️） |
+
+### 設定檔偵測模式
+
+| 模式 | 說明 |
+|------|------|
+| `**/mapper/**/*.xml` | MyBatis Mapper XML |
+| `**/web.xml` | Web 應用設定 |
+| `**/application.properties` | Spring Boot 設定 |
+| `**/application*.yml` | Spring Boot YAML 設定 |
+| `**/pom.xml` | Maven 依賴 |
+| `**/build.gradle` | Gradle 依賴 |
+| `**/Dockerfile` | Docker 映像 |
+| `**/docker-compose*.yml` | Docker Compose |
+| `**/*nginx*.conf` | Nginx 設定 |
+| `**/logback*.xml` | Log 設定 |
+
+---
+
+### 第 4 層：產品知識庫（需要產品操作知識時）
+
+從 `projects/{id}.md` 的 `product_id` 欄位取得產品 ID：
+
+- 有 product_id → 讀取 plugin 目錄的 `products/{product_id}.md`
+- 無 product_id → 通用模式（不載入產品知識庫）
+
+取得：頁面導航地圖、常用 Selector、i18n 對照表、特殊操作 Recipe、API 格式。
+
+### 第 4.1 層：產品級記憶（需要驗證記憶時）
+
+有 product_id 時，額外讀取 `products/{product_id}-memory.md`。
+
+### projects/{id}.md 新增選填欄位
+
+| 欄位 | 必要性 | 說明 |
+|------|--------|------|
+| product_id | 選填 | 指向 products/{id}.md 的產品知識庫 |
+| e2e_repo | 選填 | E2E 測試 repo 的本機路徑（Phase 3 --e2e 模式用） |
+| e2e_profile | 選填 | E2E 測試的預設 Profile ID |
