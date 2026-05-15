@@ -7,6 +7,20 @@
 
 ---
 
+## [feature-workflow@4.16.0] - 2026-05-15
+
+### 新增
+- **截圖穩定化策略** — 從 SmartRobotE2ETest 萃取的 6 步穩定化流程（ESC×2 + networkidle + retry），所有專案受益
+- **元素定位 Fallback** — 6 級定位策略（記憶 → 穩定 selector → 產品知識 → i18n 翻譯 → CSS → URL 導航）
+- **WARN 狀態** — verify.md 新增 ⚠️ WARN 狀態（介於 PASS 和 FAIL 之間，環境差異/selector 不穩定）
+- **Excel 驗收報告** — `--excel` 選項，ExcelJS 獨立腳本產出 .xlsx（總表 + 步驟 Sheet + 嵌入截圖）
+- **i18n 驗證指引** — 支援 zh-TW/zh-CN/en-US/ja-JP 四語系，產品模式用翻譯文字定位、通用模式用穩定 selector
+- **產品知識庫** — 新增 `products/` 目錄，SmartRobot 知識庫含頁面導航地圖、Selector、i18n 對照、特殊操作 Recipe
+- **驗證記憶系統** — 三層架構（產品級→專案級→任務級），自動記錄 + 結案升級，驗證越做越快
+- **E2E Runner 模式** — `--e2e` 選項，匹配現有 E2E 測試直接跑（需 e2e_repo 設定）
+- **測試骨架產出** — 驗證完成後可選產出 80% 完成度的 E2E 測試骨架
+- **plan-common 第 4 層** — 產品知識庫偵測邏輯，projects/{id}.md 新增 product_id 選填欄位
+
 ## [bug-workflow@3.7.0] - 2026-05-06
 
 ### 新增
