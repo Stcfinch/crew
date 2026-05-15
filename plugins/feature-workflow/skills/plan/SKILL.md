@@ -33,7 +33,7 @@ description: 完整規劃串接器（自動依序執行 plan-spec → plan-db �
 
 使用者可在任何階段中斷。每個階段都必須取得使用者明確確認後才能進入下一階段。
 
-> Bug 類型的調查與修復由 bug-workflow 處理（`/bug-start` → `/bug-update` → `/bug-close`）。
+> Bug 類型的調查與修復由 bug-workflow 處理（`/bug-investigate` → `/bug-fix` → `/bug-close`）。
 
 ### 3. 回傳結果
 

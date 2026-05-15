@@ -49,7 +49,7 @@ flowchart TD
 
     subgraph Phase2["🚀 Phase 2：日常使用"]
         direction TB
-        bugFlow["/bug-start → /bug-investigate → /bug-update → /bug-fix → /bug-close"]
+        bugFlow["/bug-investigate → /bug-fix → /bug-close"]
         planFlow["/plan-start → /plan-spec → /plan-db → /plan-arch<br/>→ /plan-build → /plan-security → /plan-verify → /plan-review → /plan-close"]
     end
 
@@ -73,34 +73,35 @@ flowchart TD
 ```mermaid
 flowchart TD
     discover["發現 Bug"]
-    start["/bug-start<br/><i>建立條目 + 關聯 Feature</i>"]
-    investigate["/bug-investigate<br/><i>假說驅動根因調查</i>"]
-    update["/bug-update<br/><i>補充 Log、SQL、判斷</i>"]
-    fix["修復並 commit"]
-    bugfix["/bug-fix<br/><i>分支檢查 + 鐵律 + 迴歸測試</i>"]
+    investigate["/bug-investigate<br/><i>自動建立條目 + 假說驅動根因調查</i>"]
+    fix["/bug-fix<br/><i>修復 + 鐵律檢查 + 迴歸測試</i>"]
     close["/bug-close<br/><i>merge 引導 + 結案 + 知識庫</i>"]
     reopen{上線後復發？}
     reopenCmd["/bug-update reopen<br/><i>重新開啟</i>"]
+    startOpt["/bug-start<br/><i>僅建立條目（可選）</i>"]
 
-    discover --> start --> investigate --> update --> fix --> bugfix --> close --> reopen
+    discover --> investigate --> fix --> close --> reopen
     reopen -- "是" --> reopenCmd --> investigate
     reopen -- "否" --> done(["完成"])
+
+    discover -. "只想先建條目" .-> startOpt .-> investigate
 
     style discover fill:#fee,stroke:#f66
     style done fill:#efe,stroke:#6c6
     style investigate fill:#e3f2fd,stroke:#2196f3
-    style bugfix fill:#e3f2fd,stroke:#2196f3
+    style fix fill:#e3f2fd,stroke:#2196f3
+    style startOpt fill:#f5f5f5,stroke:#bbb,stroke-dasharray: 5 5
 ```
 
 | 指令 | 說明 |
 |------|------|
 | `/bug-setup` | 首次設定引導 |
-| `/bug-start <問題簡述>` | 建立 Bug 條目 + 自動關聯 Feature + 偵測 Feature Branch |
-| `/bug-investigate` | 假說驅動根因調查（五階段 + 3-Strike） |
+| `/bug-investigate` | **主入口** — 自動建立條目 + 假說驅動根因調查（五階段 + 3-Strike + 釐清問題） |
 | `/bug-fix` | 修復紀律（分支檢查 + 鐵律 + 迴歸測試 + merge 引導） |
+| `/bug-close` | merge 引導 + 結案 + 同步知識庫 |
+| `/bug-start <問題簡述>` | 僅建立條目（可選，investigate 會自動處理） |
 | `/bug-update <內容>` | 更新調查資訊（Log、SQL、判斷） |
 | `/bug-update reopen <Bug>` | 重新開啟已結案 Bug |
-| `/bug-close` | merge 引導 + 結案 + 同步知識庫 |
 | `/project-add` | **偵測專案架構** + Notion 註冊 + DB MCP 安裝 |
 | `/crew-upgrade` | 一次更新所有 CREW plugins |
 

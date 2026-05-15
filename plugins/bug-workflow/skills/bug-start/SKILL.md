@@ -369,10 +369,10 @@ git remote get-url origin 2>/dev/null || echo ""
 - 提示後續可用指令：
   ```
   Bug 條目已建立！後續可使用：
+  • /bug-investigate     — 開始調查根因（推薦下一步）
   • /bug-update <內容>  — 補充調查資訊（Log、SQL、判斷等）
   • /bug-fix             — 確認根因後修復
   • /bug-close          — 修復完成後結案
-  • /bug-search <關鍵字> — 搜尋過往類似 Bug 的解法
   ```
 
 ---
