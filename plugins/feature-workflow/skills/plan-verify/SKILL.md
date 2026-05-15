@@ -20,6 +20,10 @@ description: 透過 Playwright MCP 操作瀏覽器，逐條驗證 .spec/ 中的�
 /plan-verify <URL>              # 指定目標頁面
 /plan-verify --api-only         # 只驗證 API（不操作 UI，不需瀏覽器）
 /plan-verify --recheck          # 僅重新驗證上次失敗的項目
+/plan-verify --excel            # 驗證完成後產出 Excel 報告
+/plan-verify --word --excel     # 同時產出 Word + Excel 報告
+/plan-verify --e2e              # E2E Runner 模式（需 e2e_repo 設定）
+/plan-verify --from-e2e {dir}   # 從 E2E 測試結果更新 verify.md
 ```
 
 ---
@@ -95,6 +99,16 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 讀取 `.spec/{slug}/README.md` 取得 `type`（feature/bug）和元資訊。
 
+### 1.5 產品偵測
+
+讀取 `projects/{repo-id}.md` 的 `product_id` 欄位（見 `references/plan-common.md` 第 4 層）。
+
+- **有 product_id** → 🟢 產品模式
+  1. 讀取 `products/{product_id}.md`（頁面導航地圖、常用 Selector、i18n 對照表、特殊操作 Recipe、API 格式）
+  2. 讀取 `products/{product_id}-memory.md`（Layer 3 產品級記憶）
+  3. 將產品知識注入後續驗證計畫
+- **無 product_id** → 🔵 通用模式（不載入產品知識庫）
+
 ### 2. 讀取驗收條件
 
 根據任務類型讀取：
@@ -105,6 +119,23 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 | Bug | `.spec/{slug}/fix.md` | 「驗證方式」區塊 |
 
 若找不到驗收條件 → 提示使用者手動輸入驗收條件清單。
+
+### 2.5 載入驗證記憶
+
+按以下順序載入驗證記憶，後者覆蓋前者：
+
+1. **Layer 3 產品級記憶**（若步驟 1.5 偵測到 product_id）
+   → 讀取 `products/{product_id}-memory.md`
+2. **Layer 2 專案級記憶**
+   → 讀取專案 repo 的 `.claude/verify-memory.md`（若存在）
+3. **Layer 1 任務級記憶**
+   → 讀取 `.spec/{slug}/verify-memory.md`（若存在，如 --recheck 時）
+
+合併為驗證 context：
+- Selector 記憶 → 優先使用記憶中的「有效 Selector」，避免「無效 Selector」
+- 頁面操作記憶 → 注入到對應頁面的驗證計畫
+- 等待策略記憶 → 覆蓋預設等待時間
+- 踩坑紀錄 → 作為驗證計畫的提醒
 
 ### 3. 建構驗證計畫
 
@@ -132,6 +163,13 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 | 資料驗證 | API + UI 交叉比對 | 同上 |
 
 讀取 `.spec/{slug}/arch.md` 推斷 API 路徑和頁面 URL（若有）。
+
+**產品模式增強**：有 product_id 時，驗證計畫建構可參考：
+- 頁面導航地圖 → 精確的 URL 路徑和選單路徑
+- 常用 Selector → 優先使用已知穩定的 selector
+- i18n 對照表 → 用翻譯文字定位元素（見 `references/verify-i18n.md`）
+- 特殊操作 Recipe → CKEditor、SweetAlert2 等元件的操作方式
+- API 格式 → 精確驗證回傳格式（如 Spring Page 的 content/totalElements/size/number）
 
 展示計畫給使用者確認：
 
@@ -187,9 +225,50 @@ $CDP list
 
 找不到 → 提示使用者在 Chrome 開啟目標頁面，然後重新 `$CDP list`。
 
+### E2E Runner 模式（--e2e，Phase 3）
+
+**前提**：`projects/{repo-id}.md` 設定了 `e2e_repo` 和 `e2e_profile` 欄位。
+
+1. 讀取 E2E repo 的 `tests/verify-map.json` 匹配映射檔
+2. 對每個驗收條件，嘗試匹配 mappings[*].condition
+3. 有匹配 → `PROFILE={profile} npx playwright test {file}` 直接跑測試
+4. 無匹配 → 退回 MCP 模式（步驟 5 原流程）
+5. 收集 JSON 結果 + 截圖 → 轉換成 verify.md 條目
+
+Profile 選擇：讀取 E2E repo 的 `tests/config/profile-*.js`，提取 name + baseUrl 顯示給使用者選擇。
+
+verify-map.json 格式：
+```json
+{
+  "rob0027": {
+    "describe": "一般問答完整測試",
+    "mappings": [
+      { "condition": "QA 新增", "steps": "1-12", "key_screenshot": "step-10-save" }
+    ]
+  }
+}
+```
+
 ### 5. 逐條驗證
 
 依序對每條驗收條件執行驗證。
+
+**截圖穩定化**：每次截圖前，執行 `references/verify-stability.md` 定義的 6 步前置流程（ESC×2 → 關閉面板 → 回到頂部 → networkidle → 等動畫 → 截圖）。失敗時最多重試 3 次。
+
+**元素定位策略**（嘗試順序）：
+
+| 優先級 | 策略 | 範例 | 適用 |
+|--------|------|------|------|
+| 1 | 記憶 Selector | 驗證記憶中的「有效 Selector」 | 有記憶時 |
+| 2 | 穩定 Selector（ID/name/class） | `#searchKeyword`, `input[name="code"]` | 通用 |
+| 3 | 產品知識 Selector | products/{id}.md 的常用 Selector 表 | 產品模式 |
+| 4 | Role + 翻譯文字 | `getByRole('link', { name: '{i18n}' })` | 有 i18n 對照時 |
+| 5 | CSS 屬性 Selector | `a[href*="/push/stat"]` | 連結類 |
+| 6 | 直接 URL 導航 | `browser_navigate({ url })` | 最終 fallback |
+
+每次 fallback 觸發時，記錄到驗證記憶（見步驟 5.5）。
+
+多語系定位指引見 `references/verify-i18n.md`。
 
 #### API 驗證
 
@@ -322,13 +401,14 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 
 | 欄位 | 說明 |
 |------|------|
-| 狀態 | `PASS` / `FAIL` / `SKIP` / `MANUAL` |
+| 狀態 | `PASS` / `WARN` / `FAIL` / `SKIP` / `MANUAL` |
 | 證據 | API 回應摘要 / snap 關鍵節點 / 截圖路徑 |
 | 失敗原因 | 僅 FAIL 時記錄 |
 | 操作敘述 | 人話描述的操作步驟清單（用於 Word 報告） |
 | evidence 檔案 | API 類型時記錄：`evidence/verify-{N}-request.txt`、`evidence/verify-{N}-response.json` |
 
 - `PASS`：驗證通過
+- `WARN`：通過但有疑慮（環境差異、selector 不穩定）
 - `FAIL`：驗證失敗（含原因）
 - `SKIP`：`--api-only` 跳過 UI 驗證，或使用者手動跳過
 - `MANUAL`：需人工確認的項目（如視覺效果）
@@ -367,6 +447,20 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 4. 結果用白話（「HTTP 200, 15 rows」→「系統成功回傳 15 筆資料」）
 5. 省略技術診斷操作（`evaluate_script`、`list_console_messages` 不納入）
 6. `<!-- evidence -->` 區塊不翻譯，原樣保留（供 Word 報告「測試紀錄」段落使用）
+
+### 5.5 記憶記錄判斷（每步驟後）
+
+每個驗證操作完成後，AI 判斷是否值得記錄到 Layer 1 記憶：
+
+| 觸發條件 | 記錄內容 |
+|---------|---------|
+| Selector 第 1 次嘗試失敗 | 有效/無效 Selector 對照 |
+| 等待策略調整過（如 networkidle 不夠，多等了 2s） | 最終有效的等待策略 |
+| 使用 evaluate_script 做特殊操作（如 CKEditor API） | 特殊步驟 recipe |
+| 發現環境差異（如某欄位在此環境不存在） | 環境差異描述 |
+| 順利完成（未觸發 fallback） | **不記錄** |
+
+暫存在 `.spec/{slug}/verify-memory.md`（Layer 1）。格式見 spec.md 的「驗證記憶系統」段落。
 
 ### 6. 收集截圖與 Evidence
 
@@ -409,9 +503,12 @@ Evidence 命名規則：`verify-{序號}-request.txt`、`verify-{序號}-respons
 | 狀態 | 數量 |
 |------|------|
 | ✅ PASS | {N} |
+| ⚠️ WARN | {N} |
 | ❌ FAIL | {N} |
 | ⏭️ SKIP | {N} |
 | 👤 MANUAL | {N} |
+
+WARN 用途：環境差異導致的預期外行為，功能正常但 Selector 不穩定。
 
 ## 驗證結果
 
@@ -465,7 +562,7 @@ response_lines: 42
 ### [{日期}] 驗收驗證
 - **模式**：{完整/api-only/manual/recheck}
 - **工具**：{chrome-devtools-mcp / cdp.mjs}
-- **結果**：✅ {N} / ❌ {N} / ⏭️ {N} / 👤 {N}
+- **結果**：✅ {N} / ⚠️ {N} / ❌ {N} / ⏭️ {N} / 👤 {N}
 - **報告**：verify.md
 ```
 
@@ -476,7 +573,7 @@ response_lines: 42
 
 📋 報告：.spec/{slug}/verify.md
 📸 截圖：.spec/{slug}/screenshots/ ({N} 張)
-📊 統計：✅ {PASS} / ❌ {FAIL} / ⏭️ {SKIP} / 👤 {MANUAL}
+📊 統計：✅ {PASS} / ⚠️ {WARN} / ❌ {FAIL} / ⏭️ {SKIP} / 👤 {MANUAL}
 🔧 工具：Playwright MCP{，chrome-devtools-mcp（--deep）}
 
 {若有 FAIL}
@@ -490,6 +587,40 @@ response_lines: 42
   • /plan-review          — Agent Teams 程式碼審查
   • /plan-close           — 結案並同步 Notion
 ```
+
+### 9.5 記憶升級判斷
+
+驗證完成後，檢查 `.spec/{slug}/verify-memory.md`（Layer 1）是否有新記錄：
+
+1. 有新記錄 → 提問使用者：
+   ```
+   本次發現 {N} 個新操作模式：
+     • {selector 記憶數} 個 Selector 記錄
+     • {recipe 數} 個特殊操作 Recipe
+     • {等待策略數} 個等待策略調整
+   
+   要升級到專案記憶嗎？[Y/n]
+   ```
+2. 使用者選 YES → 合併到專案 repo 的 `.claude/verify-memory.md`（Layer 2）
+3. 使用者選 NO → 保留在 Layer 1，不升級
+
+升級標準：
+- ✅ 升級：頁面通用操作、全站共用 Selector、專案統一 API 格式
+- ❌ 不升級：一次性操作、測試資料相關、Bug workaround
+
+### 測試骨架產出（Phase 3，可選）
+
+plan-verify 完成後（所有 PASS），若 `e2e_repo` 已設定：
+
+```
+所有驗收條件通過。是否產出 E2E 測試骨架？[Y/n]
+```
+
+YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.js`：
+- 80% 完成度的骨架（import、describe/test、登入、基本操作、截圖）
+- TODO/FIXME 標記需人工調整的地方
+- 試跑：`PROFILE={p} npx playwright test rob{next}* --headed`
+- 人工 review 後 commit
 
 ### 10. 報告產出（Word 驗收報告）
 
@@ -748,6 +879,29 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 提示：可用 Word 開啟後自行調整格式或轉存 PDF。
 ```
 
+#### 10.6 Excel 報告產出（--excel 選項）
+
+呼叫 plugin 內建的 `references/verify-excel-generator.js`：
+
+```bash
+# 安裝 ExcelJS（臨時，不污染專案）
+npm_config_prefix=$(mktemp -d) npx --yes exceljs
+
+# 產出 Excel 報告
+node {plugin_path}/references/verify-excel-generator.js \
+  --verify .spec/{slug}/verify.md \
+  --screenshots .spec/{slug}/screenshots/ \
+  --evidence .spec/{slug}/evidence/ \
+  --output .spec/{slug}/verify-report.xlsx \
+  --cover '{"project":"{project}","feature":"{feature}","author":"{author}","date":"{date}"}'
+```
+
+封面資訊取得方式同步驟 10.1（Word 報告的封面收集）。
+
+Excel 報告規格見 `references/verify-excel-template.md`。
+
+**--word --excel 同時指定時**：兩份報告從同一個 verify.md 產出，資料一致，格式各取所需。
+
 #### 向下相容：舊版 verify.md
 
 若 verify.md 中無 `<!-- human_steps -->` 註解（舊版產出）：
@@ -799,6 +953,10 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 - **Evidence 檔案是原始內容**：`evidence/` 目錄下的檔案包含未遮蔽的 Cookie、Token 等敏感資訊，僅供內部技術驗證。Word 報告中的「測試紀錄」段落會自動遮蔽。若報告需交付客戶，不要連同 `evidence/` 目錄一起交付。
 - **回應截斷以行數判斷**：使用 `wc -l` 計算回應行數。JSON 先經過 `python3 -m json.tool` pretty-print 後再計算行數，避免單行 JSON 永遠不觸發截斷。
 - **多次 API 呼叫的 evidence**：若單條驗收項目涉及多次 curl（如 POST 建立 + GET 查詢驗證），每次呼叫各自產出 evidence 檔案，子序號用 a/b/c 區分。
+- **Excel 報告需 Node.js 環境**：`verify-excel-generator.js` 需要 Node.js runtime。若環境無 Node.js，Excel 報告無法產出但不影響其他功能。
+- **記憶檔格式演進**：`verify-memory.md` 的格式可能隨版本演進。讀取時做好 fallback（舊格式仍可讀取，缺少的段落視為空）。
+- **產品知識庫的 i18n 對照表可能不完整**：`products/{id}.md` 只列出高頻操作的翻譯。若驗證時遇到未列出的文字，退回穩定 selector 策略。
+- **Layer 2 記憶需 git push 才能共享**：專案的 `.claude/verify-memory.md` 需要使用者自行 commit 和 push，plugin 不會自動操作 git。
 
 ---
 
@@ -818,3 +976,8 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 - **截圖失敗**：記錄警告，不阻斷流程
 - **verify.md 已存在**：詢問覆蓋或追加（--recheck 自動合併）
 - **驗證過程中使用者中斷**：已完成的結果仍寫入 verify.md（部分報告）
+- **products/{id}.md 不存在**：product_id 指向的檔案不存在時，降為通用模式，顯示 WARN
+- **verify-memory.md 格式損壞**：解析失敗時跳過記憶載入，不阻擋驗證流程
+- **ExcelJS 安裝失敗**：跳過 Excel 報告產出，顯示安裝指引
+- **verify-map.json 不存在**（--e2e 模式）：全部退回 MCP 模式
+- **E2E 測試失敗**（--e2e 模式）：對應條件標記 FAIL，記錄測試錯誤訊息
