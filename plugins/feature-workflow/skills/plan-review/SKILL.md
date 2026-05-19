@@ -19,6 +19,9 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/效能�
 
 建議已執行 `/plan-build` 產生程式碼，或已有開發中的程式碼。
 
+> 💡 plan-review 從 .spec/ 和程式碼檔案讀取所有輸入，不依賴對話歷史。
+>    若剛執行完 /plan-build，建議先 /clear 再執行，確保有足夠 context 空間。
+
 > **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 ---

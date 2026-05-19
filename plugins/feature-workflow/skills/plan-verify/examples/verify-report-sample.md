@@ -134,7 +134,7 @@ response_lines: 3
 
 # 範例：Word 驗收報告結構
 
-以下展示 `/plan-verify` 產出 Word 報告時的 Markdown 原始碼，作為 `/minimax-docx` 的輸入。
+以下展示 `/plan-verify` 產出 Word 報告時的 Markdown 原始碼，作為報告產出引擎（minimax-docx 或 python-docx）的輸入。
 
 ---
 
@@ -161,7 +161,7 @@ response_lines: 3
 | 項目 | 說明 |
 |------|------|
 | 測試 URL | http://localhost:8080 |
-| 瀏覽器 | Chromium（Playwright 控制） |
+| 瀏覽器 | Chromium |
 | 測試帳號角色 | 系統管理員 |
 | 測試資料說明 | 使用測試環境既有推播紀錄 |
 | 前置條件 | 已登入後台管理系統 |
@@ -327,13 +327,6 @@ Headers:
 | 日期 | 版本 | 說明 |
 |------|------|------|
 | 2026-03-18 | v1.0 | 初次驗收 |
-
-### 工具版本
-
-| 工具 | 版本 |
-|------|------|
-| Playwright MCP | @anthropic-ai/mcp-server-playwright@latest |
-| Claude Code | 1.x.x |
 
 ### 參考文件
 

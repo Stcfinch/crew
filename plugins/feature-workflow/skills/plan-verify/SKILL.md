@@ -78,6 +78,14 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
    → 不可用 → 跳過 --deep 功能，僅提示
 
 4. --api-only 模式跳過瀏覽器檢查，只需 curl 可用
+
+5. Word 報告工具偵測（決定 report_engine）
+   → 檢查 dotnet --version 是否 ≥ 8.0
+     → 有 → report_engine = minimax-docx（專業排版）
+     → 沒有 → 檢查 python3 -c "import docx" 是否成功
+       → 有 → report_engine = python-docx（基礎排版，已就緒）
+       → 沒有 → report_engine = python-docx-pending（需安裝）
+   此結果暫存，到 step 10 使用者選擇產出 Word 報告時才生效
 ```
 
 偵測完成後顯示摘要：
@@ -85,7 +93,13 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 ```
 🔧 驗證工具：Playwright MCP
 🔍 除錯工具：chrome-devtools-mcp（--deep 可用）
+📄 報告工具：{minimax-docx / python-docx / python-docx（需安裝）}
 ```
+
+報告工具偵測結果說明：
+- `minimax-docx`：.NET 已安裝，可產出專業排版報告
+- `python-docx`：.NET 未安裝，python-docx 已就緒，可產出基礎排版報告
+- `python-docx（需安裝）`：兩者皆未安裝，到 step 10 時引導安裝
 
 > **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
@@ -624,27 +638,79 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 
 ### 10. 報告產出（Word 驗收報告）
 
-驗證完成後，詢問使用者是否產出正式 Word 驗收報告：
+驗證完成後，依序詢問報告風格和引擎：
+
+#### 10.0a 選擇報告風格
+
+使用 `AskUserQuestion` 讓使用者選擇風格：
+
+**問題**：「請選擇驗收報告風格」
+
+| 選項 | `--style` 值 | 說明 | 需要 Logo |
+|------|-------------|------|----------|
+| Intumit Brand（預設） | `intumit` | 藍+橘企業風，Logo 封面，橘色裝飾線 | ✅ |
+| Tech Dark | `tech-dark` | 深藍科技風，青綠強調色，code 風格封面 | ✅ |
+| Swiss Minimal | `swiss` | 黑灰極簡，無 Logo，大留白，靠字體層次 | ❌ |
+
+選擇結果傳入報告產出引擎的 `--style` 參數。
+三種風格在 minimax-docx 和 python-docx 引擎中均可使用。
+
+#### 10.0b 選擇報告引擎
+
+##### report_engine = minimax-docx 時
+
+直接使用 `/minimax-docx` 進入報告產出流程（含 TOC + XSD 驗證）。
+
+##### report_engine = python-docx 或 python-docx-pending 時
 
 ```
-是否產出 Word 驗收報告？[Y/n]
+⚠️ .NET 未安裝，有以下選項：
+  A) 使用 python-docx 產出（品牌排版，含封面、Logo、頁眉頁腳，不含 TOC）
+  B) 安裝 .NET SDK 後使用 minimax-docx（+ TOC + XSD 驗證）
+  C) 跳過 Word 報告
+
+選擇？[A/B/C]
 ```
 
-使用者輸入 `n` → 跳過，結束流程。
-使用者輸入 `Y`（或直接 Enter）→ 進入報告產出流程。
+- **選 A**：
+  - 若 `report_engine = python-docx-pending`，先安裝：
+    ```bash
+    python3 -m pip install --target /tmp/crew-docx-env python-docx
+    ```
+  - 進入 python-docx 報告產出流程（步驟 10.4b）
+- **選 B**：顯示安裝指引，等待安裝完成後繼續
+  ```
+  請安裝 .NET SDK 8.0+：
+
+  macOS：    brew install dotnet-sdk
+  Ubuntu：   sudo apt install dotnet-sdk-8.0
+  Windows：  winget install Microsoft.DotNet.SDK.8
+
+  安裝完成後，執行 minimax-skills 的 setup：
+    bash {minimax-skills-path}/scripts/setup.sh
+
+  安裝好了嗎？[Y]
+  ```
+  使用者確認後 → 使用 `/minimax-docx` 進入報告產出流程
+- **選 C**：跳過，結束流程
 
 #### 10.1 收集封面資訊
 
 依以下優先順序取得每項封面資訊：
 
-| 欄位 | 自動來源 | 備用來源 | 存檔位置 |
-|------|---------|---------|---------|
-| 專案名稱 | `projects/{id}.md` 的 `notion_name` | 詢問使用者 | `report-config.md` |
+| 欄位 | 自動來源（優先順序） | 最終 fallback | 存檔位置 |
+|------|-------------------|-------------|---------|
+| 專案名稱 | `projects/{id}.md` 的 `notion_name` → `report-config.md` | 詢問使用者 | `report-config.md` |
 | 功能名稱 | `.spec/{slug}/README.md` 的 `name` | 詢問使用者 | — |
 | 驗證日期 | verify.md 的驗證日期 | 當天日期 | — |
 | 版本號 | `.spec/{slug}/README.md` 的 frontmatter | 詢問使用者（如 `v1.0`） | — |
-| 承辦單位 | `report-config.md` 的 `company_name` | 詢問使用者 | `report-config.md` |
-| 製作人 | `report-config.md` 的 `author` | 詢問使用者 | `report-config.md` |
+| 承辦單位 | `report-config.md` 的 `company_name` | `Intumit`（硬編碼預設值） | `report-config.md` |
+| 製作人 | `report-config.md` 的 `author` | OS 使用者名稱（`whoami` 或 `$USER`） | `report-config.md` |
+
+**預設值邏輯**：
+- 承辦單位：若 `report-config.md` 無值，預設帶入 `Intumit`，不詢問直接使用
+- 製作人：若 `report-config.md` 無值，取 `whoami` 結果作為預設值，不詢問直接使用
+- 使用者可在確認流程中覆寫任何預設值
 
 **`report-config.md` 位置**：`~/.claude-company/feature-workflow/report-config.md`
 
@@ -670,7 +736,7 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 | 欄位 | 自動來源 | 備用來源 |
 |------|---------|---------|
 | 測試 URL | verify.md 摘要的「環境」欄位 | 詢問使用者 |
-| 瀏覽器 | 自動偵測（Playwright 預設 Chromium） | `Chromium（Playwright 控制）` |
+| 瀏覽器 | 自動偵測 | Chromium |
 | 測試帳號角色 | 詢問使用者 | 「系統管理員」 |
 | 測試資料說明 | 詢問使用者（可選） | 「使用測試環境既有資料」 |
 | 前置條件 | `.spec/{slug}/spec.md` 的前置條件區塊 | 詢問使用者 |
@@ -680,7 +746,7 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 ```
 🔧 測試環境：
   URL：{自動帶入}
-  瀏覽器：Chromium（Playwright 控制）
+  瀏覽器：Chromium
   測試帳號角色：（請輸入，如「系統管理員」）
   測試資料說明：（請輸入，或 Enter 跳過）
   前置條件：{自動帶入或待填}
@@ -690,7 +756,7 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 
 #### 10.3 組裝報告內容
 
-AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx` 的輸入）：
+AI 依以下七段式結構組裝 Markdown 報告內容（作為報告產出引擎的輸入，minimax-docx 和 python-docx 共用同一份 Markdown）：
 
 **1. 封面**
 
@@ -843,20 +909,13 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 |------|------|------|
 | {日期} | {版本} | 初次驗收 |
 
-### 工具版本
-
-| 工具 | 版本 |
-|------|------|
-| Playwright MCP | @anthropic-ai/mcp-server-playwright@latest |
-| Claude Code | {版本} |
-
 ### 參考文件
 
 - 技術規格書：.spec/{slug}/spec.md
 - 驗證技術紀錄：.spec/{slug}/verify.md
 ```
 
-#### 10.4 呼叫 /minimax-docx 產出
+#### 10.4a 使用 minimax-docx 產出（report_engine = minimax-docx）
 
 ```
 使用 `/minimax-docx` Skill 產出：
@@ -865,7 +924,40 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
 - 含：封面、簽核表、環境說明、摘要、逐條驗證明細（含截圖嵌入）、待處理事項、附錄
 ```
 
+#### 10.4b 使用 python-docx 產出（report_engine = python-docx）
+
+呼叫 plugin 內建的 `references/verify-docx-generator.py`：
+
+```bash
+# 若 python-docx 未安裝，臨時安裝到隔離目錄
+if ! python3 -c "import docx" 2>/dev/null; then
+  python3 -m pip install --target /tmp/crew-docx-env python-docx
+fi
+
+# 產出 Word 報告
+PYTHONPATH=/tmp/crew-docx-env:$PYTHONPATH python3 \
+  {plugin_path}/references/verify-docx-generator.py \
+  --verify .spec/{slug}/verify.md \
+  --screenshots .spec/{slug}/screenshots/ \
+  --evidence .spec/{slug}/evidence/ \
+  --output .spec/{slug}/verify-report.docx \
+  --cover '{"project":"{project}","feature":"{feature}","author":"{author}","date":"{date}","company":"{company}","version":"{version}"}'
+```
+
+python-docx 產出規格見 `references/verify-docx-template.md`。
+
+**與 minimax-docx 的差異**：
+
+| 維度 | minimax-docx | python-docx |
+|------|-------------|-------------|
+| 排版品質 | 專業級（XSD 驗證、精確頁面控制） | 基礎（段落、表格、圖片嵌入） |
+| 簽核欄位 | 精確格式控制 | 簡易表格 |
+| CJK 字體 | 自動偵測 locale | 使用系統預設字體 |
+| 安裝成本 | .NET SDK ~500MB | python-docx ~1MB |
+
 #### 10.5 完成提示
+
+**minimax-docx 產出時：**
 
 ```
 📄 驗收報告已產出：.spec/{slug}/verify-report.docx
@@ -877,6 +969,22 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx`
   • {若有} 待處理事項 {M} 項
 
 提示：可用 Word 開啟後自行調整格式或轉存 PDF。
+```
+
+**python-docx 產出時：**
+
+```
+📄 驗收報告已產出：.spec/{slug}/verify-report.docx
+
+報告包含：
+  • 封面與簽核欄位
+  • 測試環境說明
+  • {N} 條驗收明細（含操作步驟與截圖）
+  • {若有} 待處理事項 {M} 項
+
+⚠️ 本次使用 python-docx 產出（基礎排版）。
+   如需專業排版，可安裝 .NET SDK 後使用 minimax-docx：
+   macOS: brew install dotnet-sdk
 ```
 
 #### 10.6 Excel 報告產出（--excel 選項）
@@ -947,8 +1055,9 @@ Excel 報告規格見 `references/verify-excel-template.md`。
 - **httpOnly cookie 無法用 document.cookie 取得**：session cookie 常設為 httpOnly。API 驗證若需登入態，用 Playwright 的 `browser_evaluate` 中 `fetch()` 直接發請求。
 - **Playwright 和 chrome-devtools 的截圖路徑不同**：Playwright 的 `browser_take_screenshot` 存到指定路徑；chrome-devtools 的 `take_screenshot` 回傳 base64。收集截圖到 `.spec/{slug}/screenshots/` 時需注意。
 - **--deep 模式需要 chrome-devtools-mcp**：若未安裝，`--deep` 功能不可用但不影響標準驗證。提示使用者安裝。
-- **Word 報告依賴 `/minimax-docx` Skill**：需要 minimax-skills plugin 已安裝。若不可用，提示使用者安裝（`找不到 /minimax-docx Skill，請確認 minimax-skills plugin 已安裝`），並跳過報告產出。
-- **截圖嵌入 Word**：`/minimax-docx` 接受 Markdown 格式的圖片引用（`![](path)`）。確保截圖路徑使用相對於 `.spec/{slug}/` 的相對路徑。
+- **Word 報告雙引擎**：優先使用 minimax-docx（需 .NET SDK ≥ 8.0），fallback 為 python-docx（需 Python 3）。前置檢查時偵測可用引擎，step 10 時讓使用者選擇。兩種引擎共用同一份 Markdown 報告內容。
+- **python-docx 臨時安裝**：使用 `pip install --target /tmp/crew-docx-env` 安裝到隔離目錄，不污染使用者的 Python 環境。`PYTHONPATH` 在呼叫時臨時注入。
+- **截圖嵌入 Word**：minimax-docx 接受 Markdown 格式的圖片引用（`![](path)`）；python-docx generator 接受 `--screenshots` 目錄參數，自動嵌入。兩者皆使用相對於 `.spec/{slug}/` 的相對路徑。
 - **封面資訊快取**：`report-config.md` 儲存於 `~/.claude-company/feature-workflow/` 下，跨專案共用（公司名稱、作者）。首次產出報告時建立。
 - **Evidence 檔案是原始內容**：`evidence/` 目錄下的檔案包含未遮蔽的 Cookie、Token 等敏感資訊，僅供內部技術驗證。Word 報告中的「測試紀錄」段落會自動遮蔽。若報告需交付客戶，不要連同 `evidence/` 目錄一起交付。
 - **回應截斷以行數判斷**：使用 `wc -l` 計算回應行數。JSON 先經過 `python3 -m json.tool` pretty-print 後再計算行數，避免單行 JSON 永遠不觸發截斷。
@@ -965,7 +1074,8 @@ Excel 報告規格見 `references/verify-excel-template.md`。
 - **無驗收條件**：提示使用者手動輸入，或建議先執行 `/plan-spec`
 - **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @anthropic-ai/mcp-server-playwright@latest`）
 - **Playwright 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
-- **`/minimax-docx` 不可用**：跳過報告產出，提示使用者安裝 minimax-skills plugin
+- **minimax-docx 和 python-docx 皆不可用**：step 10 提供三選一（安裝 python-docx / 安裝 .NET / 跳過報告），不直接中斷流程
+- **python-docx 安裝失敗**（如無 pip、磁碟滿）：顯示錯誤訊息，提示使用者手動安裝 `python3 -m pip install python-docx`，或改選安裝 .NET
 - **`report-config.md` 不存在**：首次詢問所有封面欄位，產出後自動建立
 - **截圖路徑無效**：報告中標註「（截圖不可用）」，不阻斷報告產出
 - **verify.md 無 `human_steps` 註解**（舊版 verify.md）：從 verify.md 技術內容反推操作敘述（降級模式）

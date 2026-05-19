@@ -42,15 +42,41 @@ description: 產出資料庫設計，寫入 .spec/ 目錄，不呼叫 Notion API
 
 參照 `references/plan-common.md`。
 
+### 3.5 產出 deploy-checklist.md（僅本地）
+
+完成 DB 設計後，自動從 `.spec/{slug}/db.sql` 擷取上線必做項目，寫入 `.spec/{slug}/deploy-checklist.md`。
+
+#### 3.5a 擷取 SQL 項目
+
+從 `db.sql` 中擷取 DDL/DML 語句，依照 `references/plan-common.md` 的「deploy-checklist.md 格式規範 > SQL 擷取規則」處理。
+
+每個項目格式：`- [ ] \`{SQL 類型} {表名/索引名}\` — {說明}`
+
+#### 3.5b 建立 deploy-checklist.md
+
+依照 `references/plan-common.md` 的「deploy-checklist.md 格式規範」建立檔案。SQL 遷移區段填入擷取結果，設定檔變更區段留空（待 plan-build 填入）。
+
+#### 3.5c db.sql 不存在時
+
+若 `db.sql` 不存在但 `db.md` 中描述了表結構：
+- 仍建立 deploy-checklist.md
+- SQL 遷移區段填入「請依 db.md 手動建立 SQL 並執行」提示
+
+若 `db.md` 描述為「無 DB 變更」→ 不建立 deploy-checklist.md。
+
 ### 4. 回傳結果
 
 ```
 DB 設計完成！
 
 📁 產出檔案：.spec/{slug}/db.md, .spec/{slug}/db.sql
+📋 上線前置作業：.spec/{slug}/deploy-checklist.md（{N} 個 SQL 項目）
 📊 狀態：DB 設計
+💡 提示：可用 /plan-sync 同步到 Notion，或等 /plan-close 結案時統一同步
 
 後續可使用：
   • /plan-arch  — 架構設計
   • /plan-build — Agent Teams 產生程式碼
 ```
+
+若未建立 deploy-checklist.md（無 DB 變更），「📋 上線前置作業」和「💡 提示」行不顯示。

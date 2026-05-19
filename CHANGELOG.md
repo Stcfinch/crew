@@ -7,6 +7,19 @@
 
 ---
 
+## [feature-workflow@4.17.0] - 2026-05-19
+
+### 新增
+- **Word 報告多風格系統** — plan-verify 產出 Word 驗收報告時可選擇三種風格：Intumit Brand（藍+橘企業風）、Tech Dark（深藍科技風）、Swiss Minimal（黑灰極簡無 Logo）
+- **python-docx fallback 引擎** — .NET 未安裝時自動降級使用 python-docx 產出報告，品牌視覺與 minimax-docx 版一致（僅缺 TOC）
+- **報告依賴前置檢查** — plan-verify 啟動時偵測 .NET / python-docx 可用性，提前告知使用者報告引擎狀態
+- **verify-docx-generator.py** — 新增 Python 報告產出腳本，支援 `--style` 參數切換風格、`--logo` 嵌入公司 Logo
+
+### 改善
+- **報告不再提及 Playwright** — 瀏覽器欄位不再寫「Playwright 控制」，附錄移除「工具版本」區塊
+- **封面資訊預設值** — 承辦單位預設「碩網資訊股份有限公司」，製作人預設取 OS 使用者名稱
+- **風格選擇互動化** — 使用 AskUserQuestion 讓使用者點選風格，無需記參數
+
 ## [feature-workflow@4.16.0] - 2026-05-15
 
 ### 新增
