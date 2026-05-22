@@ -21,6 +21,20 @@ claude plugin install feature-workflow
 
 ---
 
+## 進階文件
+
+| 主題 | 連結 |
+|------|------|
+| 完整前置條件與系統需求 | [docs/prerequisites.md](docs/prerequisites.md) |
+| Windows 使用者指南 | [docs/windows.md](docs/windows.md) |
+| DB MCP（DBHub）設定 | [docs/dbhub.md](docs/dbhub.md) |
+| Notion 資料庫架構 ER 圖 | [docs/notion-schema.md](docs/notion-schema.md) |
+| 開發與發版指南 | [CONTRIBUTING.md](CONTRIBUTING.md) |
+
+> 💡 環境有問題？跑 `/crew-doctor` 一次性檢查所有依賴並給出修法。
+
+---
+
 ## 完整工作流
 
 從安裝到日常使用的完整流程：
@@ -103,6 +117,7 @@ flowchart TD
 | `/bug-update <內容>` | 更新調查資訊（Log、SQL、判斷） |
 | `/bug-update reopen <Bug>` | 重新開啟已結案 Bug |
 | `/project-add` | **偵測專案架構** + Notion 註冊 + DB MCP 安裝 |
+| `/crew-doctor` | 環境健診（檢查 18 項依賴與設定） |
 | `/crew-upgrade` | 一次更新所有 CREW plugins |
 
 詳細說明見 [plugins/bug-workflow/README.md](plugins/bug-workflow/README.md)
@@ -215,73 +230,6 @@ flowchart LR
 
 ---
 
-## DB MCP（DBHub）
-
-`/project-add` 偵測到 DB 類型後，可選安裝 [DBHub](https://github.com/bytebase/dbhub) 讓 Claude Code 直接查詢資料庫。
-
-### 支援的資料庫
-
-| DB | DSN 格式 |
-|----|---------|
-| **MSSQL** | `sqlserver://user:pwd@host:1433/database` |
-| **MySQL** | `mysql://user:pwd@host:3306/database` |
-| **PostgreSQL** | `postgresql://user:pwd@host:5432/database` |
-| **MariaDB** | `mysql://user:pwd@host:3306/database` |
-| **SQLite** | `sqlite:///path/to/database.db` |
-| **Oracle** | `oracle://user:pwd@host:1521/service` |
-
-### 安裝方式
-
-```bash
-# 專案級安裝（推薦，密碼不跨專案）
-claude mcp add dbhub --scope project -- \
-  npx @bytebase/dbhub --transport stdio \
-  --dsn "sqlserver://user:password@host:1433/database"
-```
-
-> ⚠️ 安裝後需**重啟 Claude Code**。密碼存放在 `.claude/settings.local.json`，確保已加入 `.gitignore`。
-
-### 進階設定：TOML 設定檔
-
-建立 `dbhub.toml` 精確控制讀寫權限：
-
-```toml
-[[sources]]
-id = "mydb"
-dsn = "sqlserver://${DB_USER}:${DB_PASSWORD}@host:1433/database"
-
-# 唯讀工具（日常查詢，推薦）
-[[tools]]
-name = "execute_sql"
-source = "mydb"
-readonly = true          # 只能 SELECT / SHOW / DESCRIBE / EXPLAIN
-max_rows = 1000
-
-# 讀寫工具（需要修改資料時用）
-[[tools]]
-name = "execute_sql_write"
-source = "mydb"
-readonly = false         # 允許 INSERT / UPDATE / DELETE
-```
-
-使用設定檔安裝：
-
-```bash
-claude mcp add dbhub --scope project -- \
-  npx @bytebase/dbhub --transport stdio --config ./dbhub.toml
-```
-
-> 💡 支援環境變數插值（`${DB_USER}`）和 Hot Reload（HTTP 模式下修改 TOML 立即生效）。
-
-### 管理指令
-
-```bash
-claude mcp list              # 查看已安裝的 MCP
-claude mcp remove dbhub      # 移除 DBHub
-```
-
----
-
 ## 前置檢查機制
 
 所有 CREW Skill（除 setup 本身外）執行前會自動檢查：
@@ -294,115 +242,7 @@ claude mcp remove dbhub      # 移除 DBHub
 | **專案已註冊？** | 提示執行 `/project-add` | bug-start/update/close、plan-start/close/sync |
 
 > 💡 `/init` 建立的 CLAUDE.md 建議 **commit + push**，讓團隊成員進入專案時不需重新執行。
-
----
-
-## 系統需求
-
-### 完整依賴矩陣
-
-| 依賴 | 層級 | 用途 | 安裝方式 | 適用 Skill |
-|------|------|------|---------|-----------|
-| **Node.js ≥ 18** | 🔴 必要 | 所有 MCP Server 的執行環境 | [nodejs.org](https://nodejs.org/) | 全部 |
-| **Git** | 🔴 必要 | 版本控制、專案識別 | 系統內建或安裝 | 全部（14/17 skills） |
-| **Notion MCP** | 🔴 必要 | Notion 資料庫讀寫 | `claude plugin install notion`（推薦）或 notion-local（見下方） | 15/17 skills |
-| **Agent Teams** | 🔴 必要 | 多人協作程式碼產生與審查 | 設定環境變數（見下方） | plan-build、plan-review |
-| **Playwright MCP** | 🟡 強烈建議 | 瀏覽器自動化驗收 | `claude mcp add playwright ...` | plan-verify、bug-fix |
-| **Maven / Gradle** | 🟡 強烈建議 | 編譯驗證 | 專案本身自帶 | plan-build、bug-fix |
-| **DBHub MCP** | 🟢 選配 | 資料庫直連（MSSQL/MySQL/PostgreSQL） | `claude mcp add dbhub ...` | plan-build、plan-review |
-| **Chrome DevTools MCP** | 🟢 選配 | Console / Network 除錯 | `claude mcp add chrome-devtools ...` | plan-verify --deep |
-| **minimax-skills Plugin** | 🟢 選配 | Word 驗收報告產出 | `claude plugin install minimax-skills` | plan-verify --word |
-| **Node.js + ExcelJS** | 🟢 選配 | Excel 驗收報告產出 | ExcelJS 自動安裝（需 Node.js） | plan-verify --excel |
-| **curl** | 🔵 標準工具 | API 測試 | 系統內建 | plan-verify、bug-fix |
-| **python3** | 🔵 標準工具 | JSON 格式化 | 系統內建或安裝 | plan-verify |
-| **grep / find** | 🔵 標準工具 | 安全掃描、日誌搜尋 | 系統內建 | plan-security、bug-investigate |
-
-> 🔴 必要 = 缺少無法運作 ｜ 🟡 強烈建議 = 核心功能受限 ｜ 🟢 選配 = 有更好 ｜ 🔵 標準工具 = macOS/Linux 內建
-
-### Agent Teams 環境變數
-
-`/plan-build`（多人產碼）和 `/plan-review`（3 人審查）需要啟用 Agent Teams：
-
-```jsonc
-// ~/.claude/settings.json
-{
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  }
-}
-```
-
-> `/plan-setup` 會自動檢查並引導設定。
-
-### Windows 使用者指南
-
-CREW 完整支援 Windows，但需注意以下環境差異：
-
-**Claude Code 執行環境（擇一）：**
-
-| 方式 | 適用情境 | 說明 |
-|------|---------|------|
-| **Claude Code 桌面版**（推薦） | 一般開發 | 直接安裝，內建終端支援 |
-| **VS Code / JetBrains 擴充** | IDE 整合 | 透過 IDE 內建終端執行 |
-| **WSL2 + CLI** | 進階使用者 | Linux 環境，所有工具原生支援 |
-
-**必要工具安裝：**
-
-| 工具 | Windows 安裝方式 |
-|------|-----------------|
-| Node.js | [nodejs.org](https://nodejs.org/) 下載 LTS 版，安裝時勾選 **Add to PATH** |
-| Git | [git-scm.com](https://git-scm.com/download/win) 下載，或 `winget install Git.Git` |
-| python3 | [Microsoft Store](https://apps.microsoft.com/detail/9NRWMJP3717K) 安裝，或 `winget install Python.Python.3.12` |
-| curl | Windows 10+ 內建，無需安裝 |
-
-**常見問題：**
-
-- **`npx` 找不到**：Node.js 安裝後需**重啟終端**（或重啟 Claude Code），PATH 才會生效
-- **`grep` / `find` 不可用**：Windows 原生 CMD 沒有這些指令。解法：
-  - 使用 Claude Code 桌面版（自帶 shell 環境）
-  - 或安裝 [Git for Windows](https://git-scm.com/download/win)（附帶 Git Bash，含 grep/find）
-  - 或使用 WSL2
-- **Chrome DevTools MCP 連線失敗**：確認 Chrome 啟動時有加 `--remote-debugging-port=9222` 參數
-- **路徑分隔符**：CREW 使用 `/` 路徑（Unix 風格），Claude Code 會自動處理轉換，一般不需手動調整
-
-> `/bug-setup` 和 `/plan-setup` 會自動偵測作業系統，在安裝引導中顯示對應的指令。
-
----
-
-## 前置條件
-
-1. **Node.js ≥ 18** — [安裝指南](https://nodejs.org/)（所有 MCP Server 的執行環境）
-2. **Claude Code** — <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank">安裝指南</a>
-3. **瀏覽器自動化工具**（擇一）— `/plan-verify` 和 `/bug-fix` 驗證需要（其他指令不需要）
-4. **Notion Workspace** — 需有以下資料庫（或由 setup 引導建立）：
-   - **任務追蹤工具**：Bug / 功能 生命週期管理（兩個 Plugin 共用）
-   - **專案資料庫**：管理專案對應（兩個 Plugin 共用）
-   - **Bug 知識庫**（選用）：Bug 精簡索引
-   - **功能設計庫**（選用）：設計文件索引
-
-### 瀏覽器驗證工具（plan-verify / bug-fix）
-
-`/plan-verify` 使用瀏覽器自動化工具驗證驗收條件，產出 Health Score 和截圖證據。`/bug-fix` 在修復前端 Bug 時也會使用瀏覽器驗證。以下工具擇一安裝即可：
-
-**方式 A：Playwright MCP（推薦）**
-
-```bash
-claude mcp add playwright --scope user -- \
-  npx @anthropic-ai/mcp-server-playwright@latest
-```
-
-Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航等。安裝後重啟 Claude Code。
-
-**方式 B：chrome-devtools-mcp**
-
-```bash
-claude mcp add chrome-devtools --scope user -- \
-  npx chrome-devtools-mcp@latest --autoConnect
-```
-
-Google 官方維護，可連接已登入的 Chrome session，適合需要 SSO/VPN 的內部系統。額外提供 console log 串流、network 請求分析、performance trace（`--deep` 模式）。
-
-> 💡 兩者可同時安裝：Playwright 負責 QA 驗收，chrome-devtools 負責除錯診斷（console/network）。
+> 進階：跑 `/crew-doctor` 額外檢查 MCP、Agent Teams、Notion 可達性等 18 項。
 
 ---
 
@@ -509,49 +349,6 @@ claude plugin update feature-workflow@company-marketplace
 > claude plugin uninstall feature-workflow@company-marketplace && \
 > claude plugin install feature-workflow@company-marketplace
 > ```
-
----
-
-## Notion 資料庫架構
-
-`/bug-setup` 可從零建立所有資料庫（含 Views + Relation），解決首次使用者沒有資料庫的問題。
-
-```mermaid
-erDiagram
-    PROJECT["專案資料庫"] {
-        title Name
-        url GitRepo
-        select TechStack
-        status Status
-    }
-    TASK["任務追蹤工具"] {
-        title TaskName
-        status Status
-        multiselect TaskType
-        select Priority
-        select RootCause
-    }
-    BUG_KB["Bug 知識庫"] {
-        title Name
-        multiselect Tags
-        select Difficulty
-    }
-    FEATURE_KB["功能設計庫"] {
-        title Name
-        multiselect Tags
-        select DesignType
-    }
-
-    PROJECT ||--o{ TASK : "任務追蹤工具"
-    PROJECT ||--o{ BUG_KB : "bug處理方式"
-    PROJECT ||--o{ FEATURE_KB : "專案資料庫"
-```
-
-建立順序（解決 Relation 循環依賴）：
-1. **第一輪**：建立 4 個資料庫（不含 Relation）
-2. **第二輪**：補上跨庫 Relation（含雙向 DUAL）
-
-詳細 Schema 見 [plugins/bug-workflow/references/db-templates.md](plugins/bug-workflow/references/db-templates.md)
 
 ---
 
