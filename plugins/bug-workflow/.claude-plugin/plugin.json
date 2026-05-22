@@ -15,7 +15,8 @@
     "./skills/bug-fix",
     "./skills/bug-close",
     "./skills/project-add",
-    "./skills/crew-upgrade"
+    "./skills/crew-upgrade",
+    "./skills/crew-doctor"
   ],
   "keywords": [
     "bug",
