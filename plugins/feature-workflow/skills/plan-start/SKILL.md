@@ -23,7 +23,7 @@ Bug 類型還需檢查 bug-workflow 設定檔（`~/.claude-company/bug-workflow-
 
 ## 流程
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
 
 ### 1. 解析使用者輸入
 

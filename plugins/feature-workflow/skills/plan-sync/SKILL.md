@@ -15,7 +15,7 @@ description: 手動中途同步 .spec/ 目錄的當前進度到 Notion（含 dep
 - **第 1 層**：`config.md`（Notion IDs）
 - **第 2 層**：`projects/{repo-id}.md`（專案對應）
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
+> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
 
 ---
 

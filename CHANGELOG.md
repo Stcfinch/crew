@@ -7,6 +7,46 @@
 
 ---
 
+## [feature-workflow@4.18.0] - 2026-05-22
+
+### 新增
+- **共用 reference 漂移檢查** — `scripts/check-shared-refs.py` 用 sha256 確保兩 plugin 共用檔案（prerequisites.md / db-templates.md / discipline-preamble.md）內容一致
+- **discipline-preamble.md** — 集中反合理化、動作邊界、鐵律三大紀律的通用敘述
+- **plan-verify phases/word-report.md** — Step 10 Word 報告產出獨立成檔（393 行）
+
+### 改善
+- **可獨立安裝** — 解除對 bug-workflow 的所有跨 plugin 引用，12 個 SKILL.md 與 plan-setup 改為自家路徑
+- **紀律段落統一** — 6 個 SKILL（bug-fix/bug-investigate/plan-build/security/review/verify）紀律敘述統一指向 discipline-preamble，順帶解決原本「衝動句」「emoji」分散不一致
+- **plan-verify 主檔瘦身** — 1094 → 723 行（-34%），符合 800 行 lint 警告線
+
+### 工程
+- **CI lint workflow** — 三條規則：版本一致性 / SKILL.md 格式 / 共用 reference 漂移
+- **scripts/bump-version.sh** — 一次同步 plugin.json + marketplace.json + README 三處版本
+
+## [bug-workflow@3.9.0] - 2026-05-22
+
+### 新增
+- **/crew-doctor** — 一次性健診 18 項依賴與設定，分紅黃綠選配四級顯示，含 --quick / --fix 模式
+
+### 改善
+- **discipline-preamble.md** — 集中紀律敘述，bug-fix/bug-investigate 紀律段落改為精簡指向
+- **可獨立安裝** — feature-workflow 不再依賴本 plugin 的 references（雙方各自帶共用 reference 副本，CI 防漂移）
+
+---
+
+## [feature-workflow@4.17.0] - 2026-05-19
+
+### 新增
+- **Word 報告多風格系統** — plan-verify 產出 Word 驗收報告時可選擇三種風格：Intumit Brand（藍+橘企業風）、Tech Dark（深藍科技風）、Swiss Minimal（黑灰極簡無 Logo）
+- **python-docx fallback 引擎** — .NET 未安裝時自動降級使用 python-docx 產出報告，品牌視覺與 minimax-docx 版一致（僅缺 TOC）
+- **報告依賴前置檢查** — plan-verify 啟動時偵測 .NET / python-docx 可用性，提前告知使用者報告引擎狀態
+- **verify-docx-generator.py** — 新增 Python 報告產出腳本，支援 `--style` 參數切換風格、`--logo` 嵌入公司 Logo
+
+### 改善
+- **報告不再提及 Playwright** — 瀏覽器欄位不再寫「Playwright 控制」，附錄移除「工具版本」區塊
+- **封面資訊預設值** — 承辦單位預設「碩網資訊股份有限公司」，製作人預設取 OS 使用者名稱
+- **風格選擇互動化** — 使用 AskUserQuestion 讓使用者點選風格，無需記參數
+
 ## [feature-workflow@4.16.0] - 2026-05-15
 
 ### 新增

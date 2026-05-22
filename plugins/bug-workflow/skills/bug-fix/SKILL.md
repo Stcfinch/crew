@@ -18,8 +18,8 @@ description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修�
 
 ## 紀律護欄
 
-> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「bug-fix 專用」段落。
-> **動作邊界**：遵循 `references/boundaries.md` 的「bug-fix」段落。
+> 通用紀律見 `references/discipline-preamble.md`。
+> 本 skill 專用條目：`anti-rationalizations.md` 「bug-fix 專用」+ `boundaries.md` 「bug-fix」段落。
 
 ---
 

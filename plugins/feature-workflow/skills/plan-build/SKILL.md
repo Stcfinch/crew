@@ -33,14 +33,14 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 **必須**至少完成 `/plan-arch`（arch.md 存在）。若 arch.md 不存在，**禁止繼續**，直接告知使用者先執行 `/plan-arch` 產生架構設計。
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 ---
 
 ## 紀律護欄
 
-> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-build 專用」段落。在任何步驟中感到「可以跳過」的衝動時，查表確認是否為已知偏離模式。
-> **動作邊界**：遵循 `references/boundaries.md` 的「plan-build」段落。🟢 自動做、🟡 先問、🔴 絕不。
+> 通用紀律見 `references/discipline-preamble.md`。
+> 本 skill 專用條目：`anti-rationalizations.md` 「plan-build 專用」+ `boundaries.md` 「plan-build」段落。
 
 ---
 

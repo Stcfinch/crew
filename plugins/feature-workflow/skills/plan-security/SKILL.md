@@ -11,7 +11,7 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 ## 前置條件
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 - 建議已執行 `/plan-build` 產生程式碼
 - 若無 plan-build 產出，可對任何已有程式碼執行
@@ -20,8 +20,8 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 ## 紀律護欄
 
-> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-security 專用」段落。
-> **動作邊界**：遵循 `references/boundaries.md` 的「plan-security」段落。🟢 自動做、🟡 先問、🔴 絕不。
+> 通用紀律見 `references/discipline-preamble.md`。
+> 本 skill 專用條目：`anti-rationalizations.md` 「plan-security 專用」+ `boundaries.md` 「plan-security」段落。
 
 ---
 

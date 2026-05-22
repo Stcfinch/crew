@@ -13,7 +13,7 @@ description: 自動偵測或互動式建立自訂技術棧，掃描專案分層�
 
 依 `references/config-resolver.md` 的解析邏輯載入設定目錄。技術棧檔案寫入 `stacks/{id}.md`。
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 ---
 

@@ -19,14 +19,17 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/效能�
 
 建議已執行 `/plan-build` 產生程式碼，或已有開發中的程式碼。
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> 💡 plan-review 從 .spec/ 和程式碼檔案讀取所有輸入，不依賴對話歷史。
+>    若剛執行完 /plan-build，建議先 /clear 再執行，確保有足夠 context 空間。
+
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 ---
 
 ## 紀律護欄
 
-> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-review 專用」段落。在任何步驟中感到「可以跳過」的衝動時，查表確認是否為已知偏離模式。
-> **動作邊界**：遵循 `references/boundaries.md` 的「plan-review」段落。🟢 自動做、🟡 先問、🔴 絕不。
+> 通用紀律見 `references/discipline-preamble.md`。
+> 本 skill 專用條目：`anti-rationalizations.md` 「plan-review 專用」+ `boundaries.md` 「plan-review」段落。
 
 ---
 

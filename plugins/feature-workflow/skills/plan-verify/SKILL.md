@@ -55,8 +55,8 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 ## 紀律護欄
 
-> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-verify 專用」段落。在任何步驟中感到「可以跳過」的衝動時，查表確認是否為已知偏離模式。
-> **動作邊界**：遵循 `references/boundaries.md` 的「plan-verify」段落。🟢 自動做、🟡 先問、🔴 絕不。
+> 通用紀律見 `references/discipline-preamble.md`。
+> 本 skill 專用條目：`anti-rationalizations.md` 「plan-verify 專用」+ `boundaries.md` 「plan-verify」段落。
 
 ---
 
@@ -78,6 +78,14 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
    → 不可用 → 跳過 --deep 功能，僅提示
 
 4. --api-only 模式跳過瀏覽器檢查，只需 curl 可用
+
+5. Word 報告工具偵測（決定 report_engine）
+   → 檢查 dotnet --version 是否 ≥ 8.0
+     → 有 → report_engine = minimax-docx（專業排版）
+     → 沒有 → 檢查 python3 -c "import docx" 是否成功
+       → 有 → report_engine = python-docx（基礎排版，已就緒）
+       → 沒有 → report_engine = python-docx-pending（需安裝）
+   此結果暫存，到 step 10 使用者選擇產出 Word 報告時才生效
 ```
 
 偵測完成後顯示摘要：
@@ -85,9 +93,15 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 ```
 🔧 驗證工具：Playwright MCP
 🔍 除錯工具：chrome-devtools-mcp（--deep 可用）
+📄 報告工具：{minimax-docx / python-docx / python-docx（需安裝）}
 ```
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+報告工具偵測結果說明：
+- `minimax-docx`：.NET 已安裝，可產出專業排版報告
+- `python-docx`：.NET 未安裝，python-docx 已就緒，可產出基礎排版報告
+- `python-docx（需安裝）`：兩者皆未安裝，到 step 10 時引導安裝
+
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 ---
 
@@ -624,293 +638,16 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 
 ### 10. 報告產出（Word 驗收報告）
 
-驗證完成後，詢問使用者是否產出正式 Word 驗收報告：
-
-```
-是否產出 Word 驗收報告？[Y/n]
-```
-
-使用者輸入 `n` → 跳過，結束流程。
-使用者輸入 `Y`（或直接 Enter）→ 進入報告產出流程。
-
-#### 10.1 收集封面資訊
-
-依以下優先順序取得每項封面資訊：
-
-| 欄位 | 自動來源 | 備用來源 | 存檔位置 |
-|------|---------|---------|---------|
-| 專案名稱 | `projects/{id}.md` 的 `notion_name` | 詢問使用者 | `report-config.md` |
-| 功能名稱 | `.spec/{slug}/README.md` 的 `name` | 詢問使用者 | — |
-| 驗證日期 | verify.md 的驗證日期 | 當天日期 | — |
-| 版本號 | `.spec/{slug}/README.md` 的 frontmatter | 詢問使用者（如 `v1.0`） | — |
-| 承辦單位 | `report-config.md` 的 `company_name` | 詢問使用者 | `report-config.md` |
-| 製作人 | `report-config.md` 的 `author` | 詢問使用者 | `report-config.md` |
-
-**`report-config.md` 位置**：`~/.claude-company/feature-workflow/report-config.md`
-
-**確認流程**：
-
-1. 自動帶入所有能找到的欄位值
-2. 展示給使用者確認：
-   ```
-   📋 報告封面資訊：
-     專案名稱：{自動帶入或待填}
-     功能名稱：{自動帶入}
-     驗證日期：{自動帶入}
-     版本號：{自動帶入或待填}
-     承辦單位：{自動帶入或待填}
-     製作人：{自動帶入或待填}
-
-   確認？[Y/n] 或輸入欄位名稱修改（如「版本號 v2.0」）
-   ```
-3. 使用者確認後，將 `company_name` 和 `author` 存入 `report-config.md`（若不存在則建立）
-
-#### 10.2 收集測試環境資訊
-
-| 欄位 | 自動來源 | 備用來源 |
-|------|---------|---------|
-| 測試 URL | verify.md 摘要的「環境」欄位 | 詢問使用者 |
-| 瀏覽器 | 自動偵測（Playwright 預設 Chromium） | `Chromium（Playwright 控制）` |
-| 測試帳號角色 | 詢問使用者 | 「系統管理員」 |
-| 測試資料說明 | 詢問使用者（可選） | 「使用測試環境既有資料」 |
-| 前置條件 | `.spec/{slug}/spec.md` 的前置條件區塊 | 詢問使用者 |
-
-展示後一次確認：
-
-```
-🔧 測試環境：
-  URL：{自動帶入}
-  瀏覽器：Chromium（Playwright 控制）
-  測試帳號角色：（請輸入，如「系統管理員」）
-  測試資料說明：（請輸入，或 Enter 跳過）
-  前置條件：{自動帶入或待填}
-
-確認？[Y/n]
-```
-
-#### 10.3 組裝報告內容
-
-AI 依以下七段式結構組裝 Markdown 報告內容（作為 `/minimax-docx` 的輸入）：
-
-**1. 封面**
-
-```markdown
-# {專案名稱}
-
-## {功能名稱} — 驗收報告
-
-| 項目 | 值 |
-|------|-----|
-| 驗證日期 | {YYYY-MM-DD} |
-| 版本號 | {vX.Y} |
-| 承辦單位 | {公司全名} |
-```
-
-**2. 簽核欄位**
-
-```markdown
-## 簽核
-
-| 角色 | 姓名 | 簽章 | 日期 |
-|------|------|------|------|
-| 製作人 | {author} | | |
-| 審核人 | | | |
-| 客戶確認 | | | |
-```
-
-**3. 測試環境說明**
-
-```markdown
-## 測試環境
-
-| 項目 | 說明 |
-|------|------|
-| 測試 URL | {URL} |
-| 瀏覽器 | {瀏覽器} |
-| 測試帳號角色 | {角色} |
-| 測試資料說明 | {說明} |
-| 前置條件 | {前置條件} |
-```
-
-**4. 驗收摘要**
-
-```markdown
-## 驗收摘要
-
-| 狀態 | 數量 |
-|------|------|
-| 通過 | {N} |
-| 未通過 | {N} |
-| 略過 | {N} |
-| 待人工確認 | {N} |
-
-**結論**：{AI 依統計生成一句話結論}
-```
-
-結論生成規則：
-- 全部 PASS → 「共 N 項驗收條件全數通過，建議進入正式上線流程。」
-- 有 FAIL → 「共 N 項驗收條件，M 項未通過，需修正後重新驗證。」
-- 有 MANUAL 無 FAIL → 「共 N 項驗收條件，M 項通過、K 項待人工確認。」
-
-**5. 驗收明細**（每條一個段落，使用 `<!-- human_steps -->` 和 `<!-- evidence -->` 中的內容）
-
-```markdown
-### 驗收項目 {N}：{驗收條件名稱}
-
-**結果：{通過/未通過/略過/待人工確認}** {✅/❌/⏭️/🔍}
-
-**操作步驟**：
-1. {人話操作步驟 1}
-2. {人話操作步驟 2}
-...
-
-**預期結果**：{人話預期}
-
-**實際結果**：{人話實際}
-
-**測試紀錄**：（API 類型必填，UI 類型若有 curl 呼叫也須附上）
-
-  請求：
-    GET http://localhost:8080/ap/pushTagQuery/list
-        ?startDate=2026-01-01
-        &endDate=2026-03-18
-        &pageNum=1&pageSize=20
-    Headers:
-      Cookie: JSES****f456
-
-  回應（HTTP 200）：
-    {
-      "code": "0000",
-      "data": {
-        "list": [
-          {"pushCode": "P001", "sendCount": 5000, "openCount": 1230},
-          {"pushCode": "P002", "sendCount": 3200, "openCount": 890},
-
-          ... （省略 5 筆，共 15 筆）
-
-          {"pushCode": "P014", "sendCount": 210, "openCount": 58},
-          {"pushCode": "P015", "sendCount": 100, "openCount": 22}
-        ],
-        "total": 15
-      }
-    }
-
-  > 完整回應請見：evidence/verify-{N}-response.json
-
-**截圖**：
-![{描述}](screenshots/verify-{N}-{desc}.png)
-```
-
-**測試紀錄截斷規則**：
-
-| 回應行數 | 處理方式 | evidence 檔案 |
-|---------|---------|--------------|
-| ≤ 20 行 | 完整顯示於報告 | 不產出（報告即完整內容） |
-| > 20 行 | 前 10 行 + 省略提示 + 後 10 行 | 產出 `evidence/verify-{N}-response.json` |
-
-省略提示格式：`... （省略 {M} 行，共 {total} 行）`
-
-若單條驗收項目涉及**多次 API 呼叫**（如先查詢再更新），每次呼叫各自記錄為獨立的請求/回應區塊，evidence 檔案命名加上子序號：`verify-{N}-a-response.json`、`verify-{N}-b-response.json`。
-
-**敏感資訊遮蔽規則**（僅 Word 報告，evidence 原始檔不遮蔽）：
-
-| Header / 值 | 遮蔽方式 | 範例 |
-|-------------|---------|------|
-| Cookie | 保留名稱前 4 字元 + `****` + 後 4 字元 | `JSES****f456` |
-| Authorization | 保留 scheme + 前 4 字元 + `****` | `Bearer eyJh****` |
-| X-API-Key / Token | 前 4 字元 + `****` | `sk-l****` |
-
-原則：讓讀者知道「有帶認證」但無法還原實際值。
-
-**6. 待處理事項**（僅 FAIL / MANUAL 時）
-
-```markdown
-## 待處理事項
-
-| # | 驗收條件 | 狀態 | 建議處理方式 |
-|---|---------|------|------------|
-| {N} | {條件} | {未通過/待人工確認} | {建議} |
-```
-
-**7. 附錄**
-
-```markdown
-## 附錄
-
-### 版本紀錄
-
-| 日期 | 版本 | 說明 |
-|------|------|------|
-| {日期} | {版本} | 初次驗收 |
-
-### 工具版本
-
-| 工具 | 版本 |
-|------|------|
-| Playwright MCP | @anthropic-ai/mcp-server-playwright@latest |
-| Claude Code | {版本} |
-
-### 參考文件
-
-- 技術規格書：.spec/{slug}/spec.md
-- 驗證技術紀錄：.spec/{slug}/verify.md
-```
-
-#### 10.4 呼叫 /minimax-docx 產出
-
-```
-使用 `/minimax-docx` Skill 產出：
-- 輸入：AI 組裝的 Markdown 報告內容
-- 輸出：`.spec/{slug}/verify-report.docx`
-- 含：封面、簽核表、環境說明、摘要、逐條驗證明細（含截圖嵌入）、待處理事項、附錄
-```
-
-#### 10.5 完成提示
-
-```
-📄 驗收報告已產出：.spec/{slug}/verify-report.docx
-
-報告包含：
-  • 封面與簽核欄位
-  • 測試環境說明
-  • {N} 條驗收明細（含操作步驟與截圖）
-  • {若有} 待處理事項 {M} 項
-
-提示：可用 Word 開啟後自行調整格式或轉存 PDF。
-```
-
-#### 10.6 Excel 報告產出（--excel 選項）
-
-呼叫 plugin 內建的 `references/verify-excel-generator.js`：
-
-```bash
-# 安裝 ExcelJS（臨時，不污染專案）
-npm_config_prefix=$(mktemp -d) npx --yes exceljs
-
-# 產出 Excel 報告
-node {plugin_path}/references/verify-excel-generator.js \
-  --verify .spec/{slug}/verify.md \
-  --screenshots .spec/{slug}/screenshots/ \
-  --evidence .spec/{slug}/evidence/ \
-  --output .spec/{slug}/verify-report.xlsx \
-  --cover '{"project":"{project}","feature":"{feature}","author":"{author}","date":"{date}"}'
-```
-
-封面資訊取得方式同步驟 10.1（Word 報告的封面收集）。
-
-Excel 報告規格見 `references/verify-excel-template.md`。
-
-**--word --excel 同時指定時**：兩份報告從同一個 verify.md 產出，資料一致，格式各取所需。
-
-#### 向下相容：舊版 verify.md
-
-若 verify.md 中無 `<!-- human_steps -->` 註解（舊版產出）：
-1. 進入降級模式：AI 從 verify.md 的技術驗證內容反推操作敘述
-2. 在報告封面加註：「※ 操作步驟由系統自動轉譯，可能與實際操作有微差異」
-
-若 verify.md 中無 `<!-- evidence -->` 區塊（舊版或 UI-only 驗證）：
-1. Word 報告的「測試紀錄」段落顯示：「（本次驗證未記錄測試過程詳情）」
-2. 不阻斷報告產出，其餘段落正常生成
+驗證完成後可選產出 Word 驗收報告。完整流程（風格選擇、引擎選擇、
+minimax-docx 與 python-docx 兩條路徑、報告範本、Logo 處理、降級提示）見：
+
+> 📄 [`phases/word-report.md`](./phases/word-report.md)
+
+簡要：
+- 先問風格（Intumit Brand / Tech Dark / Swiss Minimal）
+- 依 `report_engine` 偵測結果走 minimax-docx 或 python-docx
+- 兩者皆無 → 引導安裝 python-docx
+- 產出 `.spec/{slug}/{功能}-驗收報告.docx`
 
 ---
 
@@ -947,8 +684,9 @@ Excel 報告規格見 `references/verify-excel-template.md`。
 - **httpOnly cookie 無法用 document.cookie 取得**：session cookie 常設為 httpOnly。API 驗證若需登入態，用 Playwright 的 `browser_evaluate` 中 `fetch()` 直接發請求。
 - **Playwright 和 chrome-devtools 的截圖路徑不同**：Playwright 的 `browser_take_screenshot` 存到指定路徑；chrome-devtools 的 `take_screenshot` 回傳 base64。收集截圖到 `.spec/{slug}/screenshots/` 時需注意。
 - **--deep 模式需要 chrome-devtools-mcp**：若未安裝，`--deep` 功能不可用但不影響標準驗證。提示使用者安裝。
-- **Word 報告依賴 `/minimax-docx` Skill**：需要 minimax-skills plugin 已安裝。若不可用，提示使用者安裝（`找不到 /minimax-docx Skill，請確認 minimax-skills plugin 已安裝`），並跳過報告產出。
-- **截圖嵌入 Word**：`/minimax-docx` 接受 Markdown 格式的圖片引用（`![](path)`）。確保截圖路徑使用相對於 `.spec/{slug}/` 的相對路徑。
+- **Word 報告雙引擎**：優先使用 minimax-docx（需 .NET SDK ≥ 8.0），fallback 為 python-docx（需 Python 3）。前置檢查時偵測可用引擎，step 10 時讓使用者選擇。兩種引擎共用同一份 Markdown 報告內容。
+- **python-docx 臨時安裝**：使用 `pip install --target /tmp/crew-docx-env` 安裝到隔離目錄，不污染使用者的 Python 環境。`PYTHONPATH` 在呼叫時臨時注入。
+- **截圖嵌入 Word**：minimax-docx 接受 Markdown 格式的圖片引用（`![](path)`）；python-docx generator 接受 `--screenshots` 目錄參數，自動嵌入。兩者皆使用相對於 `.spec/{slug}/` 的相對路徑。
 - **封面資訊快取**：`report-config.md` 儲存於 `~/.claude-company/feature-workflow/` 下，跨專案共用（公司名稱、作者）。首次產出報告時建立。
 - **Evidence 檔案是原始內容**：`evidence/` 目錄下的檔案包含未遮蔽的 Cookie、Token 等敏感資訊，僅供內部技術驗證。Word 報告中的「測試紀錄」段落會自動遮蔽。若報告需交付客戶，不要連同 `evidence/` 目錄一起交付。
 - **回應截斷以行數判斷**：使用 `wc -l` 計算回應行數。JSON 先經過 `python3 -m json.tool` pretty-print 後再計算行數，避免單行 JSON 永遠不觸發截斷。
@@ -965,7 +703,8 @@ Excel 報告規格見 `references/verify-excel-template.md`。
 - **無驗收條件**：提示使用者手動輸入，或建議先執行 `/plan-spec`
 - **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @anthropic-ai/mcp-server-playwright@latest`）
 - **Playwright 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
-- **`/minimax-docx` 不可用**：跳過報告產出，提示使用者安裝 minimax-skills plugin
+- **minimax-docx 和 python-docx 皆不可用**：step 10 提供三選一（安裝 python-docx / 安裝 .NET / 跳過報告），不直接中斷流程
+- **python-docx 安裝失敗**（如無 pip、磁碟滿）：顯示錯誤訊息，提示使用者手動安裝 `python3 -m pip install python-docx`，或改選安裝 .NET
 - **`report-config.md` 不存在**：首次詢問所有封面欄位，產出後自動建立
 - **截圖路徑無效**：報告中標註「（截圖不可用）」，不阻斷報告產出
 - **verify.md 無 `human_steps` 註解**（舊版 verify.md）：從 verify.md 技術內容反推操作敘述（降級模式）

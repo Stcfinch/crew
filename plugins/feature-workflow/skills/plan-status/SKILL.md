@@ -7,7 +7,7 @@ description: 列出 .spec/ 目錄中所有活躍和已完成的任務，純本�
 
 純本地操作，讀取 `.spec/_index.md` 和各任務的 `README.md`，格式化顯示所有任務狀態。**不呼叫任何 Notion API**。
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 ---
 

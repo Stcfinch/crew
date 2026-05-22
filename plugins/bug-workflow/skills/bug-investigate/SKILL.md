@@ -18,8 +18,8 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 
 ## 紀律護欄
 
-> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「bug-investigate 專用」段落。
-> **動作邊界**：遵循 `references/boundaries.md` 的「bug-investigate」段落。
+> 通用紀律見 `references/discipline-preamble.md`。
+> 本 skill 專用條目：`anti-rationalizations.md` 「bug-investigate 專用」+ `boundaries.md` 「bug-investigate」段落。
 
 ---
 

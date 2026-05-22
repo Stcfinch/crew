@@ -92,8 +92,8 @@ description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯�
    - 若找到工作區頁面 → **parent 設為工作區頁面**（不再詢問位置），記錄 `workspace_page_id`
    - 若找不到工作區頁面 → **退回原流程**（詢問要建立在哪個 Notion 頁面下）
 
-2. 參照 bug-workflow plugin 的共用模版：
-   `~/.claude-company/company-marketplace/plugins/bug-workflow/references/db-templates.md`「D. 功能設計庫」
+2. 參照本 plugin 的共用模版：
+   `references/db-templates.md`「D. 功能設計庫」
 3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**）
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 使用 `notion-update-data-source` 補上「專案資料庫」Relation：

@@ -26,7 +26,7 @@ Bug 類型還需 bug-workflow 設定檔（`~/.claude-company/bug-workflow-config
 - 已完成規劃和開發（`.spec/{slug}/` 下有設計文件）
 - 程式碼已 commit
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
 
 ---
 
