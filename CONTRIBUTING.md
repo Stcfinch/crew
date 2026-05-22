@@ -69,14 +69,73 @@ git commit -m "chore({plugin}): 升版至 v{X.Y.Z}"
 
 ```
 company-marketplace/
+├── .github/workflows/    # CI lint（版本一致性、SKILL.md 格式、共用 ref 漂移）
+├── .gitignore
 ├── CHANGELOG.md          # 所有 Plugin 的變更紀錄（/crew-upgrade 讀取）
 ├── CONTRIBUTING.md       # 本文件
 ├── README.md             # 根目錄總覽（安裝、流程、指令表）
+├── scripts/              # 版本同步、lint
 └── plugins/
     ├── bug-workflow/
     │   ├── README.md     # Bug Workflow 詳細文件
+    │   ├── references/   # 共用 reference（與 feature-workflow 同步，CI 防漂移）
     │   └── skills/       # 各 Skill 的 SKILL.md
     └── feature-workflow/
         ├── README.md     # Feature Workflow 詳細文件
+        ├── references/   # 共用 reference + 專屬 reference
         └── skills/       # 各 Skill 的 SKILL.md
+```
+
+---
+
+## `.spec/` 目錄規範
+
+`.spec/{slug}/` 是 `/plan-start` 建立的本地任務目錄，**預設不入版控**
+（已寫入 `.gitignore` 的 `.spec/*/`）。
+
+### 何時應該 commit `.spec/`？
+
+只有「對外設計文件」性質的內容才入版控：
+
+- ✅ 套件本身的改進計畫（如 `.spec/crew-improvement/`）
+- ✅ 重大架構決策的設計文件（之後可能改為 `docs/adr/`）
+- ❌ 個人 dogfood 的暫存 spec
+- ❌ 在客戶專案內 `/plan-start` 產生的工作目錄
+
+### 如何 commit「對外設計」目錄
+
+由於 `.gitignore` 預設排除 `.spec/*/`，需強制加入：
+
+```bash
+git add -f .spec/{slug}/
+```
+
+並建議在 `.gitignore` 的「白名單」段落明示意圖：
+
+```gitignore
+!.spec/{slug}/
+```
+
+---
+
+## 共用 reference 同步規則
+
+`plugins/bug-workflow/references/` 與 `plugins/feature-workflow/references/`
+各自帶以下檔案的副本（為了 plugin 可獨立安裝）：
+
+- `prerequisites.md`
+- `db-templates.md`
+- `discipline-preamble.md`
+
+CI 的 `shared-refs-consistency` job 用 sha256 強制兩份內容一致。
+**修改其一時必須同改另一份**，否則 CI block。
+
+修法：
+
+```bash
+# 改完 bug-workflow 那份後同步給 feature-workflow
+cp plugins/bug-workflow/references/prerequisites.md \
+   plugins/feature-workflow/references/prerequisites.md
+
+# 或反向，依哪份是正確版
 ```

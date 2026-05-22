@@ -1,0 +1,23 @@
+# Claude Code 本地狀態 — 含密碼 / token，絕對不可提交
+.claude/
+
+# Playwright MCP runtime artifacts（log、screenshot、page snapshot）
+.playwright-mcp/
+
+# dogfood 任務筆記（planning-with-files 暫存）
+task_plan.md
+
+# OS / 編輯器產物
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# .spec/ — 預設不入版控（plan-start 建立的本地工作目錄）
+# 想入版控的「對外設計文件」用：git add -f .spec/{slug}/
+# 已 tracked 的目錄不受此規則影響（如 .spec/crew-improvement/）
+.spec/*/
+
+# 白名單：明示意圖，幫助 git 工具理解（已 tracked 也可受惠）
+!.spec/crew-improvement/
