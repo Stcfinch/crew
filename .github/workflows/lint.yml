@@ -1,0 +1,26 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  version-consistency:
+    name: 版本一致性
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 檢查 plugin.json / marketplace.json / README.md 三處版本一致
+        run: bash scripts/bump-version.sh --check
+
+  skill-md-lint:
+    name: SKILL.md 格式檢查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 檢查 frontmatter 必填欄位與檔案大小
+        run: python3 scripts/lint-skills.py
