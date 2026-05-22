@@ -11,7 +11,7 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ## 前置條件
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 - 適用類型：**Feature**
 - 前置檔案：`README.md`（由 `/plan-start` 建立）

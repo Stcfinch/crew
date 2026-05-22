@@ -101,7 +101,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 - `python-docx`：.NET 未安裝，python-docx 已就緒，可產出基礎排版報告
 - `python-docx（需安裝）`：兩者皆未安裝，到 step 10 時引導安裝
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 ---
 

@@ -33,7 +33,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 **必須**至少完成 `/plan-arch`（arch.md 存在）。若 arch.md 不存在，**禁止繼續**，直接告知使用者先執行 `/plan-arch` 產生架構設計。
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 ---
 

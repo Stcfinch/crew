@@ -11,7 +11,7 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 ## 前置條件
 
-> **前置檢查**：參照 bug-workflow plugin 的 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
 
 - 建議已執行 `/plan-build` 產生程式碼
 - 若無 plan-build 產出，可對任何已有程式碼執行
