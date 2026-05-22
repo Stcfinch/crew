@@ -24,3 +24,14 @@ jobs:
           python-version: '3.11'
       - name: 檢查 frontmatter 必填欄位與檔案大小
         run: python3 scripts/lint-skills.py
+
+  shared-refs-consistency:
+    name: 共用 reference 漂移檢查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 檢查 bug-workflow 與 feature-workflow 共用 reference 內容一致
+        run: python3 scripts/check-shared-refs.py
