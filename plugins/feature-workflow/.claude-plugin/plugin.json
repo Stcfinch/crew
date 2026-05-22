@@ -23,7 +23,8 @@
     "./skills/plan-review",
     "./skills/plan-close",
     "./skills/plan-sync",
-    "./skills/plan-status"
+    "./skills/plan-status",
+    "./skills/plan-next"
   ],
   "keywords": [
     "feature",
