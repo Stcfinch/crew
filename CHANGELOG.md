@@ -7,6 +7,33 @@
 
 ---
 
+## [feature-workflow@4.18.0] - 2026-05-22
+
+### 新增
+- **共用 reference 漂移檢查** — `scripts/check-shared-refs.py` 用 sha256 確保兩 plugin 共用檔案（prerequisites.md / db-templates.md / discipline-preamble.md）內容一致
+- **discipline-preamble.md** — 集中反合理化、動作邊界、鐵律三大紀律的通用敘述
+- **plan-verify phases/word-report.md** — Step 10 Word 報告產出獨立成檔（393 行）
+
+### 改善
+- **可獨立安裝** — 解除對 bug-workflow 的所有跨 plugin 引用，12 個 SKILL.md 與 plan-setup 改為自家路徑
+- **紀律段落統一** — 6 個 SKILL（bug-fix/bug-investigate/plan-build/security/review/verify）紀律敘述統一指向 discipline-preamble，順帶解決原本「衝動句」「emoji」分散不一致
+- **plan-verify 主檔瘦身** — 1094 → 723 行（-34%），符合 800 行 lint 警告線
+
+### 工程
+- **CI lint workflow** — 三條規則：版本一致性 / SKILL.md 格式 / 共用 reference 漂移
+- **scripts/bump-version.sh** — 一次同步 plugin.json + marketplace.json + README 三處版本
+
+## [bug-workflow@3.9.0] - 2026-05-22
+
+### 新增
+- **/crew-doctor** — 一次性健診 18 項依賴與設定，分紅黃綠選配四級顯示，含 --quick / --fix 模式
+
+### 改善
+- **discipline-preamble.md** — 集中紀律敘述，bug-fix/bug-investigate 紀律段落改為精簡指向
+- **可獨立安裝** — feature-workflow 不再依賴本 plugin 的 references（雙方各自帶共用 reference 副本，CI 防漂移）
+
+---
+
 ## [feature-workflow@4.17.0] - 2026-05-19
 
 ### 新增
