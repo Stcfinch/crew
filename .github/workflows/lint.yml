@@ -35,3 +35,14 @@ jobs:
           python-version: '3.11'
       - name: 檢查 bug-workflow 與 feature-workflow 共用 reference 內容一致
         run: python3 scripts/check-shared-refs.py
+
+  changelog-order:
+    name: CHANGELOG 順序檢查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 檢查 CHANGELOG.md 版本日期單調遞減 + 同 plugin 版本遞減
+        run: python3 scripts/lint-changelog.py
