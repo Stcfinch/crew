@@ -29,6 +29,7 @@ claude plugin install feature-workflow
 | Windows 使用者指南 | [docs/windows.md](docs/windows.md) |
 | DB MCP（DBHub）設定 | [docs/dbhub.md](docs/dbhub.md) |
 | Notion 資料庫架構 ER 圖 | [docs/notion-schema.md](docs/notion-schema.md) |
+| 架構決策紀錄（ADR） | [docs/adr/](docs/adr/) |
 | 開發與發版指南 | [CONTRIBUTING.md](CONTRIBUTING.md) |
 
 > 💡 環境有問題？跑 `/crew-doctor` 一次性檢查所有依賴並給出修法。
