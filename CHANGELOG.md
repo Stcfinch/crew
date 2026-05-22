@@ -7,6 +7,22 @@
 
 ---
 
+## [feature-workflow@4.20.0] - 2026-05-23
+
+### 新增
+- **/plan-next 智慧推薦下一步（B1）** — 讀取 .spec/{slug}/ 既有檔案、Git branch、verify.md 狀態，按決策表推薦下個 plan-* 指令；含 --all 列出所有活躍任務
+
+### 改善
+- 主 README 進階文件區段加入 ADR 入口
+
+## [bug-workflow@3.10.0] - 2026-05-23
+
+### 新增
+- **/crew-init 一鍵首次設定（B3）** — 統合 /bug-setup + /plan-setup + 提示 /init 與 /project-add，含偵測跳過邏輯與 --resume 中斷續跑
+
+### 文件（marketplace 層級）
+- **docs/adr/ 5 個關鍵架構決策（E2）** — 001 本地 spec / 002 leader-delegate / 003 Playwright 預設 / 004 共用 reference 重複 / 005 bug-investigate 主入口
+
 ## [feature-workflow@4.19.0] - 2026-05-23
 
 ### 新增
