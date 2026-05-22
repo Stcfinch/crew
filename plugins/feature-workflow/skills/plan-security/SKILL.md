@@ -20,8 +20,8 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 ## 紀律護欄
 
-> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-security 專用」段落。
-> **動作邊界**：遵循 `references/boundaries.md` 的「plan-security」段落。🟢 自動做、🟡 先問、🔴 絕不。
+> 通用紀律見 `references/discipline-preamble.md`。
+> 本 skill 專用條目：`anti-rationalizations.md` 「plan-security 專用」+ `boundaries.md` 「plan-security」段落。
 
 ---
 

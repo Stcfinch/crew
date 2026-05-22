@@ -28,8 +28,8 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/效能�
 
 ## 紀律護欄
 
-> **反合理化**：執行前閱讀 `references/anti-rationalizations.md` 的「通用」和「plan-review 專用」段落。在任何步驟中感到「可以跳過」的衝動時，查表確認是否為已知偏離模式。
-> **動作邊界**：遵循 `references/boundaries.md` 的「plan-review」段落。🟢 自動做、🟡 先問、🔴 絕不。
+> 通用紀律見 `references/discipline-preamble.md`。
+> 本 skill 專用條目：`anti-rationalizations.md` 「plan-review 專用」+ `boundaries.md` 「plan-review」段落。
 
 ---
 
