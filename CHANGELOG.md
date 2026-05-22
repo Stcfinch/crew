@@ -7,6 +7,23 @@
 
 ---
 
+## [feature-workflow@4.19.0] - 2026-05-23
+
+### 新增
+- **驗證記憶時效性檢查（F2）** — 每筆 Selector / 操作 recipe / 等待策略加 `last_verified` 欄位，三段門檻：≤30 天 🟢 直接用、31-90 天 🟡 標示需確認、>90 天 🔴 不採用重新探索
+
+### 改善
+- **plan-verify Step 2.5** — 載入記憶時加時效性檢查段落，明示過時記憶比沒記憶更糟
+- **plan-verify Step 5.5** — 寫入記憶強制含 `last_verified`
+- **plan-verify Step 9.5** — 升級時保留原始 `last_verified`，已刷新者帶今日
+- **smartrobot-memory.md 範本** — Selector 表加「最後驗證」欄
+
+### 工程（marketplace 層級）
+- **D2 Agent model 參數 advisory lint** — 偵測 Agent 呼叫描述附近是否缺結構化 `model:` 標示
+- **E1 README 拆解** — 根目錄 578 → 375 行，docs/{prerequisites,windows,dbhub,notion-schema}.md
+- **C5 .gitignore** — 排除 `.claude/` / `.playwright-mcp/` / `task_plan.md` / `.spec/*/`，CONTRIBUTING 加規範
+- **C4 CHANGELOG 順序 lint** — `scripts/lint-changelog.py` + CI job 防止再次錯亂
+
 ## [feature-workflow@4.18.0] - 2026-05-22
 
 ### 新增

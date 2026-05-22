@@ -145,11 +145,26 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 3. **Layer 1 任務級記憶**
    → 讀取 `.spec/{slug}/verify-memory.md`（若存在，如 --recheck 時）
 
-合併為驗證 context：
-- Selector 記憶 → 優先使用記憶中的「有效 Selector」，避免「無效 Selector」
-- 頁面操作記憶 → 注入到對應頁面的驗證計畫
-- 等待策略記憶 → 覆蓋預設等待時間
-- 踩坑紀錄 → 作為驗證計畫的提醒
+#### 時效性檢查（last_verified）
+
+每筆記憶條目應包含 `last_verified`（YYYY-MM-DD）欄位。載入時與當天日期比對：
+
+| 距今 | 狀態 | 處理 |
+|------|------|------|
+| ≤ 30 天 | 🟢 新鮮 | 直接使用 |
+| 31-90 天 | 🟡 需確認 | 使用但標示，驗證過程中若仍有效則自動刷新 `last_verified` |
+| > 90 天 | 🔴 過期 | **不使用記憶值**，照走 Selector Fallback 6 級重新探索；若新探索結果與舊記憶一致再更新 |
+| 無欄位（舊格式） | 🟡 視為需確認 | 同 31-90 天規則處理 |
+
+> 過時記憶比沒記憶更糟：UI 改版後舊 selector 可能仍存在但已被覆蓋為其他用途，照舊記憶會點錯目標。
+> 失效門檻可在 `.spec/{slug}/README.md` 的 `memory_expiry_days` 設定，格式 `30/90`（fresh/stale 門檻）。
+
+#### 合併為驗證 context
+
+- Selector 記憶 → 優先使用🟢/🟡「有效 Selector」，避免「無效 Selector」；🔴 過期條目跳過
+- 頁面操作記憶 → 注入到對應頁面的驗證計畫（🔴 過期跳過，重新探索）
+- 等待策略記憶 → 覆蓋預設等待時間（🔴 過期改用預設策略）
+- 踩坑紀錄 → 作為驗證計畫的提醒（不受時效影響，永遠保留作為 advisory）
 
 ### 3. 建構驗證計畫
 
@@ -472,7 +487,11 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 | 等待策略調整過（如 networkidle 不夠，多等了 2s） | 最終有效的等待策略 |
 | 使用 evaluate_script 做特殊操作（如 CKEditor API） | 特殊步驟 recipe |
 | 發現環境差異（如某欄位在此環境不存在） | 環境差異描述 |
-| 順利完成（未觸發 fallback） | **不記錄** |
+| **既有🟡記憶條目重新驗證仍有效** | 刷新該條目的 `last_verified` 為今日（不新增） |
+| 順利完成（未觸發 fallback，無既有記憶） | **不記錄** |
+
+每筆寫入記憶**必須包含 `last_verified: YYYY-MM-DD` 欄位**（當天日期）。
+若覆寫既有條目（值改變），仍刷新 `last_verified`。
 
 暫存在 `.spec/{slug}/verify-memory.md`（Layer 1）。格式見 spec.md 的「驗證記憶系統」段落。
 
@@ -612,10 +631,13 @@ response_lines: 42
      • {selector 記憶數} 個 Selector 記錄
      • {recipe 數} 個特殊操作 Recipe
      • {等待策略數} 個等待策略調整
+     • {刷新數} 個既有記憶刷新 last_verified
    
    要升級到專案記憶嗎？[Y/n]
    ```
 2. 使用者選 YES → 合併到專案 repo 的 `.claude/verify-memory.md`（Layer 2）
+   - 升級時**保留原始 `last_verified`**（已刷新的條目帶今日日期，未變動的保留舊日期）
+   - Layer 2 寫入時，frontmatter 的 `last_updated` 同步刷新為今日
 3. 使用者選 NO → 保留在 Layer 1，不升級
 
 升級標準：
