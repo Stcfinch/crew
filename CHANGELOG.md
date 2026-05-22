@@ -74,6 +74,14 @@
 - **feature-workflow 交叉引用** — plan SKILL.md 和 team-composition.md 的 bug 流程描述同步更新
 - **marketplace.json 版本同步** — 修正 bug-workflow 和根目錄 marketplace.json 的落後版本號，補齊遺漏的 skills 清單
 
+## [feature-workflow@4.15.0] - 2026-05-06
+
+### 新增
+- **plan-start Notion relation** — Bug 類型本地關聯 Feature 成功後，同步建立 Notion「相關任務」relation
+- **plan-start 盲搜 fallback** — 本地 .spec/ 無匹配 Feature 時，走 Notion 層標題比對（同 bug-start Step 6.7）
+- **plan-start Feature Branch 偵測** — 關聯 Feature 後偵測開發分支作為修復分支
+- **dev_branch 設定** — projects/ frontmatter 新增 dev_branch 欄位，供 bug-close merge 引導使用
+
 ## [bug-workflow@3.7.0] - 2026-05-06
 
 ### 新增
@@ -87,14 +95,6 @@
 ### 改善
 - **config.template** 欄位對照新增「相關任務」Relation (self) 說明
 - **db-templates** 第二輪 Relation 新增步驟 6（self-relation）+ 任務追蹤工具 Schema 說明
-
-## [feature-workflow@4.15.0] - 2026-05-06
-
-### 新增
-- **plan-start Notion relation** — Bug 類型本地關聯 Feature 成功後，同步建立 Notion「相關任務」relation
-- **plan-start 盲搜 fallback** — 本地 .spec/ 無匹配 Feature 時，走 Notion 層標題比對（同 bug-start Step 6.7）
-- **plan-start Feature Branch 偵測** — 關聯 Feature 後偵測開發分支作為修復分支
-- **dev_branch 設定** — projects/ frontmatter 新增 dev_branch 欄位，供 bug-close merge 引導使用
 
 ## [feature-workflow@4.14.0] - 2026-05-04
 
@@ -118,46 +118,10 @@
 - **驗證失敗自動修復** — Agent 自行補呼叫 notion-update-page，不要求使用者手動操作
 - **步驟 6 重構為兩步法** — 頁面建立拆分為 Step A（properties）+ Step B（body），配合退出驗證降級邏輯
 
-## [bug-workflow@3.5.1] - 2026-04-25
-
-### 修正
-- **crew-upgrade Skill 未被安裝** — plugin.json 在 3.5.0 版本的 cache 中缺少 crew-upgrade 條目，升版觸發重新安裝
-
-## [bug-workflow@3.5.0] - 2026-04-25
-
-### 新增
-- **bug-investigate Skill** — 假說驅動的根因調查，五階段流程（證據收集 → 模式比對 → 假說驗證 → 根因確認 → 調查報告），含 3-Strike 升級規則、知識庫搜尋、本地學習搜尋
-- **bug-fix Skill** — 修復紀律（鐵律：根因確認才能修）、修復建議、迴歸測試產出、gstack browse UI 驗證
-- **Bug 模式表** — 7 種已知 bug 模式（NPE、SQL 異常、第三方 API、併發、設定、快取、前端 UI）
-- **反合理化表** — 通用 3 條 + investigate 6 條 + fix 4 條 + close 3 條，防止 AI 偷工減料
-- **三層邊界系統** — 每個 skill 的 ALWAYS / ASK FIRST / NEVER 行為定義
-- **學習系統** — 跨 session 學習捕捉（JSONL 格式），bug-investigate 時自動搜尋歷史洞察
-
-### 改善
-- **bug-close** 新增退出驗證門檻（根因分析 + commit + 迴歸測試 + 驗證勾選）
-- **bug-close** 新增學習捕捉步驟（自動判斷是否有可複用的洞察）
-- **bug-start** 新增初始證據自動收集（最近 commit + 環境 + 知識庫 + 學習歷史）
-
-## [bug-workflow@3.6.0] - 2026-04-25
-
-### 新增
-- **notion-local 後端支援** — 新增 `references/notion-backend.md` 工具映射表，CREW 自動偵測 Notion Plugin 或 notion-local 並選擇對應工具，既有使用者不受影響
-- **Notion 後端偵測邏輯** — `prerequisites.md` 新增第 0.5 項，所有需要 Notion 的 Skill 首次呼叫時自動偵測可用後端（優先 Notion Plugin）
-
-### 改善
-- **適用範圍表格重構** — 改為矩陣式，清楚標示每個 Skill 需要哪些前置檢查項目
-
 ## [feature-workflow@4.12.0] - 2026-04-25
 
 ### 新增
 - **notion-local 後端支援** — 共享 bug-workflow 的 Notion 後端偵測與映射機制，所有 Notion 操作自動適配
-
-## [bug-workflow@3.5.2] - 2026-04-25
-
-### 改善
-- **Node.js / Git 前置檢查** — setup 時自動偵測 Node.js 和 Git，未安裝時依作業系統顯示對應安裝指令（macOS / Windows / Linux）
-- **Windows 完整支援** — prerequisites.md 新增 OS 偵測邏輯，所有安裝引導提供 Windows 對應指令
-- **README 新增 Node.js 前置條件** — 明確標示 Node.js ≥ 18 為必要依賴，附各平台安裝方式
 
 ## [feature-workflow@4.11.2] - 2026-04-25
 
@@ -200,3 +164,39 @@
 - **plan-build** 步驟重構，精簡 37%（prompt 模板和判斷邏輯抽到 references/）
 - **plan-review** Reviewer 3 從「安全性與效能」拆分為純「效能審查」（安全移至 plan-security）
 - **plan-spec** 判斷區塊擴充（新增 TASK_TYPE、CHANGE_SCOPE、NEW_API、EXISTING_API_CHANGE）
+## [bug-workflow@3.6.0] - 2026-04-25
+
+### 新增
+- **notion-local 後端支援** — 新增 `references/notion-backend.md` 工具映射表，CREW 自動偵測 Notion Plugin 或 notion-local 並選擇對應工具，既有使用者不受影響
+- **Notion 後端偵測邏輯** — `prerequisites.md` 新增第 0.5 項，所有需要 Notion 的 Skill 首次呼叫時自動偵測可用後端（優先 Notion Plugin）
+
+### 改善
+- **適用範圍表格重構** — 改為矩陣式，清楚標示每個 Skill 需要哪些前置檢查項目
+
+## [bug-workflow@3.5.2] - 2026-04-25
+
+### 改善
+- **Node.js / Git 前置檢查** — setup 時自動偵測 Node.js 和 Git，未安裝時依作業系統顯示對應安裝指令（macOS / Windows / Linux）
+- **Windows 完整支援** — prerequisites.md 新增 OS 偵測邏輯，所有安裝引導提供 Windows 對應指令
+- **README 新增 Node.js 前置條件** — 明確標示 Node.js ≥ 18 為必要依賴，附各平台安裝方式
+
+## [bug-workflow@3.5.1] - 2026-04-25
+
+### 修正
+- **crew-upgrade Skill 未被安裝** — plugin.json 在 3.5.0 版本的 cache 中缺少 crew-upgrade 條目，升版觸發重新安裝
+
+## [bug-workflow@3.5.0] - 2026-04-25
+
+### 新增
+- **bug-investigate Skill** — 假說驅動的根因調查，五階段流程（證據收集 → 模式比對 → 假說驗證 → 根因確認 → 調查報告），含 3-Strike 升級規則、知識庫搜尋、本地學習搜尋
+- **bug-fix Skill** — 修復紀律（鐵律：根因確認才能修）、修復建議、迴歸測試產出、gstack browse UI 驗證
+- **Bug 模式表** — 7 種已知 bug 模式（NPE、SQL 異常、第三方 API、併發、設定、快取、前端 UI）
+- **反合理化表** — 通用 3 條 + investigate 6 條 + fix 4 條 + close 3 條，防止 AI 偷工減料
+- **三層邊界系統** — 每個 skill 的 ALWAYS / ASK FIRST / NEVER 行為定義
+- **學習系統** — 跨 session 學習捕捉（JSONL 格式），bug-investigate 時自動搜尋歷史洞察
+
+### 改善
+- **bug-close** 新增退出驗證門檻（根因分析 + commit + 迴歸測試 + 驗證勾選）
+- **bug-close** 新增學習捕捉步驟（自動判斷是否有可複用的洞察）
+- **bug-start** 新增初始證據自動收集（最近 commit + 環境 + 知識庫 + 學習歷史）
+
