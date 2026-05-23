@@ -68,3 +68,14 @@ jobs:
           python-version: '3.11'
       - name: 檢查觸發詞與內部連結可達性
         run: python3 scripts/lint-skill-contract.py
+
+  readme-sync:
+    name: README 指令表同步
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 檢查每個 SKILL.md 是否同步到根 README + 自家 plugin README
+        run: python3 scripts/lint-readme-sync.py
