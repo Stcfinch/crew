@@ -118,7 +118,8 @@ flowchart TD
 | `/bug-update <內容>` | 更新調查資訊（Log、SQL、判斷） |
 | `/bug-update reopen <Bug>` | 重新開啟已結案 Bug |
 | `/project-add` | **偵測專案架構** + Notion 註冊 + DB MCP 安裝 |
-| `/crew-doctor` | 環境健診（檢查 18 項依賴與設定） |
+| `/crew-init` | **一鍵首次設定** — 統合 /bug-setup + /plan-setup + 提示 /init 與 /project-add，含 --resume |
+| `/crew-doctor` | 環境健診（檢查 18 項依賴與設定，含 --quick / --fix） |
 | `/crew-upgrade` | 一次更新所有 CREW plugins |
 
 詳細說明見 [plugins/bug-workflow/README.md](plugins/bug-workflow/README.md)
@@ -174,7 +175,10 @@ flowchart TD
 | `/plan-review [--quick]` | Agent Teams 3 人審查（邏輯/品質/效能） | **0 次** |
 | `/plan-close` | 一次性批次同步到 Notion + 知識庫 + Git 提交 | **3-5 次** |
 | `/plan-sync` | 手動中途同步（按需） | **2-3 次** |
+| `/plan-deploy-confirm [slug]` | SQL 執行回報 — DBA 逐 Step 確認 deploy.sql 寫回 Notion「🚀 部署狀態」（含 --env / --all-done / --list） | **3-5 次** |
 | `/plan-status` | 列出所有活躍任務 | **0 次** |
+| `/plan-next [slug]` | 智慧推薦下一步指令（讀 .spec/ + Git branch + verify.md 狀態，含 --all） | **0 次** |
+| `/plan-demo [自訂題目]` | 純本地評估模式 — 不依賴 Notion 產出範例 .spec/demo-{slug}/ | **0 次** |
 
 詳細說明見 [plugins/feature-workflow/README.md](plugins/feature-workflow/README.md)
 

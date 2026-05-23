@@ -95,7 +95,10 @@ flowchart TD
 | `/plan-review` | Agent Teams 3 人審查（邏輯/品質/效能） | **0 次** |
 | `/plan-close` | 批次同步 Notion + Git 提交 | **3-5 次** |
 | `/plan-sync` | 手動中途同步 .spec/ 到 Notion | **2-3 次** |
+| `/plan-deploy-confirm` | SQL 執行回報 — DBA 逐 Step 確認 deploy.sql 執行狀態並寫回 Notion「🚀 部署狀態」 | **3-5 次** |
 | `/plan-status` | 查看任務狀態 | **0 次** |
+| `/plan-next` | 智慧推薦當前任務的下一步指令（含 `--all` 列所有任務） | **0 次** |
+| `/plan-demo` | 純本地評估模式 — 不依賴 Notion 產出範例 .spec/demo-{slug}/，給評估者 5 分鐘看到效果 | **0 次** |
 | `/project-add` | 新增或更新專案對應（來自 bug-workflow） | 1-2 次 |
 
 ---
