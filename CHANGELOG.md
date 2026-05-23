@@ -7,6 +7,14 @@
 
 ---
 
+## [feature-workflow@4.22.0] - 2026-05-23
+
+### 新增
+- **/plan-deploy-confirm SQL 執行回報（F1）** — 解決 deploy-checklist 機制「文件寫了沒人勾，Notion 永遠顯示『未執行』」的問題；由 DBA / 部署者逐 Step 確認執行狀態（✅/⚠️/❌/⏭️）、收集環境/執行者/備註，寫回 Notion「🚀 部署狀態」區塊；支援 --all-done 批次、--env 預設、--list 列待回報
+
+### 改善
+- **plan-verify 主檔再瘦身（A4 進階）** — Step 5 逐條驗證（199 行）拆出到 phases/run-verification.md；主檔 746 → 560 行，原始 1094 → 560（總減幅 49%）
+
 ## [feature-workflow@4.21.1] - 2026-05-23
 
 ### 改善
