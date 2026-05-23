@@ -24,7 +24,8 @@
     "./skills/plan-close",
     "./skills/plan-sync",
     "./skills/plan-status",
-    "./skills/plan-next"
+    "./skills/plan-next",
+    "./skills/plan-demo"
   ],
   "keywords": [
     "feature",
