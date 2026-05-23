@@ -3,7 +3,8 @@ slug: crew-improvement
 type: refactor
 name: CREW Plugin 套件改進計畫
 created: 2026-05-22
-status: 規劃中
+closed: 2026-05-23
+status: 已結案（22/23 完成，A2 移至 P3 觀察項）
 scope: 全 marketplace（bug-workflow + feature-workflow + 根目錄文件）
 author: Cheng
 ---
@@ -13,7 +14,42 @@ author: Cheng
 > 全面盤點 CREW marketplace（bug-workflow v3.8.0 + feature-workflow v4.17.0）的可改進之處，
 > 列舉具體缺點、為什麼值得修、修法建議與優先級。
 >
-> 本文件作為後續 `/plan-build` 或人工逐項改造的設計依據。
+> **結案狀態**：2026-05-23，22/23 項完成，A2 因高風險移至 P3 長期觀察。
+
+---
+
+## 結案摘要
+
+| 階段 | 項目 | 狀態 | PR |
+|------|------|------|-----|
+| **P0** | C1 版本同步腳本 / A1 跨 plugin 解耦 / C2 基礎 CI | ✅ 3/3 | #9 |
+| **P1** | A1+ 防漂移 / D1 紀律集中 / B2 /crew-doctor / A4 拆 plan-verify Step 10 | ✅ 6/6 | #9-#11 |
+| **P2** | C5 gitignore / C4 CHANGELOG 順序 / E1 README 拆解 / D2 model lint / F2 last_verified / B1 /plan-next / B3 /crew-init / E2 ADR / E3 /plan-demo / C3 contract lint / A4 進階 / F1 /plan-deploy-confirm | ✅ 11/12 | #9-#14 |
+| **P2** | A2 config 機制統一 | ⏭️ P3 觀察項 | — |
+
+**版本演進**：
+- bug-workflow 3.8.0 → 3.10.1（+2 minor +1 patch，新增 /crew-doctor + /crew-init）
+- feature-workflow 4.17.0 → 4.22.0（+5 minor +1 patch，新增 /plan-next + /plan-demo + /plan-deploy-confirm + 多項內部重構）
+
+**plan-verify 主檔減量**：1094 → 560 行（**-49%**，拆 Step 5 與 Step 10 到 phases/）
+
+**marketplace 工程基建建立**：
+- `scripts/`：bump-version.sh / lint-skills.py / check-shared-refs.py / lint-changelog.py / lint-agent-model.py / lint-skill-contract.py
+- `.github/workflows/lint.yml`：6 個 CI job（含 1 個 advisory）
+- `docs/`：prerequisites / windows / dbhub / notion-schema + adr/ 5 篇
+- `CONTRIBUTING.md`：版本升級、.spec/ 規範、共用 reference 同步流程
+
+---
+
+## P3 觀察項（不在本輪範圍）
+
+### A2 兩 plugin config 機制統一 🔴
+
+- **現況**：bug-workflow 用單檔，feature-workflow 用階層目錄
+- **為何不做**：要動使用者既有的 `~/.claude-company/bug-workflow-config.md`，需 migration，失敗會破壞使用者環境
+- **觸發條件**：當「雙套設定機制」真的造成維護痛苦（例如要加第三個 plugin 共用設定）時才動
+- **預估**：2-3 小時 + migration 腳本 + 向下相容測試
+- **追蹤**：本檔案結案後，A2 仍記錄在此供未來決策
 
 ---
 
