@@ -16,12 +16,6 @@
 
 > 為何升 patch：純文案加強動作詞，無功能變更；目的是抵消 D1 精簡化可能造成的「AI 不去讀 preamble」風險
 
-## [bug-workflow@3.10.1] - 2026-05-23
-
-### 改善
-- **紀律護欄段落加強動作詞**（同 feature-workflow@4.21.1 描述） — bug-fix / bug-investigate
-- **discipline-preamble.md 開頭加強** — 兩 plugin 同步
-
 ## [feature-workflow@4.21.0] - 2026-05-23
 
 ### 新增
@@ -54,6 +48,12 @@
 - **E1 README 拆解** — 根目錄 578 → 375 行，docs/{prerequisites,windows,dbhub,notion-schema}.md
 - **C5 .gitignore** — 排除 `.claude/` / `.playwright-mcp/` / `task_plan.md` / `.spec/*/`，CONTRIBUTING 加規範
 - **C4 CHANGELOG 順序 lint** — `scripts/lint-changelog.py` + CI job 防止再次錯亂
+
+## [bug-workflow@3.10.1] - 2026-05-23
+
+### 改善
+- **紀律護欄段落加強動作詞**（同 feature-workflow@4.21.1 描述） — bug-fix / bug-investigate
+- **discipline-preamble.md 開頭加強** — 兩 plugin 同步
 
 ## [bug-workflow@3.10.0] - 2026-05-23
 
