@@ -57,3 +57,14 @@ jobs:
           python-version: '3.11'
       - name: 偵測 Agent 呼叫描述附近是否缺 model 結構化標示（advisory）
         run: python3 scripts/lint-agent-model.py
+
+  skill-contract:
+    name: SKILL.md 內容契約
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 檢查觸發詞與內部連結可達性
+        run: python3 scripts/lint-skill-contract.py
