@@ -28,8 +28,9 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/效能�
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
+> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
 > 本 skill 專用條目：`anti-rationalizations.md` 「plan-review 專用」+ `boundaries.md` 「plan-review」段落。
+> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
 

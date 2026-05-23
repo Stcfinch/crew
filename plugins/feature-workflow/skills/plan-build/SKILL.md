@@ -39,8 +39,9 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
+> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
 > 本 skill 專用條目：`anti-rationalizations.md` 「plan-build 專用」+ `boundaries.md` 「plan-build」段落。
+> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
 
