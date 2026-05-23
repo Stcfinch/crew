@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""Lint SKILL.md 內容契約（補 lint-skills.py 結構檢查之外的內容層）。
+
+檢查項目：
+  1. frontmatter description 含「當使用者提到」觸發詞段落
+     （讓 skill 可被自然語言觸發）
+  2. 內部 markdown 連結 [text](path) 指向的相對路徑檔案存在
+     （排除 http/https/anchor 連結）
+
+退出碼：
+  0 = 通過
+  1 = 有違規
+
+例外清單：可在本檔頂部 EXEMPTIONS 設定。
+"""
+
+import re
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+SKILL_GLOB = "plugins/*/skills/*/SKILL.md"
+
+# 觸發詞 frontmatter 應包含的關鍵字
+TRIGGER_KEYWORD = "當使用者提到"
+
+# markdown 連結 pattern：[text](path)，排除 http/https/mailto/anchor
+LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+SKIP_PREFIXES = ("http://", "https://", "mailto:", "#")
+
+
+def parse_frontmatter(text: str) -> dict | None:
+    m = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
+    if not m:
+        return None
+    fm = {}
+    for line in m.group(1).split("\n"):
+        if ":" in line:
+            k, v = line.split(":", 1)
+            fm[k.strip()] = v.strip()
+    return fm
+
+
+def check_trigger_keyword(fm: dict | None, rel: Path) -> str | None:
+    if fm is None:
+        return None  # 結構錯誤由 lint-skills.py 報
+    desc = fm.get("description", "")
+    if TRIGGER_KEYWORD not in desc:
+        return f"{rel}: frontmatter description 缺「{TRIGGER_KEYWORD}」觸發詞段落"
+    return None
+
+
+def resolve_link(skill_path: Path, link: str) -> Path:
+    """解析 SKILL.md 內的相對連結為絕對路徑。"""
+    # 去除 anchor（#xxx）
+    link = link.split("#", 1)[0]
+    if not link:
+        return None  # 純 anchor 跳過
+
+    skill_dir = skill_path.parent  # plugins/{p}/skills/{name}/
+
+    # 規則：以 references/ 開頭視為「相對 plugin root」
+    # plugin root = skill_dir.parent.parent
+    if link.startswith("references/"):
+        plugin_root = skill_dir.parent.parent
+        return (plugin_root / link).resolve()
+
+    # 其他：相對 skill_dir
+    return (skill_dir / link).resolve()
+
+
+def check_internal_links(text: str, skill_path: Path) -> list[str]:
+    errors = []
+    for m in LINK_RE.finditer(text):
+        link_target = m.group(2).strip()
+        if link_target.startswith(SKIP_PREFIXES):
+            continue
+        if link_target.startswith("#"):
+            continue
+        # 跳過純錨點 / 變數 placeholder
+        if "{" in link_target or "}" in link_target:
+            continue
+        resolved = resolve_link(skill_path, link_target)
+        if resolved is None:
+            continue
+        if not resolved.exists():
+            line = text[:m.start()].count("\n") + 1
+            rel = skill_path.relative_to(REPO)
+            errors.append(
+                f"{rel}:{line} 內部連結 `{link_target}` 指向不存在的檔案 ({resolved.relative_to(REPO) if REPO in resolved.parents else resolved})"
+            )
+    return errors
+
+
+def main() -> int:
+    errors: list[str] = []
+    checked = 0
+
+    for skill_md in sorted(REPO.glob(SKILL_GLOB)):
+        checked += 1
+        text = skill_md.read_text(encoding="utf-8")
+        rel = skill_md.relative_to(REPO)
+        fm = parse_frontmatter(text)
+
+        # 1. 觸發詞
+        err = check_trigger_keyword(fm, rel)
+        if err:
+            errors.append(err)
+
+        # 2. 內部連結可達性
+        errors.extend(check_internal_links(text, skill_md))
+
+    for e in errors:
+        print(f"❌ {e}")
+
+    if errors:
+        print(f"\n檢查 {checked} 個 SKILL.md，{len(errors)} 個契約違規")
+        return 1
+
+    print(f"✅ 檢查 {checked} 個 SKILL.md，所有契約通過")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
