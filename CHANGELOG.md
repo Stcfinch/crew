@@ -7,6 +7,14 @@
 
 ---
 
+## [feature-workflow@4.21.0] - 2026-05-23
+
+### 新增
+- **/plan-demo 純本地評估模式（E3）** — 給未設定 Notion 但想評估 CREW 的人 5 分鐘看到完整流程：產出 .spec/demo-{slug}/ 範例（spec/db/arch/files/verify），不啟 Agent Teams / Notion / DB MCP；內建「使用者管理 API」範例
+
+### 工程（marketplace 層級）
+- **C3 SKILL.md 內容契約 lint** — `scripts/lint-skill-contract.py` 檢查觸發詞段落 + 內部連結可達性，CI skill-contract job
+
 ## [feature-workflow@4.20.0] - 2026-05-23
 
 ### 新增
