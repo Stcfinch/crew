@@ -1,7 +1,11 @@
 # 紀律護欄通用 Preamble
 
-所有 skill 在執行前必須遵循以下紀律。本檔為通用內容；各 skill 專用條目見對應的
-`anti-rationalizations.md` 與 `boundaries.md` 段落。
+> ⚠️ **執行任何步驟前，必須先完整讀過本檔**。
+> 「先讀」不是建議 — 是執行 skill 的前提條件。
+> 本檔內容簡短（~40 行），完整讀完不會浪費你的時間。
+>
+> 本檔包含三部分：**反合理化**（防偷工）、**動作邊界**（紅黃綠）、**鐵律**（bug 系列）。
+> 各 skill 的專用條目見對應的 `anti-rationalizations.md` 與 `boundaries.md` 段落。
 
 ---
 

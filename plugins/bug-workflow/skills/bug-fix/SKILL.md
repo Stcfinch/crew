@@ -18,8 +18,9 @@ description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修�
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
+> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
 > 本 skill 專用條目：`anti-rationalizations.md` 「bug-fix 專用」+ `boundaries.md` 「bug-fix」段落。
+> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
 

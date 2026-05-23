@@ -55,8 +55,9 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
+> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
 > 本 skill 專用條目：`anti-rationalizations.md` 「plan-verify 專用」+ `boundaries.md` 「plan-verify」段落。
+> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
 
@@ -660,12 +661,13 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 
 ### 10. 報告產出（Word 驗收報告）
 
-驗證完成後可選產出 Word 驗收報告。完整流程（風格選擇、引擎選擇、
-minimax-docx 與 python-docx 兩條路徑、報告範本、Logo 處理、降級提示）見：
+驗證完成後可選產出 Word 驗收報告。
 
-> 📄 [`phases/word-report.md`](./phases/word-report.md)
+> 📄 **執行前必讀全文**：[`phases/word-report.md`](./phases/word-report.md)
+> 本段僅是入口摘要，**不可只依摘要執行**；風格選擇、引擎選擇、minimax-docx / python-docx
+> 兩條路徑、報告範本、Logo 處理、降級提示都在 phases/word-report.md 內。
 
-簡要：
+摘要（僅供 AI 確認自己在做什麼，實際步驟必須讀 phases 全文）：
 - 先問風格（Intumit Brand / Tech Dark / Swiss Minimal）
 - 依 `report_engine` 偵測結果走 minimax-docx 或 python-docx
 - 兩者皆無 → 引導安裝 python-docx
