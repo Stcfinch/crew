@@ -7,6 +7,21 @@
 
 ---
 
+## [feature-workflow@4.21.1] - 2026-05-23
+
+### 改善
+- **紀律護欄段落加強動作詞** — 6 個 SKILL（plan-build/security/review/verify + bug-fix/bug-investigate）的「## 紀律護欄」段落從「通用紀律見」改為「**執行前必讀**」，加回原版「衝動句 + 停下查表」反合理化提示
+- **plan-verify Step 10 加強** — Word 報告 dispatcher 明示「**執行前必讀全文** phases/word-report.md，不可只依摘要執行」，避免 AI 跳過詳細流程
+- **discipline-preamble.md 開頭加強** — 加「執行任何步驟前必須先完整讀過本檔」警示與動作指令
+
+> 為何升 patch：純文案加強動作詞，無功能變更；目的是抵消 D1 精簡化可能造成的「AI 不去讀 preamble」風險
+
+## [bug-workflow@3.10.1] - 2026-05-23
+
+### 改善
+- **紀律護欄段落加強動作詞**（同 feature-workflow@4.21.1 描述） — bug-fix / bug-investigate
+- **discipline-preamble.md 開頭加強** — 兩 plugin 同步
+
 ## [feature-workflow@4.21.0] - 2026-05-23
 
 ### 新增
