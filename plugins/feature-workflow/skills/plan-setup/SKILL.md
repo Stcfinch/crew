@@ -24,17 +24,13 @@ description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯�
 
 **設定目錄路徑規則**：
 
-1. 先檢查 `~/.claude-company/feature-workflow/config.md`（新階層式格式）
-2. 再檢查 `~/.claude/feature-workflow/config.md`（新階層式格式）
-3. 若都不存在 → 檢查舊格式（向下相容）：
+1. 檢查 `~/.claude/feature-workflow/config.md`（新階層式格式）
+2. 若不存在 → 檢查舊格式（向下相容）：
    - `~/.claude-company/feature-workflow-config.md`（舊單一檔案，向下相容）
    - `~/.claude/feature-workflow-config.md`（舊單一檔案，向下相容）
    - 若找到舊格式 → 提示遷移（見「舊格式遷移」段落）
-4. 若全部不存在 → 自動偵測目標路徑：
-   - `~/.claude-company/` 目錄存在 → 使用 `~/.claude-company/feature-workflow/`
-   - 否則 → 使用 `~/.claude/feature-workflow/`
-   - **不詢問使用者選擇路徑**，直接建立
-5. 若新格式已存在 → 詢問使用者要「重新設定」還是「更新專案對應」
+3. 若全部不存在 → 統一使用 `~/.claude/feature-workflow/`（若使用者已有 `~/.claude-company/feature-workflow/`，提示手動執行 `mv ~/.claude-company/feature-workflow ~/.claude/feature-workflow` 遷移，不自動搬），**不詢問使用者選擇路徑**，直接建立
+4. 若新格式已存在 → 詢問使用者要「重新設定」還是「更新專案對應」
 
 **`/plan-setup --migrate`**：強制從舊格式遷移到新階層式目錄，遷移步驟見 `references/config-resolver.md`「舊格式遷移」段落。
 
@@ -195,7 +191,7 @@ mkdir -p {設定目錄}/projects
 ```
 Workflow 設定完成！
 
-設定目錄：~/.claude-company/feature-workflow/
+設定目錄：~/.claude/feature-workflow/
   ├── config.md          — Notion IDs + 欄位對照
   ├── stacks/_builtin.md — 內建技術棧
   └── projects/          — 專案對應（{N} 個）

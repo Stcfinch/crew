@@ -124,10 +124,9 @@ uname -s 2>/dev/null || echo "Windows"
 依序檢查：
 1. `~/.claude-company/bug-workflow-config.md`
 2. `~/.claude/bug-workflow-config.md`
-3. `~/.claude-company/feature-workflow/config.md`（新階層式格式）
-4. `~/.claude/feature-workflow/config.md`（新階層式格式）
-5. `~/.claude-company/feature-workflow-config.md`（舊格式，向下相容）
-6. `~/.claude/feature-workflow-config.md`（舊格式，向下相容）
+3. `~/.claude/feature-workflow/config.md`（新階層式格式）
+4. `~/.claude-company/feature-workflow-config.md`（舊格式，向下相容）
+5. `~/.claude/feature-workflow-config.md`（舊格式，向下相容）
 
 - **至少找到一個** → 繼續
 - **全部不存在** → 提示並中止：

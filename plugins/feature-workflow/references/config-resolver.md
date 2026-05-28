@@ -7,7 +7,7 @@
 ## 目錄結構
 
 ```
-~/.claude-company/feature-workflow/     # 公司環境（優先）
+~/.claude/feature-workflow/             # 統一位置
 ├── config.md                           # 主索引（Notion IDs、工作區、欄位對照）
 ├── stacks/                             # 技術棧定義
 │   ├── _builtin.md                     # 內建技術棧總表（唯讀參考）
@@ -19,25 +19,37 @@
     └── ...
 ```
 
-備用路徑：`~/.claude/feature-workflow/`（個人環境）
-
 ---
 
 ## 解析優先順序
 
-依序檢查以下路徑，使用**第一個找到的目錄**：
+使用 `~/.claude/feature-workflow/config.md`（統一位置）：
 
-1. `~/.claude-company/feature-workflow/config.md`
-2. `~/.claude/feature-workflow/config.md`
+1. `~/.claude/feature-workflow/config.md`
 
-若都不存在，**向下相容檢查舊格式**：
+若不存在，**向下相容檢查舊格式**：
 
-3. `~/.claude-company/feature-workflow-config.md`（舊單一檔案）
-4. `~/.claude/feature-workflow-config.md`（舊單一檔案）
+2. `~/.claude-company/feature-workflow-config.md`（舊單一檔案）
+3. `~/.claude/feature-workflow-config.md`（舊單一檔案）
 
 若找到舊格式 → 提示使用者執行 `/plan-setup --migrate` 遷移。遷移前仍可正常讀取舊格式。
 
 若全部不存在 → 提示使用者先執行 `/plan-setup`。
+
+### 從 `~/.claude-company/` 遷移到 `~/.claude/`
+
+舊版（2026-05 前）優先使用 `~/.claude-company/feature-workflow/`。新版統一改用 `~/.claude/feature-workflow/`。若 plan-* skill 偵測到舊路徑存在但新路徑不存在，會提示：
+
+```
+⚠️  偵測到舊版 config 路徑 ~/.claude-company/feature-workflow/，新版統一改用 ~/.claude/feature-workflow/。
+
+建議手動執行：
+  mv ~/.claude-company/feature-workflow ~/.claude/feature-workflow
+
+執行完成後重跑 plan-* skill。
+```
+
+不會自動 `mv`，避免破壞使用者既有 setup。
 
 ---
 

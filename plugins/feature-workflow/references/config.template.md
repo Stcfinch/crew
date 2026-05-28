@@ -1,6 +1,6 @@
 # Feature Workflow 設定檔模板
 
-此目錄由 `/plan-setup` 自動產生，儲存於 `~/.claude-company/feature-workflow/`。
+此目錄由 `/plan-setup` 自動產生，儲存於 `~/.claude/feature-workflow/`。
 所有 plan-* Skill 依 `references/config-resolver.md` 的漸進式載入邏輯讀取此目錄。
 
 ---

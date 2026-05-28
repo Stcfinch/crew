@@ -294,7 +294,7 @@ flowchart LR
 採階層式目錄結構，技術棧和專案各自獨立檔案，避免單一設定檔膨脹：
 
 ```
-~/.claude-company/feature-workflow/
+~/.claude/feature-workflow/
 ├── config.md              # Notion IDs、工作區、欄位對照（固定，不膨脹）
 ├── stacks/                # 技術棧定義
 │   ├── _builtin.md        # 內建技術棧總表

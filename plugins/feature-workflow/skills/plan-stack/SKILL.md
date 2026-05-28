@@ -95,7 +95,7 @@ scaffold: {scaffold 行為}
 ```
 自訂技術棧設定完成！
 
-  技術棧檔案：~/.claude-company/feature-workflow/stacks/{id}.md
+  技術棧檔案：~/.claude/feature-workflow/stacks/{id}.md
   層級數：{N}
 
 現在執行 /plan-build 時會自動使用此技術棧的掃描規則。

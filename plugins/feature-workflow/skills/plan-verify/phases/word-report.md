@@ -116,7 +116,7 @@ fi
 - 製作人：若 `report-config.md` 無值，取 `whoami` 結果作為預設值，不詢問直接使用
 - 使用者可在確認流程中覆寫任何預設值
 
-**`report-config.md` 位置**：`~/.claude-company/feature-workflow/report-config.md`
+**`report-config.md` 位置**：`~/.claude/feature-workflow/report-config.md`
 
 **確認流程**：
 
