@@ -9,6 +9,41 @@
 
 驗證完成後，依序詢問報告風格和引擎：
 
+#### 10.0c 環境偵測（在 10.0a 選風格之前執行）
+
+執行以下偵測決定 `report_engine`：
+
+```bash
+# 偵測 .NET SDK
+if ! command -v dotnet &>/dev/null; then
+  report_engine="python-docx-pending"
+elif [ "$(dotnet --version | cut -d. -f1)" -lt 8 ]; then
+  report_engine="python-docx-pending"
+else
+  # 偵測 minimax-skills Core（verify-docx-cli 透過 ProjectReference 共用其 OpenXML helper）
+  CORE_PATH="${MinimaxCorePath:-$HOME/.claude/plugins/marketplaces/minimax-skills/skills/minimax-docx/scripts/dotnet/MiniMaxAIDocx.Core/MiniMaxAIDocx.Core.csproj}"
+  if [ ! -f "$CORE_PATH" ]; then
+    report_engine="minimax-skills-missing"
+  else
+    report_engine="minimax-docx"
+  fi
+fi
+```
+
+依偵測結果分流：
+
+- `report_engine = minimax-docx`：進入 10.0a 選風格，產出走 **10.4a**（verify-docx-cli）。
+- `report_engine = minimax-skills-missing`：dotnet 就緒但缺 minimax-skills Core，用 `AskUserQuestion` 詢問：
+
+  | 選項 | 動作 |
+  |-----|------|
+  | A) 安裝 minimax-skills plugin | 提示在 Claude Code 內執行 `/plugin install minimax-skills`，確認後重跑本偵測 |
+  | B) 已從別處安裝 | 詢問 `MinimaxCorePath` 路徑，設定 env var 後重跑本偵測 |
+  | C) 改用 python-docx fallback | 設 `report_engine="python-docx"`，產出走 10.4b |
+  | D) 跳過 Word 報告 | 結束流程 |
+
+- `report_engine = python-docx-pending`：沿用下方 10.0b 的 A/B/C 選項。
+
 #### 10.0a 選擇報告風格
 
 使用 `AskUserQuestion` 讓使用者選擇風格：
@@ -28,7 +63,7 @@
 
 ##### report_engine = minimax-docx 時
 
-直接使用 `/minimax-docx` 進入報告產出流程（含 TOC + XSD 驗證）。
+進入 step 10.4a（verify-docx-cli）產出（含 TOC + OpenXML 結構驗證）。
 
 ##### report_engine = python-docx 或 python-docx-pending 時
 
@@ -60,7 +95,7 @@
 
   安裝好了嗎？[Y]
   ```
-  使用者確認後 → 使用 `/minimax-docx` 進入報告產出流程
+  使用者確認後 → 進入 step 10.4a（verify-docx-cli）產出
 - **選 C**：跳過，結束流程
 
 #### 10.1 收集封面資訊
@@ -286,12 +321,46 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為報告產出引�
 
 #### 10.4a 使用 minimax-docx 產出（report_engine = minimax-docx）
 
+呼叫 plugin 內建的 verify-docx-cli .NET 子專案（它透過 ProjectReference 共用 minimax-docx Core 的 OpenXML helper）：
+
+```bash
+# 1. 解析 plugin 路徑
+PLUGIN_DIR="$HOME/.claude/plugins/marketplaces/company-marketplace/plugins/feature-workflow"
+CLI_DIR="$PLUGIN_DIR/references/dotnet/verify-docx-cli"
+
+# 2. 解析 Logo（三層偵測，CLI 內部也會做一次；swiss 風格可省略 --logo）
+if [ -n "$USER_LOGO" ]; then
+  LOGO="$USER_LOGO"
+elif [ -f "$HOME/.claude/feature-workflow/assets/intumit-logo.png" ]; then
+  LOGO="$HOME/.claude/feature-workflow/assets/intumit-logo.png"
+else
+  LOGO="$CLI_DIR/assets/intumit-logo.png"
+fi
+
+# 3. 首次執行 UX 提示（dotnet restore + build 約 1-2 分鐘）
+if [ ! -d "$CLI_DIR/bin" ]; then
+  echo "⏳ 首次產出 Word 報告需要 build .NET 子專案（約 1-2 分鐘）..."
+fi
+
+# 4. 跑 verify-docx-cli
+#    --framework net8.0：multi-target 專案 dotnet run 必須指定 TFM；net8.0 是下限，
+#    搭配專案的 RollForward=LatestMajor，可在僅安裝較新 runtime（net9/net10）的機器上 roll-forward 執行。
+dotnet run --framework net8.0 --project "$CLI_DIR" -- \
+  --verify .spec/{slug}/verify.md \
+  --screenshots .spec/{slug}/screenshots/ \
+  --evidence .spec/{slug}/evidence/ \
+  --output .spec/{slug}/verify-report.docx \
+  --style {style} \
+  --logo "$LOGO" \
+  --cover '{"project":"{project}","feature":"{feature}","author":"{author}","date":"{date}","company":"{company}","version":"{version}"}'
 ```
-使用 `/minimax-docx` Skill 產出：
-- 輸入：AI 組裝的 Markdown 報告內容
-- 輸出：`.spec/{slug}/verify-report.docx`
-- 含：封面、簽核表、環境說明、摘要、逐條驗證明細（含截圖嵌入）、待處理事項、附錄
-```
+
+優於 python-docx 之處：
+- **TOC field**：Word 開啟時自動 prompt 更新目錄（已設 `UpdateFieldsOnOpen`）
+- **OpenXML 結構驗證**：產出後自動 gate-check（`OpenXmlValidator`），結構不合法即非零退出
+- 精確控制 multi-section header/footer 與品牌樣式
+
+**首次執行**：dotnet restore + build 約需 1-2 分鐘（拉 OpenXML / Markdig），後續 incremental build 只需數秒。
 
 #### 10.4b 使用 python-docx 產出（report_engine = python-docx）
 

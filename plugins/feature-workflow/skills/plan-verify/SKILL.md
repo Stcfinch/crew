@@ -80,9 +80,13 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 4. --api-only 模式跳過瀏覽器檢查，只需 curl 可用
 
-5. Word 報告工具偵測（決定 report_engine）
+5. Word 報告工具偵測（決定 report_engine，詳見 phases/word-report.md step 10.0c）
    → 檢查 dotnet --version 是否 ≥ 8.0
-     → 有 → report_engine = minimax-docx（專業排版）
+     → 有 → 檢查 MiniMaxAIDocx.Core.csproj 是否存在
+              （$MinimaxCorePath env var override 優先，否則 fallback
+               $HOME/.claude/plugins/marketplaces/minimax-skills/skills/minimax-docx/scripts/dotnet/MiniMaxAIDocx.Core/MiniMaxAIDocx.Core.csproj）
+       → 有 → report_engine = minimax-docx（verify-docx-cli，專業排版 + TOC + 結構驗證）
+       → 沒有 → report_engine = minimax-skills-missing（step 10.0c 詢問：安裝 / 設 env var / 改 python-docx / 跳過）
      → 沒有 → 檢查 python3 -c "import docx" 是否成功
        → 有 → report_engine = python-docx（基礎排版，已就緒）
        → 沒有 → report_engine = python-docx-pending（需安裝）
@@ -524,7 +528,7 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 - **Word 報告雙引擎**：優先使用 minimax-docx（需 .NET SDK ≥ 8.0），fallback 為 python-docx（需 Python 3）。前置檢查時偵測可用引擎，step 10 時讓使用者選擇。兩種引擎共用同一份 Markdown 報告內容。
 - **python-docx 臨時安裝**：使用 `pip install --target /tmp/crew-docx-env` 安裝到隔離目錄，不污染使用者的 Python 環境。`PYTHONPATH` 在呼叫時臨時注入。
 - **截圖嵌入 Word**：minimax-docx 接受 Markdown 格式的圖片引用（`![](path)`）；python-docx generator 接受 `--screenshots` 目錄參數，自動嵌入。兩者皆使用相對於 `.spec/{slug}/` 的相對路徑。
-- **封面資訊快取**：`report-config.md` 儲存於 `~/.claude-company/feature-workflow/` 下，跨專案共用（公司名稱、作者）。首次產出報告時建立。
+- **封面資訊快取**：`report-config.md` 儲存於 `~/.claude/feature-workflow/` 下，跨專案共用（公司名稱、作者）。首次產出報告時建立。
 - **Evidence 檔案是原始內容**：`evidence/` 目錄下的檔案包含未遮蔽的 Cookie、Token 等敏感資訊，僅供內部技術驗證。Word 報告中的「測試紀錄」段落會自動遮蔽。若報告需交付客戶，不要連同 `evidence/` 目錄一起交付。
 - **回應截斷以行數判斷**：使用 `wc -l` 計算回應行數。JSON 先經過 `python3 -m json.tool` pretty-print 後再計算行數，避免單行 JSON 永遠不觸發截斷。
 - **多次 API 呼叫的 evidence**：若單條驗收項目涉及多次 curl（如 POST 建立 + GET 查詢驗證），每次呼叫各自產出 evidence 檔案，子序號用 a/b/c 區分。
