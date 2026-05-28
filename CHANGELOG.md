@@ -7,6 +7,17 @@
 
 ---
 
+## [feature-workflow@4.23.0] - 2026-05-28
+
+### 新增
+- **verify-docx-cli .NET 子專案** — plugin 內建 multi-target（net8.0;net10.0）.NET CLI 於 `references/dotnet/verify-docx-cli/`，將 verify.md 七段式（封面/簽核/環境/摘要/明細/待處理/附錄）渲染為品牌 Word 驗收報告；支援 intumit / tech-dark / swiss 三套 brand style、TOC field + UpdateFieldsOnOpen、Logo 三層偵測（`--logo` > `~/.claude/feature-workflow/assets/` > plugin 內建）、Cookie/Authorization/API key 自動遮蔽、長回應截斷（>20 行切首尾 10 + 引用 evidence）、OpenXmlValidator 結構驗證 gate；透過 ProjectReference 共用 minimax-docx Core 的 OpenXML helper（`MinimaxCorePath` env var override + `$HOME` fallback）
+
+### 改善
+- **plan-verify Step 10 整合 verify-docx-cli** — `phases/word-report.md` 新增 step 10.0c 環境偵測（dotnet ≥8 + minimax-skills Core 偵測，缺 Core 時 AskUserQuestion 分流安裝/設 env/改 python-docx/跳過）；step 10.4a 從抽象「使用 /minimax-docx Skill」改為具體 `dotnet run --framework net8.0` 指令（搭配 `RollForward=LatestMajor`，於僅 net9/net10 runtime 機器也可 roll-forward 執行），含三層 Logo 偵測腳本與首次 build UX 提示；SKILL.md 引擎偵測摘要補上 MinimaxCorePath 與 Core 存在性檢查
+
+### 工程（marketplace 層級）
+- **統一過時 config 路徑** — 把新階層式 `~/.claude-company/feature-workflow/` 全面改為 `~/.claude/feature-workflow/`（config-resolver.md / config.template.md / prerequisites.md / plan-setup / plan-stack / plan-verify SKILL.md / word-report.md / 主 README.md）；config-resolver.md 加「從 ~/.claude-company 遷移到 ~/.claude」段（偵測舊路徑時提示手動 `mv`，不自動搬，避免破壞既有 setup）；plan-setup 移除「公司環境優先」分支改用「統一位置」邏輯；舊單一檔案 `~/.claude-company/feature-workflow-config.md` 與 `~/.claude-company/bug-workflow-config.md` 維持向下相容不動
+
 ## [feature-workflow@4.22.0] - 2026-05-23
 
 ### 新增
