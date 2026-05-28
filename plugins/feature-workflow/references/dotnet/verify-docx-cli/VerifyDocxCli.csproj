@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RollForward>LatestMajor</RollForward>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NeutralLanguage>zh-TW</NeutralLanguage>
+    <RootNamespace>FeatureWorkflow.VerifyDocxCli</RootNamespace>
+    <AssemblyName>verify-docx-cli</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- ProjectReference 解析：env var override 優先，否則用 $HOME fallback -->
+    <MinimaxCoreDefault>$(HOME)/.claude/plugins/marketplaces/minimax-skills/skills/minimax-docx/scripts/dotnet/MiniMaxAIDocx.Core/MiniMaxAIDocx.Core.csproj</MinimaxCoreDefault>
+    <MinimaxCorePath Condition="'$(MinimaxCorePath)' == ''">$(MinimaxCoreDefault)</MinimaxCorePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(MinimaxCorePath)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" Version="0.37.0" />
+    <PackageReference Include="System.CommandLine" Version="3.0.0-preview.4.26230.115" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="assets/**/*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
