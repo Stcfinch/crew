@@ -1,6 +1,6 @@
 ---
 name: plan-spec
-description: 產出技術規格書寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者輸入 /plan-spec，或提到「產出技術規格書」、「.spec 規格書」時觸發此 Skill。
+description: 產出技術規格書寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者提到 /plan-spec、「產出技術規格書」、「.spec 規格書」時觸發此 Skill。
 ---
 
 # plan-spec — 技術規格書（零 Notion 呼叫）

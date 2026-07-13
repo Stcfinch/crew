@@ -1,6 +1,6 @@
 ---
 name: crew-init
-description: CREW 一鍵首次設定 —— 依序執行 /bug-setup → /plan-setup 並提示 /init 與 /project-add，含跳過邏輯與斷點續跑。當使用者輸入 /crew-init，或提到「CREW 一鍵設定」、「初始化 CREW」時觸發此 Skill。
+description: CREW 一鍵首次設定 —— 依序執行 /bug-setup → /plan-setup 並提示 /init 與 /project-add，含跳過邏輯與斷點續跑。當使用者提到 /crew-init、「CREW 一鍵設定」、「初始化 CREW」時觸發此 Skill。
 ---
 
 # crew-init — CREW 一鍵首次設定

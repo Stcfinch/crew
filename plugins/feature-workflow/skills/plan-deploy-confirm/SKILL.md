@@ -1,6 +1,6 @@
 ---
 name: plan-deploy-confirm
-description: 部署 SQL 執行回報 —— 實際跑完 deploy.sql 後勾選每筆執行狀態並寫回 Notion「部署狀態」區塊，補上 plan-close 後的執行回流。當使用者輸入 /plan-deploy-confirm，或提到「deploy.sql 執行回報」、「DBA 確認部署」時觸發此 Skill。
+description: 部署 SQL 執行回報 —— 實際跑完 deploy.sql 後勾選每筆執行狀態並寫回 Notion「部署狀態」區塊，補上 plan-close 後的執行回流。當使用者提到 /plan-deploy-confirm、「deploy.sql 執行回報」、「DBA 確認部署」時觸發此 Skill。
 ---
 
 # plan-deploy-confirm — 部署 SQL 執行回報

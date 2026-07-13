@@ -1,6 +1,6 @@
 ---
 name: bug-fix
-description: CREW bug 修復紀律 —— 根因確認才能改（鐵律）、產出修復建議與迴歸測試、瀏覽器驗證，隸屬 CREW bug 流程。當使用者輸入 /bug-fix，或提到「進行 CREW bug 修復」、「開始修復這個 bug」時觸發此 Skill。
+description: CREW bug 修復紀律 —— 根因確認才能改（鐵律）、產出修復建議與迴歸測試、瀏覽器驗證，隸屬 CREW bug 流程。當使用者提到 /bug-fix、「進行 CREW bug 修復」、「開始修復這個 bug」時觸發此 Skill。
 ---
 
 # bug-fix — 修復紀律

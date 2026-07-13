@@ -1,6 +1,6 @@
 ---
 name: plan-close
-description: 一次性批次同步 .spec/ 設計文件到 Notion（含 deploy.sql）、更新狀態、同步知識庫、提交 Git，用於 feature/.spec 任務結案。當使用者輸入 /plan-close，或提到「feature 結案」、「同步 spec 到 Notion 並結案」時觸發此 Skill。
+description: 一次性批次同步 .spec/ 設計文件到 Notion（含 deploy.sql）、更新狀態、同步知識庫、提交 Git，用於 feature/.spec 任務結案。當使用者提到 /plan-close、「feature 結案」、「同步 spec 到 Notion 並結案」時觸發此 Skill。
 ---
 
 # plan-close — 統一結案（批次 Notion 同步）

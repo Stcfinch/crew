@@ -1,6 +1,6 @@
 ---
 name: plan-setup
-description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資料庫、匯入 bug-workflow 共用 ID、設定專案對應與技術棧、可選裝獨立 Agent。當使用者輸入 /plan-setup，或提到「設定 feature workflow」、「初始化 feature workflow」時觸發此 Skill。
+description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資料庫、匯入 bug-workflow 共用 ID、設定專案對應與技術棧、可選裝獨立 Agent。當使用者提到 /plan-setup、「設定 feature workflow」、「初始化 feature workflow」時觸發此 Skill。
 ---
 
 # plan-setup — Workflow 首次設定

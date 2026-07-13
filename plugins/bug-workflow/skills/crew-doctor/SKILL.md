@@ -1,6 +1,6 @@
 ---
 name: crew-doctor
-description: CREW 環境健診 —— 一次性檢查 CREW 所有必要與選配依賴（Node/Git/Notion MCP/Agent Teams/瀏覽器 MCP/config/專案註冊/CLAUDE.md），列出綠黃紅燈與修法。當使用者輸入 /crew-doctor，或提到「CREW 環境健診」、「CREW 為什麼不能用」時觸發此 Skill。
+description: CREW 環境健診 —— 一次性檢查 CREW 所有必要與選配依賴（Node/Git/Notion MCP/Agent Teams/瀏覽器 MCP/config/專案註冊/CLAUDE.md），列出綠黃紅燈與修法。當使用者提到 /crew-doctor、「CREW 環境健診」、「CREW 為什麼不能用」時觸發此 Skill。
 ---
 
 # crew-doctor — CREW 環境健診

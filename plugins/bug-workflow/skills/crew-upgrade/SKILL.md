@@ -1,6 +1,6 @@
 ---
 name: crew-upgrade
-description: 更新 CREW plugins（bug-workflow + feature-workflow）到最新版本並顯示更新摘要。當使用者輸入 /crew-upgrade，或提到「更新 CREW」、「升級 CREW plugin」時觸發此 Skill。
+description: 更新 CREW plugins（bug-workflow + feature-workflow）到最新版本並顯示更新摘要。當使用者提到 /crew-upgrade、「更新 CREW」、「升級 CREW plugin」時觸發此 Skill。
 ---
 
 # crew-upgrade — 更新 CREW Plugins

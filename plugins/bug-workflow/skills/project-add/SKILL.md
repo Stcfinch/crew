@@ -1,6 +1,6 @@
 ---
 name: project-add
-description: 將當前專案新增或更新到 Notion 專案資料庫 —— 自動偵測 Git Repo、技術棧、專案類型，產生 Notion 頁面，可選裝 DB MCP。當使用者輸入 /project-add，或提到「新增專案到 Notion」、「註冊專案」時觸發此 Skill。
+description: 將當前專案新增或更新到 Notion 專案資料庫 —— 自動偵測 Git Repo、技術棧、專案類型，產生 Notion 頁面，可選裝 DB MCP。當使用者提到 /project-add、「新增專案到 Notion」、「註冊專案」時觸發此 Skill。
 ---
 
 # project-add — 新增或更新 Notion 專案

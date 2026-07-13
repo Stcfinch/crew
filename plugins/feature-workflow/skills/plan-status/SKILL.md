@@ -1,6 +1,6 @@
 ---
 name: plan-status
-description: 列出 .spec/ 目錄中所有活躍與已完成的任務（純本地操作，不呼叫 Notion）。當使用者輸入 /plan-status，或提到「.spec 任務狀態」、「CREW 任務列表」時觸發此 Skill。
+description: 列出 .spec/ 目錄中所有活躍與已完成的任務（純本地操作，不呼叫 Notion）。當使用者提到 /plan-status、「.spec 任務狀態」、「CREW 任務列表」時觸發此 Skill。
 ---
 
 # plan-status — 查看任務狀態

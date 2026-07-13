@@ -1,6 +1,6 @@
 ---
 name: bug-start
-description: 在 Notion 任務追蹤工具建立 Bug 條目並填入標準化模板（僅建條目，不含 .spec/ 目錄與 Git branch）。當使用者輸入 /bug-start，或提到「建立 bug 條目」、「記錄 bug 到 Notion」、「bug 通報」時觸發此 Skill。
+description: 在 Notion 任務追蹤工具建立 Bug 條目並填入標準化模板（僅建條目，不含 .spec/ 目錄與 Git branch）。當使用者提到 /bug-start、「建立 bug 條目」、「記錄 bug 到 Notion」、「bug 通報」時觸發此 Skill。
 ---
 
 # Bug Start — 建立 Bug 條目與標準化文件

@@ -1,6 +1,6 @@
 ---
 name: plan-verify
-description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條件，產出 verify.md 與 Health Score，可選 --deep 查 console/network。當使用者輸入 /plan-verify，或提到「.spec 驗收條件驗證」、「瀏覽器驗收 spec」時觸發此 Skill。
+description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條件，產出 verify.md 與 Health Score，可選 --deep 查 console/network。當使用者提到 /plan-verify、「.spec 驗收條件驗證」、「瀏覽器驗收 spec」時觸發此 Skill。
 ---
 
 # plan-verify — 瀏覽器驗收驗證

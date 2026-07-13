@@ -1,6 +1,6 @@
 ---
 name: bug-close
-description: 修復 Bug 後從 Git diff 自動擷取修復細節並更新 Notion 任務追蹤頁面（僅限 bug 型任務）。當使用者輸入 /bug-close，或提到「關閉 bug」、「bug 結案並補修復細節」時觸發此 Skill。
+description: 修復 Bug 後從 Git diff 自動擷取修復細節並更新 Notion 任務追蹤頁面（僅限 bug 型任務）。當使用者提到 /bug-close、「關閉 bug」、「bug 結案並補修復細節」時觸發此 Skill。
 ---
 
 # Bug Close — 結案並自動補齊修復細節

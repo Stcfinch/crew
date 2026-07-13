@@ -1,6 +1,6 @@
 ---
 name: plan-review
-description: 以 Agent Teams 3 人並行審查 .spec 任務的程式碼（邏輯/品質/效能）並交叉審查，報告寫入 .spec/ 目錄。當使用者輸入 /plan-review，或提到「Agent Teams 程式碼審查」、「plan-review 審查」時觸發此 Skill。
+description: 以 Agent Teams 3 人並行審查 .spec 任務的程式碼（邏輯/品質/效能）並交叉審查，報告寫入 .spec/ 目錄。當使用者提到 /plan-review、「Agent Teams 程式碼審查」、「plan-review 審查」時觸發此 Skill。
 ---
 
 # plan-review — Agent Teams 程式碼審查

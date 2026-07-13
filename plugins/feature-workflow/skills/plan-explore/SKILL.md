@@ -1,6 +1,6 @@
 ---
 name: plan-explore
-description: CREW 探索模式 —— 規劃前或規劃中的思考夥伴，自由探索想法、調查問題、釐清需求（零 Notion 呼叫）。當使用者輸入 /plan-explore，或提到「CREW 規劃前探索」、「規劃前討論需求」時觸發此 Skill。
+description: CREW 探索模式 —— 規劃前或規劃中的思考夥伴，自由探索想法、調查問題、釐清需求（零 Notion 呼叫）。當使用者提到 /plan-explore、「CREW 規劃前探索」、「規劃前討論需求」時觸發此 Skill。
 ---
 
 # plan-explore — 思考夥伴模式（零 Notion 呼叫）

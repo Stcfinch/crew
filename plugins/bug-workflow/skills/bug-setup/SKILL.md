@@ -1,6 +1,6 @@
 ---
 name: bug-setup
-description: bug-workflow 首次設定引導 —— 自動偵測 Notion 資料庫、建立設定檔、設定專案對應。當使用者輸入 /bug-setup，或提到「設定 bug workflow」、「初始化 bug workflow」時觸發此 Skill。
+description: bug-workflow 首次設定引導 —— 自動偵測 Notion 資料庫、建立設定檔、設定專案對應。當使用者提到 /bug-setup、「設定 bug workflow」、「初始化 bug workflow」時觸發此 Skill。
 ---
 
 # bug-setup — Bug Workflow 首次設定

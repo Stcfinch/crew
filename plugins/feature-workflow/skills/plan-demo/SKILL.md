@@ -1,6 +1,6 @@
 ---
 name: plan-demo
-description: 純本地產出範例 .spec/ 任務，不依賴 Notion / Agent Teams / DB MCP，讓評估者快速看到 CREW 完整流程效果。當使用者輸入 /plan-demo，或提到「評估 CREW 流程」、「CREW 試跑範例」時觸發此 Skill。
+description: 純本地產出範例 .spec/ 任務，不依賴 Notion / Agent Teams / DB MCP，讓評估者快速看到 CREW 完整流程效果。當使用者提到 /plan-demo、「評估 CREW 流程」、「CREW 試跑範例」時觸發此 Skill。
 ---
 
 # plan-demo — 純本地評估模式

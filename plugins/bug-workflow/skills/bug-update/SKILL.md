@@ -1,6 +1,6 @@
 ---
 name: bug-update
-description: 調查 Bug 過程中隨時將 log、SQL、判斷、截圖更新到該 Bug 的 Notion 頁面，並支援重新開啟已結案 Bug。當使用者輸入 /bug-update，或提到「更新 bug 頁面」、「補充 bug 資訊」、「reopen bug」、「bug 復發」時觸發此 Skill。
+description: 調查 Bug 過程中隨時將 log、SQL、判斷、截圖更新到該 Bug 的 Notion 頁面，並支援重新開啟已結案 Bug。當使用者提到 /bug-update、「更新 bug 頁面」、「補充 bug 資訊」、「reopen bug」、「bug 復發」時觸發此 Skill。
 ---
 
 # bug-update — 調查過程中更新 Bug 文件 / 重新開啟已結案 Bug

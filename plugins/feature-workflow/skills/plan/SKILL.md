@@ -1,6 +1,6 @@
 ---
 name: plan
-description: CREW 完整規劃串接器 —— 自動依序執行 plan-spec → plan-db → plan-arch，產出寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者輸入 /plan，或提到「CREW 完整規劃」、「一次跑完 spec/db/arch」時觸發此 Skill。
+description: CREW 完整規劃串接器 —— 自動依序執行 plan-spec → plan-db → plan-arch，產出寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者提到 /plan、「CREW 完整規劃」、「一次跑完 spec/db/arch」時觸發此 Skill。
 ---
 
 # plan — 完整規劃串接器（零 Notion 呼叫）

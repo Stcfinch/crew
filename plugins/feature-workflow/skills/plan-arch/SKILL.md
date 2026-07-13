@@ -1,6 +1,6 @@
 ---
 name: plan-arch
-description: 產出架構設計文件寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者輸入 /plan-arch，或提到「產出架構設計文件」、「.spec 架構設計」時觸發此 Skill。
+description: 產出架構設計文件寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者提到 /plan-arch、「產出架構設計文件」、「.spec 架構設計」時觸發此 Skill。
 ---
 
 # plan-arch — 架構設計（零 Notion 呼叫）

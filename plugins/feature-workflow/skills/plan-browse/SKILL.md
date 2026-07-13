@@ -1,6 +1,6 @@
 ---
 name: plan-browse
-description: 瀏覽與探索已有的 .spec/ 規劃文件 —— 深度閱讀、跨任務比較、模式搜尋。當使用者輸入 /plan-browse，或提到「瀏覽 .spec 規劃」、「看之前的規劃設計」時觸發此 Skill。
+description: 瀏覽與探索已有的 .spec/ 規劃文件 —— 深度閱讀、跨任務比較、模式搜尋。當使用者提到 /plan-browse、「瀏覽 .spec 規劃」、「看之前的規劃設計」時觸發此 Skill。
 ---
 
 # plan-browse — 規劃瀏覽器（零 Notion 呼叫）

@@ -1,6 +1,6 @@
 ---
 name: plan-db
-description: 產出資料庫設計文件寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者輸入 /plan-db，或提到「產出 DB 設計文件」、「.spec 資料庫設計」時觸發此 Skill。
+description: 產出資料庫設計文件寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者提到 /plan-db、「產出 DB 設計文件」、「.spec 資料庫設計」時觸發此 Skill。
 ---
 
 # plan-db — 資料庫設計（零 Notion 呼叫）

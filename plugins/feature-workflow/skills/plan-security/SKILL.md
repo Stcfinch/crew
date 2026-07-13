@@ -1,6 +1,6 @@
 ---
 name: plan-security
-description: 專職安全掃描 —— CREW 三層架構（靜態規則/上下文感知/對抗性思維），涵蓋 OWASP Top 10、SQLi、XSS、權限控制、敏感資料。當使用者輸入 /plan-security，或提到「CREW 安全掃描」、「.spec 安全檢查」時觸發此 Skill。
+description: 專職安全掃描 —— CREW 三層架構（靜態規則/上下文感知/對抗性思維），涵蓋 OWASP Top 10、SQLi、XSS、權限控制、敏感資料。當使用者提到 /plan-security、「CREW 安全掃描」、「.spec 安全檢查」時觸發此 Skill。
 ---
 
 # plan-security — 安全掃描（零 Notion 呼叫）
