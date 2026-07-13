@@ -121,7 +121,7 @@ description: bug-workflow 首次設定引導 —— 自動偵測 Notion 資料�
 
 | 欄位 | 類型 | 說明 | 必要性 |
 |------|------|------|--------|
-| 專案名稱 | Title | 顯示名稱 | 必要 |
+| Name | Title | 專案名稱（顯示名稱） | 必要 |
 | Git Repo | URL | Git 遠端倉庫 URL | 必要（缺少則新增） |
 | 技術棧 | Select | scaffold 用 | 建議（缺少則詢問是否新增） |
 | 狀態 | Status | 未開始 / 進行中 / 已結束 | 建議 |

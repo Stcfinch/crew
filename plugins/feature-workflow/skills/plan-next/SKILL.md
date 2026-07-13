@@ -75,11 +75,11 @@ description: 智慧推薦 CREW 當前任務下一步 —— 讀 .spec/{slug}/ �
 | spec.md 但無 db.md（DB_REQUIRED = false） | `/plan-arch` | 不需 DB，跳過 |
 | db.md 但無 arch.md | `/plan-arch` | 架構設計缺 |
 | arch.md 但無 files.md | `/plan-build` | 可以開始產 code |
-| files.md 但無 security.md | `/plan-security` | 安全掃描缺 |
-| security.md 但無 verify.md | `/plan-verify` | 驗收驗證缺 |
-| verify.md = FAIL | `/plan-build`（修正） or `/plan-verify --recheck` | 有失敗項目要處理 |
+| verify.md = FAIL | `/plan-build`（修正） or `/plan-verify --recheck` | 有失敗項目要優先處理，即使 security.md 缺失也不應被下列缺檔判斷蓋過 |
 | verify.md = WARN | `/plan-verify --recheck` 或 `/plan-review` | WARN 可選擇處理或繼續 |
 | verify.md = PASS 但無 review.md | `/plan-review` | 程式碼審查缺 |
+| files.md 但無 security.md | `/plan-security` | 安全掃描缺 |
+| security.md 但無 verify.md | `/plan-verify` | 驗收驗證缺 |
 | review.md 有 🔴 嚴重發現 | `/plan-build`（依審查修正） | 審查發現嚴重問題 |
 | review.md 通過 | `/plan-close` | 全部完成可結案 |
 | 已 `/plan-close` 完成 | 無建議（任務結束） | — |
@@ -128,7 +128,7 @@ description: 智慧推薦 CREW 當前任務下一步 —— 讀 .spec/{slug}/ �
 
 ## Gotchas
 
-- **`.spec/{slug}/README.md` 缺失**：若任務目錄存在但 README 缺 → 視為 plan-start 未完成，推薦重跑 `/plan-start --resume`
+- **`.spec/{slug}/README.md` 缺失**：若任務目錄存在但 README 缺 → 視為 plan-start 未完成；`/plan-start` 無 `--resume` 旗標，應提示使用者確認該目錄狀態後，重新執行 `/plan-start <同任務簡述>`（若 slug 衝突，plan-start 會加數字後綴或詢問，需留意可能產生重複目錄）
 - **verify.md 解析失敗**：若摘要段落格式變動 → 退回「verify.md 存在但狀態不明」處理，推薦 `/plan-review`
 - **多階段並進**：使用者可能跳過某步（如 DB_REQUIRED=false 跳 plan-db），按決策表第一匹配規則處理即可，不視為缺失
 - **bug 類型任務**：本 skill 主要服務 feature 任務；bug 流程的下一步建議由 `/bug-investigate` / `/bug-fix` 內建邏輯處理，不在本 skill 範圍

@@ -126,6 +126,7 @@ git add -f .spec/{slug}/
 - `prerequisites.md`
 - `db-templates.md`
 - `discipline-preamble.md`
+- `notion-backend.md`
 
 **單一權威來源（C9）**：`plugins/bug-workflow/references/` 那份是唯一權威，
 **只改這份**；`feature-workflow` 那份一律視為同步產物，不要直接編輯。

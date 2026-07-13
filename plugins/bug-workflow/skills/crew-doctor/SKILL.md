@@ -57,7 +57,7 @@ description: CREW 環境健診 —— 一次性檢查 CREW 所有必要與選配
 | 13 | .NET SDK ≥ 8 | `dotnet --version` | Word 報告降級為 python-docx 排版 |
 | 14 | python-docx | `python3 -c "import docx"` | 完全無 Word 報告能力（需先裝 .NET 或 docx） |
 
-### 🔍 進階檢查（4 項，紅燈全綠時才跑）
+### 🔍 進階檢查（4 項，僅當 #3 Notion MCP 通過時才跑）
 
 | # | 項目 | 檢查方式 |
 |---|------|---------|
@@ -94,7 +94,7 @@ OS 決定缺失提示的指令（例如 `brew install node` vs `winget install N
 ### 4. 進階檢查（#15-18，僅當 #3 通過時）
 
 Notion 相關檢查需要實際 API call，每項 1-3 秒。
-若 #3 紅燈，跳過 #15-17（沒有 Notion 後端跑不了）。
+若 #3 紅燈，跳過 #15-18（沒有 Notion 後端跑不了，含共用 reference 漂移檢查）。
 
 ### 5. 產出摘要
 

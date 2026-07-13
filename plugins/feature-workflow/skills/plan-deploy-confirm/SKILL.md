@@ -34,7 +34,7 @@ description: 部署 SQL 執行回報 —— 實際跑完 deploy.sql 後勾選每
 
 - 任務必須已執行過 `/plan-close` 並產出 `deploy.sql`
 - Notion 條目已存在且含「🚀 部署狀態」可寫入區塊（plan-close 會自動建立）
-- 設定檔含「任務追蹤工具」資料庫 ID
+- 設定檔含「任務追蹤工具」資料庫 ID（依 `../../references/config-resolver.md` 的階層式設定目錄解析取得，見 `~/.claude/feature-workflow/config.md` 的 Notion IDs）
 
 > **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
 
@@ -236,7 +236,7 @@ SQL：
 
 ## Gotchas
 
-- **舊任務無「🚀 部署狀態」區塊**：plan-close 在加入此機制前已結案的任務沒有對應區塊。提示「需要先用 /plan-sync 重新同步補上區塊」
+- **舊任務無「🚀 部署狀態」區塊**：plan-close 在加入此機制前已結案的任務沒有對應區塊。`/plan-sync` 明文不建立此區塊（僅 `/plan-close` 會初始化），因此提示「需要重新執行 /plan-close 結案同步以補上此區塊」
 - **deploy.sql 格式不標準**：若 SQL 檔沒有 `-- Step N` 註解，無法精確分段。退回「整個 deploy.sql 作為單一 Step」處理
 - **回滾 SQL 不在本指令範圍**：執行回滾請由 DBA 用對應的 SQL 客戶端執行，本指令只記錄回滾事件（如 `--rollback` 選項，未實作）
 - **跨環境順序**：建議按 dev → staging → prod 順序部署，本指令不強制檢查順序，但回報紀錄會顯示時序，後審視可發現

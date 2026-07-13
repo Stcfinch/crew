@@ -143,7 +143,7 @@ description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資�
 
 ### 5. Agent 安裝（選用）
 
-詢問是否安裝 4 個獨立 Agent（spec-analyst / db-designer / backend-designer / code-generator）。
+詢問是否安裝 4 個獨立 Agent（feature-spec-analyst / feature-db-designer / feature-backend-designer / feature-code-generator）。
 
 ### 6. Chrome DevTools MCP 安裝（選用）
 
@@ -151,7 +151,7 @@ description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資�
 
 ```
 是否安裝 Chrome DevTools MCP？（Google 官方維護，推薦）
-1. 安裝（推薦，29 種工具，持續維護）
+1. 安裝（推薦，工具數量隨版本更新，Google 官方持續維護）
 2. 跳過（使用內建 cdp.mjs，需 Node.js 22+）
 ```
 

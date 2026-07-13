@@ -7,21 +7,22 @@
  * 將 verify.md 驗證報告轉換為格式化的 .xlsx 驗收報告。
  *
  * 使用方式：
- *   npx --yes exceljs && node verify-excel-generator.js \
+ *   NPM_TMP=$(mktemp -d) && npm install --prefix "$NPM_TMP" exceljs --no-save --silent \
+ *     && NODE_PATH="$NPM_TMP/node_modules" node verify-excel-generator.js \
  *     --verify .spec/{slug}/verify.md \
  *     --screenshots .spec/{slug}/screenshots/ \
  *     --evidence .spec/{slug}/evidence/ \
  *     --output .spec/{slug}/verify-report.xlsx \
  *     --cover '{"project":"SmartRobot","feature":"推播統計","author":"Cheng","date":"2026-05-15"}'
  *
- * 依賴：exceljs（透過 npx 臨時安裝或全域安裝）
+ * 依賴：exceljs（exceljs 無 bin 欄位，不可用 npx 直接執行；需 npm install 後透過 NODE_PATH 注入，或全域安裝）
  */
 
 let ExcelJS;
 try {
   ExcelJS = require('exceljs');
 } catch {
-  console.error('請先執行: npx --yes exceljs 或 npm install exceljs');
+  console.error('請先執行: npm install --prefix <臨時目錄> exceljs --no-save，並設定 NODE_PATH 指向該目錄的 node_modules，或 npm install -g exceljs');
   process.exit(1);
 }
 

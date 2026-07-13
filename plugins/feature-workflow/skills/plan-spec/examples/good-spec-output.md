@@ -105,7 +105,14 @@
 
 ## 判斷
 
+### 任務屬性
+- TASK_TYPE: feature
+- CHANGE_SCOPE: backend-only
+
+### 技術需求
 - FRONTEND_REQUIRED: false
 - FRONTEND_TECH: 無
 - DB_REQUIRED: true
 - DB_TABLES: tag_statistics（新建）, msg_main（既有）, api_msg_main（既有）
+- NEW_API: true
+- EXISTING_API_CHANGE: false

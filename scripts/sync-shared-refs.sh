@@ -26,6 +26,7 @@ SHARED_FILES=(
   prerequisites.md
   db-templates.md
   discipline-preamble.md
+  notion-backend.md
 )
 SRC_DIR="$REPO_ROOT/plugins/bug-workflow/references"
 DST_DIR="$REPO_ROOT/plugins/feature-workflow/references"
@@ -33,13 +34,13 @@ DST_DIR="$REPO_ROOT/plugins/feature-workflow/references"
 usage() {
   cat <<'EOF'
 用法：
-  sync-shared-refs.sh            # 以 bug-workflow 為權威，同步 3 個共用 reference 到 feature-workflow
+  sync-shared-refs.sh            # 以 bug-workflow 為權威，同步 4 個共用 reference 到 feature-workflow
   sync-shared-refs.sh --check    # 僅檢查兩份是否一致（不修改；不一致 exit 1，CI / push 前用）
   sync-shared-refs.sh -h | --help
 
 權威來源：plugins/bug-workflow/references/（只改這份，改完跑本腳本同步）
 同步目標：plugins/feature-workflow/references/
-共用檔：prerequisites.md、db-templates.md、discipline-preamble.md
+共用檔：prerequisites.md、db-templates.md、discipline-preamble.md、notion-backend.md
 EOF
 }
 

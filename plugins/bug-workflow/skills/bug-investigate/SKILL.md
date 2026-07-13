@@ -67,8 +67,8 @@ docker ps --format '{{.Names}}' 2>/dev/null | head -5
 
 找到 log 來源後：
 
-- **log 檔案在磁碟** → 使用 Read tool 讀取（避免 RTK 壓縮，遵循 CLAUDE.md 規範）
-- **需要 shell 指令** → 精確除錯場景一律用 `rtk proxy <cmd>`
+- **log 檔案在磁碟** → 使用 Read tool 讀取（精確除錯需保留原始 timestamp／request ID 順序，勿用會截斷或壓縮輸出的方式）
+- **需要 shell 指令** → 用 Bash tool 執行（如 `grep`、`docker logs`、`tail`）；輸出量大時導到檔案再用 Read tool 讀
 
 搜集策略：
 - grep ERROR / Exception / FATAL（最近 30 分鐘）
@@ -352,7 +352,7 @@ Bug 調查完成！
 
 ## Gotchas
 
-- **Log 讀取遵循 RTK 規範**：精確除錯場景（追蹤 timestamp、request ID、事件順序）一律用 `rtk proxy <cmd>` 或 Read tool，避免被 RTK hook 有損壓縮。
+- **Log 讀取保留原始輸出**：精確除錯場景（追蹤 timestamp、request ID、事件順序）用 Read tool 讀 log 檔；需 shell 指令時輸出量大就先導到檔案再 Read，避免輸出被截斷或壓縮而遺失順序資訊。
 - **notion-update-page 的 update_content 是覆蓋**：每次寫入調查過程時，必須先 `notion-fetch` 取得現有內容，附加新內容後再寫回。
 - **假說驗證不要改 code**：investigate 階段只讀取和查詢，不修改程式碼。修改是 bug-fix 的職責。
 - **知識庫搜尋可能回傳不相關結果**：Bug 知識庫的關鍵字搜尋粒度較粗，AI 需判斷歷史 bug 是否真的相關，不要盲目採用歷史根因。

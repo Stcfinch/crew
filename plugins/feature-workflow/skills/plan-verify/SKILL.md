@@ -23,7 +23,6 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 /plan-verify --excel            # 驗證完成後產出 Excel 報告
 /plan-verify --word --excel     # 同時產出 Word + Excel 報告
 /plan-verify --e2e              # E2E Runner 模式（需 e2e_repo 設定）
-/plan-verify --from-e2e {dir}   # 從 E2E 測試結果更新 verify.md
 ```
 
 ---
@@ -174,7 +173,13 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 
 > 上表工具名為 playwright plugin 提供之短名，實際完整工具名前綴為 `mcp__plugin_playwright_playwright__`（如 `mcp__plugin_playwright_playwright__browser_click`）。
 
-**Bash 模式工具對照：**
+**Bash 模式工具對照：**（Playwright MCP、chrome-devtools-mcp 皆未安裝時的退回方案，見前置檢查流程）
+
+> `$CDP` 是本文所有 Bash 範例對 plugin 內建 `scripts/cdp.mjs` 的別名，使用前需先設定：
+> ```bash
+> CDP="node {plugin_path}/scripts/cdp.mjs"
+> ```
+> （`{plugin_path}` 為本 plugin 根目錄，通常是 `~/.claude/plugins/marketplaces/company-marketplace/plugins/feature-workflow`；需 Node.js 22+）
 
 | 類型 | 工具 | 範例 |
 |------|------|------|
@@ -222,7 +227,7 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 
 #### MCP 模式
 
-MCP 的 `--autoConnect` 會自動連接本機 Chrome，不需手動處理連線。
+> `--autoConnect` 旗標僅 **chrome-devtools-mcp**（退回模式）適用，安裝指令見 `references/mcp-install.md`；啟用後會自動連接本機 Chrome，不需手動處理連線。**Playwright MCP**（預設）由 `browser_tabs` 自行管理分頁，不需此旗標。
 
 使用 `browser_tabs`（`action: list`）列出所有開啟的分頁，智慧匹配目標 URL：
 
@@ -298,7 +303,7 @@ verify-map.json 格式：
 每筆寫入記憶**必須包含 `last_verified: YYYY-MM-DD` 欄位**（當天日期）。
 若覆寫既有條目（值改變），仍刷新 `last_verified`。
 
-暫存在 `.spec/{slug}/verify-memory.md`（Layer 1）。格式見 spec.md 的「驗證記憶系統」段落。
+暫存在 `.spec/{slug}/verify-memory.md`（Layer 1）。欄位格式見本文件『2.5 載入驗證記憶』（`last_verified` 時效性欄位）與『5.5 記憶記錄判斷』（各觸發條件對應的記錄內容），無獨立 schema 文件。
 
 ### 6. 收集截圖與 Evidence
 
