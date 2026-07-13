@@ -1,6 +1,6 @@
 ---
 name: plan-build
-description: 從 .spec/ 讀取設計文件，以 Agent Teams leader-delegate 模式（最多 5 人團隊）產生程式碼，含退出驗證（E1~E7）與 deploy.sql 自動產出（DB_REQUIRED=insert-only 支援）。Leader 只協調不寫 code。當使用者提到「plan-build」、「build」、「產生程式碼」時觸發此 Skill。
+description: 從 .spec/ 設計文件以 Agent Teams leader-delegate 模式產生程式碼，含退出驗證與 deploy.sql 自動產出，Leader 只協調不寫 code。當使用者輸入 /plan-build，或提到「從 spec 產生程式碼」、「plan-build 產碼」時觸發此 Skill。
 ---
 
 # plan-build — Agent Teams 程式碼產生
@@ -33,15 +33,13 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 **必須**至少完成 `/plan-arch`（arch.md 存在）。若 arch.md 不存在，**禁止繼續**，直接告知使用者先執行 `/plan-arch` 產生架構設計。
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 ---
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-build 專用」+ `boundaries.md` 「plan-build」段落。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-build 專用」＋ `../../references/boundaries.md`「plan-build」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -80,7 +78,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 ### 3. 判斷團隊組成
 
-依據 `references/team-composition.md` 的判斷規則決定團隊配置。
+依據 plugin 根目錄 `references/team-composition.md`（相對 SKILL.md 為 `../../references/`）的判斷規則決定團隊配置。
 
 讀取 spec.md 的「判斷」區塊，取得 TASK_TYPE、CHANGE_SCOPE、FRONTEND_REQUIRED、DB_MCP_AVAILABLE 等欄位，按規則判斷。
 
@@ -114,11 +112,11 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 - 若使用者使用 `--no-test` 參數 → 自動選否（同預設），不互動
 - 使用者選「是」時，在團隊中加入 test-engineer
 - 使用者選「否」或直接 Enter（預設）時，不含 test-engineer
-- test-engineer 的加入/移除在 `references/team-composition.md` 判斷**之後**操作，不修改判斷表本身
+- test-engineer 的加入/移除在 plugin 根目錄 `references/team-composition.md`（相對 SKILL.md 為 `../../references/`）判斷**之後**操作，不修改判斷表本身
 
 ### 5. 準備分層脈絡
 
-依據 `references/build-context-layers.md` 的四層策略，為每個 Teammate 準備定制化的脈絡。
+依據 plugin 根目錄 `references/build-context-layers.md`（相對 SKILL.md 為 `../../references/`）的四層策略，為每個 Teammate 準備定制化的脈絡。
 
 #### 5a. 擷取共用核心（Layer 0）
 從 CLAUDE.md 擷取技術棧、命名慣例、禁止事項，格式化為 5 行以內。
@@ -137,9 +135,9 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 ### 6. 啟動 Agent Teams
 
-讀取 `references/build-prompts.md` 取得 Teammate prompt 模板。
+讀取 plugin 根目錄 `references/build-prompts.md`（相對 SKILL.md 為 `../../references/`）取得 Teammate prompt 模板。
 
-根據步驟 3 的團隊組成判斷，選擇對應的模板（Subagent / Agent Teams），將步驟 5 準備的分層脈絡嵌入各 Teammate 的 prompt 中。
+根據『判斷團隊組成』一節的團隊組成判斷，選擇對應的模板（Subagent / Agent Teams），將『準備分層脈絡』一節準備的分層脈絡嵌入各 Teammate 的 prompt 中。
 
 > 模板中的 `{placeholder}` 需替換為實際值。見 build-prompts.md 的變數說明。
 
@@ -149,7 +147,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 #### Subagent vs Agent Teams 選擇
 
-根據步驟 3 的判斷結果（見 `references/team-composition.md`）：
+根據『判斷團隊組成』一節的判斷結果（見 plugin 根目錄 `references/team-composition.md`，相對 SKILL.md 為 `../../references/`）：
 - 1 人 → Subagent 模式
 - 2+ 人 → Agent Teams 模式（或多個 Subagent）
 
@@ -185,16 +183,16 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 2. 更新 `README.md` 的 `status: 開發中`
 3. 在 `log.md` 追加紀錄
 
-### 7.3 偵測設定檔變更並寫入 deploy-checklist.md（僅本地）
+### 8. 偵測設定檔變更並寫入 deploy-checklist.md（僅本地）
 
-#### 7.3a 收集變更清單
+#### 8a 收集變更清單
 
 來源（合併去重）：
 
 1. `.spec/{slug}/files.md` 中的「新增檔案」和「修改檔案」
 2. `git diff --name-only` 比對本次 plan-build 產生的變更
 
-#### 7.3b 比對設定檔模式
+#### 8b 比對設定檔模式
 
 將收集到的檔案路徑逐一比對以下模式清單：
 
@@ -214,7 +212,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 | `**/logback*.xml` | Log 設定 |
 | `**/ehcache*.xml` | 快取設定 |
 
-#### 7.3c 更新 deploy-checklist.md
+#### 8c 更新 deploy-checklist.md
 
 若偵測到設定檔變更：
 
@@ -227,7 +225,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 **API 呼叫**：0 次（僅本地操作，Notion 同步交給 `/plan-sync` 或 `/plan-close`）
 
-### 7.5 退出驗證（強制，不可跳過）
+### 9. 退出驗證（強制，不可跳過）
 
 Leader 在回傳結果前，逐項檢查以下退出條件：
 
@@ -303,7 +301,7 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
   結論：可繼續，但建議處理 E6 後再進 plan-verify
 ```
 
-### 8. 回傳結果
+### 10. 回傳結果
 
 **包含測試時（使用者選是）**：
 
@@ -363,17 +361,26 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
   • /plan-close   — 結案並同步 Notion
 ```
 
-> 設定檔變更（📋）那兩行只在步驟 7.3 偵測到變更時顯示。
+> 設定檔變更（📋）那兩行只在『偵測設定檔變更並寫入 deploy-checklist.md』一節偵測到變更時顯示。
 
 ---
 
 ## DB MCP 提示詞模版
 
-> 完整的 DB MCP 提示詞模板見 `references/build-prompts.md` 的「DB MCP 提示詞模版」段落。
+> 完整的 DB MCP 提示詞模板見 plugin 根目錄 `references/build-prompts.md`（相對 SKILL.md 為 `../../references/`）的「DB MCP 提示詞模版」段落。
 
-步驟 5 檢查 DB MCP 可用性（`claude mcp list` 是否有 `dbhub`）後，根據結果決定是否加入 DB 工程師：
+『判斷團隊組成』一節檢查 DB MCP 可用性（`claude mcp list` 是否有 `dbhub`）後，根據結果決定是否加入 DB 工程師：
 - **已安裝**：Agent Teams 加入「成員 0：DB 工程師」；Subagent 模式嵌入 `{db_mcp_instruction}`
 - **未安裝**：不加入 DB 工程師；`{db_mcp_instruction}` 替換為空字串
+
+---
+
+## 何時不用
+
+- 編譯專案（mvn / npm build）→ 直接跑 build 指令，非本 skill
+- 尚無 .spec 設計文件 → 先執行 `/plan`
+- 產完後要審查 → `/plan-review`；要驗收 → `/plan-verify`
+- 只要拆分 commit → 個人 `git-smart-commit`（本 skill 只產碼）
 
 ---
 
@@ -381,7 +388,7 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
 
 - **Leader 不能自己寫 code**：Agent Teams 模式下，Leader（你自己）只負責協調和分配任務。如果 Leader 直接寫程式碼，會跟 Teammate 的產出衝突（寫同一個檔案）。所有產出必須由 Teammate 完成。
 - **Teammate 之間的檔案衝突**：雖然設計上各 Teammate 負責不同目錄，但 API 工程師的 DTO 和後端工程師的 Entity 可能放在相近的 package 下。如果兩者同時寫同一個 DTO 類別，後寫的會覆蓋先寫的。確保在 prompt 中明確劃分 DTO 歸屬。
-- **Agent Teams 環境變數未設定**：`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 不存在時，建立 Team 的指令會靜默失敗（不報錯但不產出），很難 debug。步驟 1 就要先檢查。
+- **Agent Teams 環境變數未設定**：`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 不存在時，建立 Team 的指令會靜默失敗（不報錯但不產出），很難 debug。『前置條件』一節就要先檢查。
 - **現有程式碼範本的選擇很關鍵**：給 Teammate 參考的 POJO/Mapper/Service 範本如果選到非典型的（如有特殊 annotation 或非標準命名），Teammate 會學到錯誤風格並複製到所有產出中。優先選最簡單、最標準的範本檔。
 - **DB MCP Teammate 超時**：DB 工程師如果查詢的表很多或 DB 回應慢，可能花很長時間。設定合理的任務範圍（只查本功能相關的表，不要全表掃描）。
 - **殘留 Team 問題**：如果上次 `plan-build` 中途失敗，可能留下殘留的 Team。在建新 Team 前先用 `TeamDelete` 清理，否則會報錯「已有活躍 Team」。

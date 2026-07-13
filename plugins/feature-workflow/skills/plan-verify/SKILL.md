@@ -1,6 +1,6 @@
 ---
 name: plan-verify
-description: 透過 Playwright MCP 操作瀏覽器，逐條驗證 .spec/ 中的驗收條件，產出 verify.md 驗證報告與 Health Score。可選搭配 chrome-devtools-mcp 查 console/network（--deep 模式）。驗證完成後可選擇產出 Word 驗收報告。當使用者提到「plan-verify」、「驗證」、「verify」、「驗收」時觸發此 Skill。
+description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條件，產出 verify.md 與 Health Score，可選 --deep 查 console/network。當使用者輸入 /plan-verify，或提到「.spec 驗收條件驗證」、「瀏覽器驗收 spec」時觸發此 Skill。
 ---
 
 # plan-verify — 瀏覽器驗收驗證
@@ -32,32 +32,17 @@ description: 透過 Playwright MCP 操作瀏覽器，逐條驗證 .spec/ 中的�
 
 ### Playwright MCP（必要，預設驗證工具）
 
-```bash
-claude mcp add playwright --scope user -- \
-  npx @anthropic-ai/mcp-server-playwright@latest
-```
-
-Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航。安裝後**重啟 Claude Code**。
+> 安裝指令與說明：plugin 根目錄 `references/mcp-install.md`（相對 SKILL.md 為 `../../references/`）「Playwright MCP」段。
 
 ### chrome-devtools-mcp（選配，--deep 模式除錯用）
 
-```bash
-claude mcp add chrome-devtools --scope user -- \
-  npx chrome-devtools-mcp@latest --autoConnect
-```
-
-Google 官方維護，提供 console log 串流、network 請求分析、performance trace。
-可連接已登入的 Chrome session，適合需要 SSO/VPN 的內部系統。
-
-> 💡 兩者定位不同可同時安裝：Playwright 做 QA 驗收，chrome-devtools 做除錯診斷。
+> 安裝指令與說明：plugin 根目錄 `references/mcp-install.md`（相對 SKILL.md 為 `../../references/`）「chrome-devtools-mcp」段。
 
 ---
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-verify 專用」+ `boundaries.md` 「plan-verify」段落。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-verify 專用」＋ `../../references/boundaries.md`「plan-verify」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -68,7 +53,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 ```
 1. 檢查 claude mcp list 是否含 "playwright"
    → 有 → 使用 Playwright MCP（預設）
-   → 沒有 → 進入步驟 2
+   → 沒有 → 繼續下一項檢查（chrome-devtools MCP 退回）
 
 2. 檢查 claude mcp list 是否含 "chrome-devtools"
    → 有 → 退回使用 chrome-devtools-mcp
@@ -106,7 +91,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 - `python-docx`：.NET 未安裝，python-docx 已就緒，可產出基礎排版報告
 - `python-docx（需安裝）`：兩者皆未安裝，到 step 10 時引導安裝
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 ---
 
@@ -120,7 +105,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 ### 1.5 產品偵測
 
-讀取 `projects/{repo-id}.md` 的 `product_id` 欄位（見 `references/plan-common.md` 第 4 層）。
+讀取 `projects/{repo-id}.md` 的 `product_id` 欄位（見 plugin 根目錄 `references/plan-common.md`，相對 SKILL.md 為 `../../references/`，第 4 層）。
 
 - **有 product_id** → 🟢 產品模式
   1. 讀取 `products/{product_id}.md`（頁面導航地圖、常用 Selector、i18n 對照表、特殊操作 Recipe、API 格式）
@@ -143,7 +128,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 按以下順序載入驗證記憶，後者覆蓋前者：
 
-1. **Layer 3 產品級記憶**（若步驟 1.5 偵測到 product_id）
+1. **Layer 3 產品級記憶**（若『產品偵測』一節偵測到 product_id）
    → 讀取 `products/{product_id}-memory.md`
 2. **Layer 2 專案級記憶**
    → 讀取專案 repo 的 `.claude/verify-memory.md`（若存在）
@@ -180,12 +165,14 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 | 類型 | MCP 工具 | 範例 |
 |------|---------|------|
 | API | curl + Bash | 「可依日期範圍查詢」→ `curl GET /api/xxx?startDate=...&endDate=...` |
-| UI 操作 | `click` / `type_text` / `fill` / `take_snapshot` / `take_screenshot` | 「支援分頁」→ 點擊下一頁按鈕，確認表格更新 |
-| UI 檢查 | `take_snapshot` → AI 分析 | 「表格顯示正確欄位」→ 讀取無障礙樹檢查欄位 |
-| 等待非同步 | `wait_for` | 「搜尋結果載入」→ 等待文字出現 |
-| 表單填寫 | `fill_form` | 「表單驗證」→ 批次填入所有欄位 |
-| 前端錯誤 | `list_console_messages` | 「頁面無 JS 錯誤」→ 檢查 console |
+| UI 操作 | `browser_click` / `browser_type` / `browser_fill_form` / `browser_snapshot` / `browser_take_screenshot` | 「支援分頁」→ 點擊下一頁按鈕，確認表格更新 |
+| UI 檢查 | `browser_snapshot` → AI 分析 | 「表格顯示正確欄位」→ 讀取無障礙樹檢查欄位 |
+| 等待非同步 | `browser_wait_for` | 「搜尋結果載入」→ 等待文字出現 |
+| 表單填寫 | `browser_fill_form` | 「表單驗證」→ 批次填入所有欄位 |
+| 前端錯誤 | `browser_console_messages` | 「頁面無 JS 錯誤」→ 檢查 console |
 | 資料驗證 | API + UI 交叉比對 | 「統計數據一致」→ API 回傳值與頁面顯示比對 |
+
+> 上表工具名為 playwright plugin 提供之短名，實際完整工具名前綴為 `mcp__plugin_playwright_playwright__`（如 `mcp__plugin_playwright_playwright__browser_click`）。
 
 **Bash 模式工具對照：**
 
@@ -201,7 +188,7 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 **產品模式增強**：有 product_id 時，驗證計畫建構可參考：
 - 頁面導航地圖 → 精確的 URL 路徑和選單路徑
 - 常用 Selector → 優先使用已知穩定的 selector
-- i18n 對照表 → 用翻譯文字定位元素（見 `references/verify-i18n.md`）
+- i18n 對照表 → 用翻譯文字定位元素（見 plugin 根目錄 `references/verify-i18n.md`，相對 SKILL.md 為 `../../references/`）
 - 特殊操作 Recipe → CKEditor、SweetAlert2 等元件的操作方式
 - API 格式 → 精確驗證回傳格式（如 Spring Page 的 content/totalElements/size/number）
 
@@ -237,15 +224,15 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 
 MCP 的 `--autoConnect` 會自動連接本機 Chrome，不需手動處理連線。
 
-使用 `list_pages` 列出所有開啟的分頁，智慧匹配目標 URL：
+使用 `browser_tabs`（`action: list`）列出所有開啟的分頁，智慧匹配目標 URL：
 
 1. 使用者透過參數指定的 URL
 2. 從 `arch.md` 或 `spec.md` 推斷的頁面路徑（如 `/admin/xxx`）
 3. 包含 `localhost` 的分頁
 
-匹配後使用 `select_page` 切換到目標分頁。
+匹配後使用 `browser_tabs`（`action: select`）切換到目標分頁。
 
-找不到 → 提示使用者在 Chrome 開啟目標頁面，然後重新 `list_pages`。
+找不到 → 提示使用者在 Chrome 開啟目標頁面，然後重新 `browser_tabs`（`action: list`）。
 
 #### Bash 模式
 
@@ -266,7 +253,7 @@ $CDP list
 1. 讀取 E2E repo 的 `tests/verify-map.json` 匹配映射檔
 2. 對每個驗收條件，嘗試匹配 mappings[*].condition
 3. 有匹配 → `PROFILE={profile} npx playwright test {file}` 直接跑測試
-4. 無匹配 → 退回 MCP 模式（步驟 5 原流程）
+4. 無匹配 → 退回 MCP 模式（見『逐條驗證』一節原流程）
 5. 收集 JSON 結果 + 截圖 → 轉換成 verify.md 條目
 
 Profile 選擇：讀取 E2E repo 的 `tests/config/profile-*.js`，提取 name + baseUrl 顯示給使用者選擇。
@@ -293,7 +280,7 @@ verify-map.json 格式：
 - 依序對每條驗收條件執行驗證
 - 各類型（API / UI 操作 / UI 檢查 / 表單）用對應工具
 - Selector 失敗走 6 級 fallback 並記錄到 Layer 1 記憶
-- 每步驟後判斷是否值得記憶（Step 5.5）
+- 每步驟後判斷是否值得記憶（見『記憶記錄判斷』一節）
 
 ### 5.5 記憶記錄判斷（每步驟後）
 
@@ -322,7 +309,7 @@ mkdir -p .spec/{slug}/evidence
 
 將驗證過程中的截圖複製到 `.spec/{slug}/screenshots/`，API 測試的完整請求/回應存入 `.spec/{slug}/evidence/`：
 
-**MCP 模式**：`take_screenshot` 回傳截圖內容，直接儲存。
+**MCP 模式**：`browser_take_screenshot` 回傳截圖內容，直接儲存。
 
 **Bash 模式**：
 ```bash
@@ -347,7 +334,7 @@ Evidence 命名規則：`verify-{序號}-request.txt`、`verify-{序號}-respons
 | 驗證日期 | {YYYY-MM-DD} |
 | 環境 | {localhost:8080 或使用者指定} |
 | 模式 | {完整 / api-only / manual / recheck} |
-| 驗證工具 | {chrome-devtools-mcp / cdp.mjs} |
+| 驗證工具 | {Playwright MCP / cdp.mjs} |
 
 ## 統計
 
@@ -412,7 +399,7 @@ response_lines: 42
 ```markdown
 ### [{日期}] 驗收驗證
 - **模式**：{完整/api-only/manual/recheck}
-- **工具**：{chrome-devtools-mcp / cdp.mjs}
+- **工具**：{Playwright MCP / cdp.mjs}
 - **結果**：✅ {N} / ⚠️ {N} / ❌ {N} / ⏭️ {N} / 👤 {N}
 - **報告**：verify.md
 ```
@@ -519,6 +506,16 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 
 ---
 
+## 何時不用
+
+本 skill 專責「透過瀏覽器逐條驗證 .spec/ 驗收條件」，以下情境不屬此範圍：
+- 驗證程式改動是否生效（非瀏覽器驗收）→ 改用內建 `/verify`
+- 宣稱完成前的一般驗證 → 改用 `superpowers:verification-before-completion`
+- 驗證 SQL 語法對不對 → 直接檢查語法，非本 skill 職責
+- 審查程式碼品質/邏輯 → 改用 `/plan-review`
+
+---
+
 ## Gotchas
 
 - **Playwright snapshot 是 accessibility tree**：`browser_snapshot` 回傳的是無障礙樹，隱藏的 `<input type="hidden">`、純裝飾的 `<div>` 不可見。需要查 DOM 時用 `browser_evaluate` 執行 `document.querySelector()`。
@@ -542,7 +539,7 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 ## 邊界情況
 
 - **無驗收條件**：提示使用者手動輸入，或建議先執行 `/plan-spec`
-- **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @anthropic-ai/mcp-server-playwright@latest`）
+- **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @playwright/mcp@latest`）
 - **Playwright 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
 - **minimax-docx 和 python-docx 皆不可用**：step 10 提供三選一（安裝 python-docx / 安裝 .NET / 跳過報告），不直接中斷流程
 - **python-docx 安裝失敗**（如無 pip、磁碟滿）：顯示錯誤訊息，提示使用者手動安裝 `python3 -m pip install python-docx`，或改選安裝 .NET

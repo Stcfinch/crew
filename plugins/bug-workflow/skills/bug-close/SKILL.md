@@ -1,6 +1,6 @@
 ---
 name: bug-close
-description: 修復 Bug 後，從 Git diff 自動擷取修復細節並更新 Notion 頁面。當使用者提到「結案」、「關閉 bug」、「bug 完成」、「bug-close」、「修完了」時觸發此 Skill。
+description: 修復 Bug 後從 Git diff 自動擷取修復細節並更新 Notion 任務追蹤頁面（僅限 bug 型任務）。當使用者輸入 /bug-close，或提到「關閉 bug」、「bug 結案並補修復細節」時觸發此 Skill。
 ---
 
 # Bug Close — 結案並自動補齊修復細節
@@ -9,22 +9,12 @@ description: 修復 Bug 後，從 Git diff 自動擷取修復細節並更新 Not
 
 ---
 
-## 設定檔
-
-執行前依序檢查以下路徑，讀取第一個找到的設定檔：
-1. `~/.claude-company/bug-workflow-config.md`（公司環境）
-2. `~/.claude/bug-workflow-config.md`（個人環境）
-
-若都不存在，提示使用者先執行 `/bug-setup`。
-
----
-
 ## 前置條件
 
 - 已使用 `/bug-start` 建立 Bug 條目（Notion「任務追蹤工具」中有狀態為「進行中」的 🐞 錯誤條目）
 - 修復程式碼已 commit
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
 
 ---
 
@@ -50,7 +40,7 @@ git diff HEAD~1..HEAD
 
 若使用者指定 commit 範圍（如 `HEAD~3..HEAD`），使用指定的範圍。
 
-### 1.5 Merge 引導（Feature Branch → DEV）
+### 2. Merge 引導（Feature Branch → DEV）
 
 結案前，若偵測到修復在 feature branch 上進行，引導使用者 merge 回開發分支。
 
@@ -103,7 +93,7 @@ git diff HEAD~1..HEAD
      若要啟用自動 merge 引導，請在專案設定中新增 dev_branch。
   ```
 
-### 2. 搜尋對應的 Bug 條目
+### 3. 搜尋對應的 Bug 條目
 
 搜尋 Notion「任務追蹤工具」（Data Source ID 見設定檔）中符合條件的條目：
 
@@ -118,7 +108,7 @@ git diff HEAD~1..HEAD
 3. 若有多個候選 → 列出清單讓使用者選擇
 4. 若無候選 → 提示使用者先用 `/bug-start` 建立
 
-### 2.5 退出驗證門檻
+### 4. 退出驗證門檻
 
 結案前執行 4 項檢查，確保修復品質達標：
 
@@ -143,7 +133,7 @@ git diff HEAD~1..HEAD
 
 若 C1 為 WARN → 目標狀態選項中移除「已完成」，只能選「測試中」。
 
-### 3. 互動式補充資訊
+### 5. 互動式補充資訊
 
 詢問使用者（若未在初始輸入中提供）：
 
@@ -151,7 +141,7 @@ git diff HEAD~1..HEAD
 2. **根因說明**：一句話描述為什麼會發生（例如：「employees 表的 status 欄位被誤設為 99 導致查詢不到」）
 3. **目標狀態**：`測試中`（預設）或 `已完成`
 
-### 4. 產出修復摘要
+### 6. 產出修復摘要
 
 根據 git diff 自動產出以下內容：
 
@@ -159,7 +149,7 @@ git diff HEAD~1..HEAD
 **修改說明**：根據 diff 內容，以分層架構摘要（如 Java 專案的 Controller / Service / DAO 層）
 **修改後程式碼**：擷取關鍵的程式碼變更片段（不超過 50 行）
 
-### 5. 更新 Notion Bug 頁面
+### 7. 更新 Notion Bug 頁面
 
 使用 `notion-update-page` 更新條目：
 
@@ -187,7 +177,7 @@ git diff HEAD~1..HEAD
    - 修復 Commit = commit hash + message
    - 修復分支 = branch 名稱
 
-### 6. 同步到知識庫
+### 8. 同步到知識庫
 
 在「Bug 知識庫」資料庫建立一筆精簡條目（Data Source ID 見設定檔）：
 
@@ -211,7 +201,7 @@ git diff HEAD~1..HEAD
 
 若設定檔中「Bug 知識庫」ID 為空，則跳過此步驟。
 
-### 6.5 學習捕捉
+### 9. 學習捕捉
 
 AI 分析本次 bug 的根因、修復和調查過程，判斷是否有可複用的洞察。
 
@@ -260,13 +250,13 @@ mkdir -p ~/.claude-company/bug-workflow/learnings
 
 若目錄不存在，首次使用時自動建立。
 
-### 7. 回傳結果
+### 10. 回傳結果
 
 向使用者回傳：
 - 更新後的 Notion 頁面連結
 - 變更摘要（修改了幾個檔案、根因分類、目前狀態）
 - 知識庫條目連結（若有同步）
-- Merge 結果（若 Step 1.5 執行了 merge）：「已合併 feature/xxx → {dev_branch}」
+- Merge 結果（若「Merge 引導」步驟執行了 merge）：「已合併 feature/xxx → {dev_branch}」
 - 提示後續操作：
   ```
   Bug 已結案！後續事項：
@@ -278,6 +268,17 @@ mkdir -p ~/.claude-company/bug-workflow/learnings
 
 ---
 
+## 何時不用
+
+close 組 —— 本 skill 只結 bug 型任務；feature/.spec 任務結案用 /plan-close。
+
+- feature/.spec 任務結案 → 用 `/plan-close`
+- 尚未修完、只想中途補調查資訊 → 用 `/bug-update`
+- Jira 單結案（非 Notion bug 流程）→ 用 jira MCP（`mcp-atlassian`）或 `jira-from-pm`
+- 未建立 Notion bug 條目就想結案 → 先執行 `/bug-start`
+
+---
+
 ## Gotchas
 
 - **update_content 找不到區塊標題**：如果使用者手動修改過 Notion 頁面（例如把「🧠 根因分析」改成「根因分析」），`update_content` 的搜尋模式會匹配失敗。遇到這種情況，改用 `replace_content` 重寫整個頁面內容（先讀取現有內容合併）。
@@ -285,7 +286,7 @@ mkdir -p ~/.claude-company/bug-workflow/learnings
 - **知識庫 Tags 推測容易偏離**：自動推測 Tags 時，Claude 傾向選太多標籤。限制最多 3 個，優先選與 bug 直接相關的模組標籤（如「推播」、「排程」），避免選泛用標籤（如「API」、「效能」除非確實是那類問題）。
 - **commit 範圍判斷**：使用者可能在修 bug 過程中穿插了不相關的 commit（如 merge commit）。若 `git log --oneline -10` 中混有非修復用途的 commit，應先確認正確範圍再擷取 diff，不要盲目用 `HEAD~1..HEAD`。
 - **難易度判斷閾值偏保守**：「≤3 檔案且 ≤50 行 → 普通」的規則在重構型修復（改很多檔但每個只改一行）時會誤判為困難。若 diff 中大部分是 import 變更或 rename，應降級為「普通」。
-- **Merge 引導是建議不是強制**：Step 1.5 的 merge 引導可以跳過。有些場景使用者會在其他工具（如 GitLab MR）做 merge，不需要在 CLI 操作。
+- **Merge 引導是建議不是強制**：「Merge 引導」步驟可以跳過。有些場景使用者會在其他工具（如 GitLab MR）做 merge，不需要在 CLI 操作。
 - **dev_branch 跨 plugin 讀取**：Merge 引導需要讀取 feature-workflow 的設定檔取得 `dev_branch`，但 bug-close 是 bug-workflow 的 skill。讀取失敗時顯示簡化提示，不阻擋流程。
 - **Merge 衝突不自動解決**：衝突屬於需要人類判斷的操作，遇到衝突時暫停結案流程，等使用者解決後重新執行 `/bug-close`。
 - **不自動 push**：merge 完成後不自動執行 `git push`，因為 push 會影響遠端共享狀態，需使用者明確操作。

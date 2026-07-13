@@ -1,6 +1,6 @@
 ---
 name: plan-review
-description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/效能），完成後互相分享發現並交叉審查，產出審查報告寫入 .spec/ 目錄。當使用者提到「plan-review」、「程式碼審查」、「code review」、「Agent Teams 審查」時觸發此 Skill。
+description: 以 Agent Teams 3 人並行審查 .spec 任務的程式碼（邏輯/品質/效能）並交叉審查，報告寫入 .spec/ 目錄。當使用者輸入 /plan-review，或提到「Agent Teams 程式碼審查」、「plan-review 審查」時觸發此 Skill。
 ---
 
 # plan-review — Agent Teams 程式碼審查
@@ -22,15 +22,13 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/效能�
 > 💡 plan-review 從 .spec/ 和程式碼檔案讀取所有輸入，不依賴對話歷史。
 >    若剛執行完 /plan-build，建議先 /clear 再執行，確保有足夠 context 空間。
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 ---
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-review 專用」+ `boundaries.md` 「plan-review」段落。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-review 專用」＋ `../../references/boundaries.md`「plan-review」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -247,6 +245,17 @@ Leader 收集所有 Reviewer 的發現（含交叉分享結果），彙整寫入
   • 修正問題後再次 /plan-review
   • /plan-close   — 結案並同步 Notion
 ```
+
+---
+
+## 何時不用
+
+分工邊界：本 skill 專責 CREW `.spec` 任務的 Agent Teams 多角色交叉審查，其餘審查需求請改用下列指令。
+
+- 一般 diff code review → 內建 `/code-review` 或 `codex`
+- Java 最佳實務審查 → 個人 `java-code-review`
+- 提交前驗證需求覆蓋 → `superpowers:requesting-code-review`
+- 安全掃描 → `/plan-security`；架構設計建議 → 個人 `java-design-advisor`
 
 ---
 

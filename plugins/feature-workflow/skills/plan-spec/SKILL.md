@@ -1,6 +1,6 @@
 ---
 name: plan-spec
-description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API。當使用者提到「plan-spec」、「技術規格」、「規格書」、「spec」時觸發此 Skill。
+description: 產出技術規格書寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者輸入 /plan-spec，或提到「產出技術規格書」、「.spec 規格書」時觸發此 Skill。
 ---
 
 # plan-spec — 技術規格書（零 Notion 呼叫）
@@ -11,7 +11,7 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ## 前置條件
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 - 適用類型：**Feature**
 - 前置檔案：`README.md`（由 `/plan-start` 建立）
@@ -22,7 +22,7 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ### 1. 定位活躍任務 + 讀取專案上下文
 
-參照 `references/plan-common.md`。
+參照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）。
 
 ### 2. 產出技術規格
 
@@ -66,7 +66,7 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ### 3. 一致性驗證 + 更新日誌
 
-參照 `references/plan-common.md`。
+參照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）。
 
 ### 4. 規格確認迴圈（必須執行）
 
@@ -107,6 +107,15 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
   • /plan       — 完整規劃（自動串接 spec → db → arch）
   • /plan-build — Agent Teams 產生程式碼（需先完成架構設計）
 ```
+
+---
+
+## 何時不用
+
+- 需要完整規劃（spec + db + arch）→ 改用 /plan
+- 需要資料庫設計 → 改用 /plan-db；需要架構設計 → 改用 /plan-arch
+- 規劃前想先探索想法 → 改用 /plan-explore
+- 想查機器規格，或讀取既有的 API spec → 非本 skill 範圍
 
 ---
 

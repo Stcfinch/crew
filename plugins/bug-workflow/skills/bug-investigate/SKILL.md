@@ -1,6 +1,6 @@
 ---
 name: bug-investigate
-description: 假說驅動的 Bug 根因調查 — 自動收集證據、模式比對、假說驗證，全程同步更新 Notion。當使用者提到「bug-investigate」、「調查 bug」、「查原因」、「根因分析」、「investigate」時觸發此 Skill。
+description: 假說驅動的 CREW Bug 根因調查 —— 自動收集證據、模式比對、假說驗證，全程同步 Notion 任務追蹤。當使用者輸入 /bug-investigate，或提到「調查 bug 根因」、「CREW bug 根因分析」時觸發此 Skill。
 ---
 
 # bug-investigate — 假說驅動根因調查
@@ -18,19 +18,7 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「bug-investigate 專用」+ `boundaries.md` 「bug-investigate」段落。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
-
----
-
-## 設定檔
-
-執行前依序檢查以下路徑，讀取第一個找到的設定檔：
-1. `~/.claude-company/bug-workflow-config.md`（公司環境）
-2. `~/.claude/bug-workflow-config.md`（個人環境）
-
-若都不存在，提示使用者先執行 `/bug-setup`。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「bug-investigate 專用」＋ `../../references/boundaries.md`「bug-investigate」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -39,7 +27,7 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 - 已使用 `/bug-start` 建立 Bug 條目（Notion 有「進行中」的 🐞 錯誤）
 - 或使用者直接描述 bug 症狀（此時先執行 /bug-start 再進入調查）
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
 
 ---
 
@@ -57,17 +45,7 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 
 ### 1. 定位目標 Bug
 
-與 `/bug-update` 相同邏輯：
-
-1. 從設定檔讀取「任務追蹤工具」Data Source ID，精確查詢該資料庫
-2. 使用 `notion-search` 搭配 `data_source_url: collection://{任務追蹤工具 Data Source ID}` 搜尋：
-   - 狀態為「進行中」
-   - 任務類型包含「🐞 錯誤」
-3. 同時取得 Git Repo 識別碼（從 `git remote get-url origin` 解析），用於輔助篩選同一專案下的 Bug
-4. Git branch 匹配 → 自動選定
-5. 多個候選 → 列出選擇
-
-選定後使用 `notion-fetch` 讀取頁面完整內容。
+與 `/bug-update` 相同邏輯：參照 plugin 根目錄 `references/locate-bug.md`（相對 SKILL.md 為 `../../references/`）。
 
 若使用 `--resume`：讀取已有的「調查過程」區塊，從中斷點繼續。
 
@@ -111,33 +89,11 @@ git log --oneline -5 -- <affected-file>
 git diff HEAD~5..HEAD -- <affected-file>
 ```
 
-#### 2.3 環境狀態
+#### 2.3–2.5 環境狀態／知識庫搜尋／學習搜尋
 
-```bash
-git branch --show-current
-git status --short
-```
+與 `/bug-start` 共用收集指令，參照 plugin 根目錄 `references/evidence-collection.md`（相對 SKILL.md 為 `../../references/`）「共用收集項目」段。
 
-#### 2.4 知識庫搜尋
-
-搜尋 Notion Bug 知識庫中同專案的歷史 Bug：
-
-- 用 `notion-search` 搭配 Bug 知識庫 Data Source ID
-- 關鍵字：從 bug 描述和 stacktrace 擷取核心詞
-- 若有匹配 → 讀取歷史根因和解法，作為調查線索
-
-#### 2.5 學習搜尋
-
-搜尋本地學習檔案中的相關記錄：
-
-```bash
-LEARN_FILE="$HOME/.claude-company/bug-workflow/learnings/{project-slug}.jsonl"
-if [ -f "$LEARN_FILE" ]; then
-  grep -i "<keywords>" "$LEARN_FILE" | tail -5
-fi
-```
-
-若有匹配的歷史學習 → 顯示：「歷史學習：{insight}（{date}，confidence {N}/10）」
+本 skill 專屬差異：2.4 知識庫搜尋的關鍵字來源為「bug 描述和 stacktrace 擷取核心詞」（比 bug-start 的標題關鍵字更廣）；2.5 學習搜尋取 `tail -5`（bug-start 取 `tail -3`），且若有匹配的歷史學習 → 除了最後寫入 Notion 之外，AI 應立即顯示：「歷史學習：{insight}（{date}，confidence {N}/10）」，讓使用者在調查當下就看到，不必等到 Notion 寫入才知道。
 
 #### 2.6 寫入 Notion
 
@@ -145,7 +101,7 @@ fi
 
 **重要**：使用 `update_content` 前，必須先 `notion-fetch` 取得現有內容，將新內容附加到現有內容後面再寫回，避免覆蓋。
 
-寫入格式：
+寫入格式：標題為「### [HH:mm] 自動收集的證據」，先列本 skill 專屬的「錯誤 Log」「最近變更」，再接 `references/evidence-collection.md`「共用 Notion 寫入格式」段的三段共用區塊（環境狀態／歷史參考／歷史學習）：
 
 ```markdown
 ### [HH:mm] 自動收集的證據
@@ -158,22 +114,14 @@ fi
 **最近變更**（3 天內）：
 - {commit hash} {message}（{affected files}）
 
-**環境狀態**：
-- 分支：{branch}
-- 未提交變更：{N} 個檔案
-
-**歷史參考**：
-- {類似 bug 標題}：{根因摘要}（{日期}）
-
-**歷史學習**：
-- {insight}（confidence {N}/10）
+（接續共用區塊：環境狀態／歷史參考／歷史學習，見 references/evidence-collection.md）
 ```
 
 ### 3. Phase 2：模式比對
 
-AI 根據收集到的證據，比對已知 bug 模式表（`references/bug-patterns.md`）。
+AI 根據收集到的證據，比對已知 bug 模式表（plugin 根目錄 `references/bug-patterns.md`，相對 SKILL.md 為 `../../references/`）。
 
-讀取 `references/bug-patterns.md` 的 7 種模式定義，將證據中的症狀逐一比對：
+讀取 plugin 根目錄 `references/bug-patterns.md`（相對 SKILL.md 為 `../../references/`）的 7 種模式定義，將證據中的症狀逐一比對：
 
 ```
 依據證據比對結果：
@@ -390,6 +338,15 @@ Bug 調查完成！
   • /bug-investigate --resume — 繼續調查（有新線索時）
   • /bug-update <新線索>      — 補充新發現的資訊
 ```
+
+---
+
+## 何時不用
+
+- 非 CREW、未建 Notion 任務的一般除錯 → 個人 `investigate` skill 或 `superpowers:systematic-debugging`
+- 根因已確認、要開始修 → `/bug-fix`
+- 只把新證據補進既有頁面 → `/bug-update`
+- CREW 環境本身為何不能用 → `/crew-doctor`
 
 ---
 

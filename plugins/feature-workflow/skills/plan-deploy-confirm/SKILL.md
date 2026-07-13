@@ -1,6 +1,6 @@
 ---
 name: plan-deploy-confirm
-description: 部署 SQL 執行回報 — DBA 或執行者在實際跑完 deploy.sql 後，用此指令勾選每筆執行狀態並寫回 Notion「🚀 部署狀態」區塊，補上 plan-close 後沒有的執行回流機制，避免 Notion 永遠顯示「未執行」。當使用者提到「plan-deploy-confirm」、「確認部署」、「SQL 執行回報」、「deploy 完成」、「DBA 確認」時觸發此 Skill。
+description: 部署 SQL 執行回報 —— 實際跑完 deploy.sql 後勾選每筆執行狀態並寫回 Notion「部署狀態」區塊，補上 plan-close 後的執行回流。當使用者輸入 /plan-deploy-confirm，或提到「deploy.sql 執行回報」、「DBA 確認部署」時觸發此 Skill。
 ---
 
 # plan-deploy-confirm — 部署 SQL 執行回報
@@ -14,9 +14,7 @@ description: 部署 SQL 執行回報 — DBA 或執行者在實際跑完 deploy.
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-deploy-confirm 專用」+ `boundaries.md` 「plan-deploy-confirm」段落。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-deploy-confirm 專用」＋ `../../references/boundaries.md`「plan-deploy-confirm」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -38,6 +36,8 @@ description: 部署 SQL 執行回報 — DBA 或執行者在實際跑完 deploy.
 - Notion 條目已存在且含「🚀 部署狀態」可寫入區塊（plan-close 會自動建立）
 - 設定檔含「任務追蹤工具」資料庫 ID
 
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
+
 ---
 
 ## 流程
@@ -48,7 +48,9 @@ description: 部署 SQL 執行回報 — DBA 或執行者在實際跑完 deploy.
 
 **本地**：掃 `.spec/*/` 含 `deploy.sql` 且 README.md 標示 `status: 已結案` 的任務。
 
-**Notion**（更新鮮）：用 `notion-search` 搜尋同 Git Repo 下狀態為「已結案」、含「🚀 部署狀態」區塊但部署狀態為「待執行」的條目。
+**Notion**（更新鮮）：用 `notion-search` 搜尋同一 Git Repo 下、頁面含「🚀 部署狀態」區塊且該區塊仍有「待執行」項的條目。
+
+> 注意：Notion「狀態」欄位（合法值僅 未開始/進行中/測試中/已完成，無「已結案」）**不作為**此搜尋的過濾條件——plan-close 依情境可能將狀態標為「測試中」或「已完成」，與本地 README `status: 已結案` 是兩套獨立語意。以「🚀 部署狀態含待執行」判斷最可靠。
 
 合併後呈現：
 
@@ -162,7 +164,7 @@ SQL：
 
 每次回報新增一段，舊紀錄保留。
 
-### 7. 更新 .spec/ 與回傳
+### 7. 更新 .spec/
 
 更新 `.spec/{slug}/log.md`：
 
@@ -174,7 +176,7 @@ SQL：
 - Notion 已同步：🔗 {頁面連結}
 ```
 
-回傳：
+### 8. 回傳結果
 
 ```
 ✅ 部署回報已寫回 Notion
@@ -216,10 +218,19 @@ SQL：
 
 | 操作 | 呼叫 |
 |------|------|
-| 搜尋待回報任務（步驟 1） | 1-2 次 |
+| 搜尋待回報任務（見『定位待回報任務』一節） | 1-2 次 |
 | 讀取目標頁面（取得區塊 ID） | 1 次 |
 | 更新「🚀 部署狀態」區塊 | 1-2 次 |
 | 總計 | **3-5 次** |
+
+---
+
+## 何時不用
+
+- 產出 deploy.sql / 任務結案 → `/plan-close`
+- 未結案的中途同步 → `/plan-sync`
+- 一般部署完成通知 → 非本 skill
+- 實際執行 SQL 異動 → 由 DBA / 使用者執行，本 skill 只回報狀態
 
 ---
 

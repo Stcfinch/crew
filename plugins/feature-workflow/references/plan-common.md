@@ -135,6 +135,37 @@
 
 ---
 
+## 本地檔案 ↔ Notion 區塊對應表
+
+供 `/plan-close`、`/plan-sync` 共用，決定 `.spec/{slug}/` 下每個本地檔案要寫入頁面的哪個 Notion 區塊。
+
+**Feature 類型**：
+
+| 檔案 | Notion 區塊 |
+|------|------------|
+| spec.md | 📐 技術規格 |
+| db.md | 🗄️ 資料庫設計 |
+| arch.md | 🏗️ 架構設計 |
+| deploy-checklist.md | 🚀 上線前置作業 |
+| deploy.sql | 🗄️ 資料庫設計 → 「部署 SQL」子區塊 |
+| files.md | 📁 程式碼清單 |
+| review.md | 📋 程式碼審查（插入於「📝 開發日誌」前） |
+| verify.md | 🧪 驗證報告（插入於「📋 程式碼審查」後、「📝 開發日誌」前） |
+| log.md | 📝 開發日誌（附加） |
+
+**Bug 類型**：
+
+| 檔案 | Notion 區塊 |
+|------|------------|
+| investigation.md | 🔍 調查過程 |
+| root-cause.md | 🧠 根因分析 |
+| fix.md | ✅ 修復方案 |
+| log.md | 📝 經驗教訓（附加） |
+
+> 使用差異各 Skill 自行說明：`/plan-close` 是批次同步「所有」存在的檔案（另需初始化「🚀 部署狀態」追蹤區塊，見該 skill 5-2a）；`/plan-sync` 只同步使用者選定的項目，且不建立「🚀 部署狀態」區塊。
+
+---
+
 ## deploy-checklist.md 格式規範
 
 ### 檔案路徑

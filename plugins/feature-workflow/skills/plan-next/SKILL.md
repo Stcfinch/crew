@@ -1,6 +1,6 @@
 ---
 name: plan-next
-description: 智慧推薦當前任務的下一步指令。讀取 .spec/{slug}/ 既有檔案、Git 狀態、verify.md 結果，判斷流程位置並建議下一個 /plan-* 或 /bug-* 指令。當使用者提到「plan-next」、「下一步」、「接下來」、「next step」、「該做什麼」、「what's next」時觸發此 Skill。
+description: 智慧推薦 CREW 當前任務下一步 —— 讀 .spec/{slug}/ 檔案、Git 狀態、verify.md 判斷流程位置並建議下一個 /plan-* 或 /bug-* 指令。當使用者輸入 /plan-next，或提到「CREW 下一步指令」、「這個 spec 接下來做什麼」時觸發此 Skill。
 ---
 
 # plan-next — 智慧推薦下一步
@@ -15,8 +15,7 @@ description: 智慧推薦當前任務的下一步指令。讀取 .spec/{slug}/ �
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-next 專用」+ `boundaries.md` 「plan-next」段落。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-next 專用」＋ `../../references/boundaries.md`「plan-next」段。
 
 ---
 
@@ -119,13 +118,21 @@ description: 智慧推薦當前任務的下一步指令。讀取 .spec/{slug}/ �
 
 ---
 
+## 何時不用
+
+- 一般對話「接下來呢」→ 非 skill，直接回答
+- 看任務清單 → /plan-status
+- 瀏覽規劃內容 → /plan-browse
+
+---
+
 ## Gotchas
 
 - **`.spec/{slug}/README.md` 缺失**：若任務目錄存在但 README 缺 → 視為 plan-start 未完成，推薦重跑 `/plan-start --resume`
 - **verify.md 解析失敗**：若摘要段落格式變動 → 退回「verify.md 存在但狀態不明」處理，推薦 `/plan-review`
 - **多階段並進**：使用者可能跳過某步（如 DB_REQUIRED=false 跳 plan-db），按決策表第一匹配規則處理即可，不視為缺失
 - **bug 類型任務**：本 skill 主要服務 feature 任務；bug 流程的下一步建議由 `/bug-investigate` / `/bug-fix` 內建邏輯處理，不在本 skill 範圍
-- **任務已 close**：若 README 內 `status: closed` → 不推薦任何指令，提示「任務已結案，可用 /plan-start 開新任務」
+- **任務已 close**：若 `_index.md` 中該任務列於「已完成」區段（`/plan-close` 的『更新 _index.md 與 README.md status』一節會將任務從「進行中」移至此區段）→ 不推薦任何指令，提示「任務已結案，可用 /plan-start 開新任務」
 
 ---
 

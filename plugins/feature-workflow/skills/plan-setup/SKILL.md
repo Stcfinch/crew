@@ -1,6 +1,6 @@
 ---
 name: plan-setup
-description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯入 bug-workflow 共用 ID、設定專案對應與技術棧、可選安裝獨立 Agent。當使用者提到「plan-setup」、「setup」、「設定 workflow」、「初始化」時觸發此 Skill。
+description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資料庫、匯入 bug-workflow 共用 ID、設定專案對應與技術棧、可選裝獨立 Agent。當使用者輸入 /plan-setup，或提到「設定 feature workflow」、「初始化 feature workflow」時觸發此 Skill。
 ---
 
 # plan-setup — Workflow 首次設定
@@ -20,7 +20,7 @@ description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯�
 
 ### 1. 決定設定目錄位置並檢查是否已存在
 
-> **設定解析邏輯**：詳見 `references/config-resolver.md`。
+> **設定解析邏輯**：詳見 plugin 根目錄 `references/config-resolver.md`（相對 SKILL.md 為 `../../references/`）。
 
 **設定目錄路徑規則**：
 
@@ -32,7 +32,7 @@ description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯�
 3. 若全部不存在 → 統一使用 `~/.claude/feature-workflow/`（若使用者已有 `~/.claude-company/feature-workflow/`，提示手動執行 `mv ~/.claude-company/feature-workflow ~/.claude/feature-workflow` 遷移，不自動搬），**不詢問使用者選擇路徑**，直接建立
 4. 若新格式已存在 → 詢問使用者要「重新設定」還是「更新專案對應」
 
-**`/plan-setup --migrate`**：強制從舊格式遷移到新階層式目錄，遷移步驟見 `references/config-resolver.md`「舊格式遷移」段落。
+**`/plan-setup --migrate`**：強制從舊格式遷移到新階層式目錄，遷移步驟見 plugin 根目錄 `references/config-resolver.md`（相對 SKILL.md 為 `../../references/`）「舊格式遷移」段落。
 
 ### 2. 檢查並匯入 bug-workflow 共用 ID
 
@@ -46,7 +46,7 @@ description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯�
 3. 擷取「專案對應」表 → 作為基礎，後續補充技術棧欄位
 4. 向使用者顯示匯入結果
 
-若未找到 → 進入步驟 3 完整設定。
+若未找到 → 進入「偵測 Notion 資料庫」一節完整設定。
 
 ### 3. 偵測 Notion 資料庫
 
@@ -89,7 +89,7 @@ description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯�
    - 若找不到工作區頁面 → **退回原流程**（詢問要建立在哪個 Notion 頁面下）
 
 2. 參照本 plugin 的共用模版：
-   `references/db-templates.md`「D. 功能設計庫」
+   plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「D. 功能設計庫」
 3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**）
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 使用 `notion-update-data-source` 補上「專案資料庫」Relation：
@@ -118,7 +118,7 @@ description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯�
 
 #### 3-4. 更新工作區頁面（追加功能設計庫）
 
-若步驟 3-2 有建立或偵測到功能設計庫，且工作區頁面存在（`workspace_page_id` 有值）：
+若「搜尋『功能設計庫』」一節有建立或偵測到功能設計庫，且工作區頁面存在（`workspace_page_id` 有值）：
 
 使用 `notion-update-page` 的 `update_content`，在工作區頁面中 Bug 知識庫（`🐛`）的 linked view **前面**插入功能設計庫的 linked view：
 
@@ -155,17 +155,11 @@ description: Workflow 首次設定引導。自動偵測 Notion 資料庫、匯�
 2. 跳過（使用內建 cdp.mjs，需 Node.js 22+）
 ```
 
-若選擇安裝：
-```bash
-claude mcp add chrome-devtools --scope user -- \
-  npx chrome-devtools-mcp@latest --autoConnect
-```
-
-提示安裝後**重啟 Claude Code**。
+若選擇安裝，安裝指令與說明：plugin 根目錄 `references/mcp-install.md`（相對 SKILL.md 為 `../../references/`）「chrome-devtools-mcp」段。
 
 ### 7. 產出設定目錄
 
-以 `references/config.template.md` 為模板，建立**階層式目錄結構**：
+以 plugin 根目錄 `references/config.template.md`（相對 SKILL.md 為 `../../references/`）為模板，建立**階層式目錄結構**：
 
 ```bash
 mkdir -p {設定目錄}/stacks
@@ -180,7 +174,7 @@ mkdir -p {設定目錄}/projects
 
 從模板複製內建技術棧總表。
 
-#### 7-3. 建立專案對應檔案（若步驟 4 有新增專案）
+#### 7-3. 建立專案對應檔案（若「設定專案對應」一節有新增專案）
 
 每個專案一個檔案，寫入 `projects/{sanitized-repo-id}.md`。
 
@@ -206,6 +200,16 @@ Workflow 設定完成！
   /plan-review             — 程式碼審查
   /plan-close              — 結案
 ```
+
+---
+
+## 何時不用
+
+- 一鍵完成 bug + feature 全部設定 → 建議改用 `/crew-init`
+- 只設定 bug 側 → 建議改用 `/bug-setup`
+- 初始化程式專案 / CLAUDE.md → 建議改用內建 `/init`
+- 註冊專案 → 建議改用 `/project-add`
+- 自訂技術棧 → 建議改用 `/plan-stack`
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: plan-demo
-description: 純本地產出範例 .spec/ 任務，不依賴 Notion / Agent Teams / DB MCP，讓評估者 5 分鐘看到 CREW 完整流程效果。預設範例：新增使用者管理 API（CRUD + 簡單 DB schema）。當使用者提到「plan-demo」、「dry-run」、「示範」、「試跑」、「demo」、「評估 CREW」、「沒設 Notion 也能用」時觸發此 Skill。
+description: 純本地產出範例 .spec/ 任務，不依賴 Notion / Agent Teams / DB MCP，讓評估者快速看到 CREW 完整流程效果。當使用者輸入 /plan-demo，或提到「評估 CREW 流程」、「CREW 試跑範例」時觸發此 Skill。
 ---
 
 # plan-demo — 純本地評估模式
@@ -13,8 +13,7 @@ description: 純本地產出範例 .spec/ 任務，不依賴 Notion / Agent Team
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-demo 專用」+ `boundaries.md` 「plan-demo」段落。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-demo 專用」＋ `../../references/boundaries.md`「plan-demo」段。
 
 ---
 
@@ -194,6 +193,15 @@ Controller / Service / Repository / Entity 類別清單與介面定義。
 ```
 
 完整範本檔見 `references/demo-spec-template.md`（如未來新增該檔；目前 prompt 內 inline）。
+
+---
+
+## 何時不用
+
+- 寫 demo 頁面給客戶看 → 直接開發，非本 skill
+- 正式建立任務 → `/plan-start`
+- 完整規劃 → `/plan`
+- CREW 環境檢查 → `/crew-doctor`
 
 ---
 

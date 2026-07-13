@@ -1,6 +1,6 @@
 ---
 name: crew-doctor
-description: CREW 環境健診 — 一次性檢查所有必要與選配依賴（Node.js / Git / Notion MCP / Agent Teams env / 瀏覽器 MCP / config 完整性 / 專案註冊 / CLAUDE.md），列出綠燈、黃燈、紅燈與修法。當使用者提到「crew-doctor」、「健診」、「環境檢查」、「為什麼壞了」、「doctor」、「sanity check」時觸發此 Skill。
+description: CREW 環境健診 —— 一次性檢查 CREW 所有必要與選配依賴（Node/Git/Notion MCP/Agent Teams/瀏覽器 MCP/config/專案註冊/CLAUDE.md），列出綠黃紅燈與修法。當使用者輸入 /crew-doctor，或提到「CREW 環境健診」、「CREW 為什麼不能用」時觸發此 Skill。
 ---
 
 # crew-doctor — CREW 環境健診
@@ -12,8 +12,7 @@ description: CREW 環境健診 — 一次性檢查所有必要與選配依賴（
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
-> 本 skill 專用條目：`anti-rationalizations.md` 「crew-doctor 專用」+ `boundaries.md` 「crew-doctor」段落。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「crew-doctor 專用」＋ `../../references/boundaries.md`「crew-doctor」段。
 
 ---
 
@@ -118,7 +117,7 @@ CREW 環境健診摘要
 建議下一步：
   1. 安裝 Playwright 解開 plan-verify：
      claude mcp add playwright --scope user -- \
-       npx @anthropic-ai/mcp-server-playwright@latest
+       npx @playwright/mcp@latest
 ```
 
 ### 6. `--fix` 模式
@@ -191,6 +190,13 @@ CREW 環境健診摘要
 ```
 
 ---
+
+## 何時不用
+
+- 程式或測試為何壞掉（非 CREW 環境依賴）→ 個人 `investigate` skill 或 `superpowers:systematic-debugging`
+- CREW 首次設定 → `/crew-init`
+- 更新 CREW plugins → `/crew-upgrade`
+- 一般專案環境問題（非 CREW 依賴）→ 自行排查
 
 ## Gotchas
 

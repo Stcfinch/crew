@@ -1,6 +1,6 @@
 ---
 name: plan-sync
-description: 手動中途同步 .spec/ 目錄的當前進度到 Notion（含 deploy.sql 部署 SQL）。按需使用，不在常規流程中。當使用者提到「plan-sync」、「同步到 Notion」、「同步進度到 Notion」、「中途同步」時觸發此 Skill。
+description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy.sql），按需使用、不在常規流程、任務尚未結案。當使用者輸入 /plan-sync，或提到「中途同步 spec 進度」、「同步 spec 進度到 Notion」時觸發此 Skill。
 ---
 
 # plan-sync — 手動中途同步
@@ -11,11 +11,11 @@ description: 手動中途同步 .spec/ 目錄的當前進度到 Notion（含 dep
 
 ## 設定目錄
 
-依 `references/config-resolver.md` 的漸進式載入邏輯讀取設定。本 Skill 需要：
+依 plugin 根目錄 `references/config-resolver.md`（相對 SKILL.md 為 `../../references/`）的漸進式載入邏輯讀取設定。本 Skill 需要：
 - **第 1 層**：`config.md`（Notion IDs）
 - **第 2 層**：`projects/{repo-id}.md`（專案對應）
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
 
 ---
 
@@ -40,7 +40,7 @@ description: 手動中途同步 .spec/ 目錄的當前進度到 Notion（含 dep
 
 若 `notion_page_id` 為空（例如 `/plan-start` 時 Notion 建立失敗）：
 - 詢問使用者是否要補建 Notion 條目
-- 若是，執行與 `/plan-start` 步驟 5 相同的建立邏輯
+- 若是，執行與 `/plan-start` 的「建立 Notion 條目」步驟相同的建立邏輯
 - 建立後更新 README.md 的 `notion_page_id` 和 `notion_url`
 
 ### 3. 確定同步範圍
@@ -69,29 +69,7 @@ description: 手動中途同步 .spec/ 目錄的當前進度到 Notion（含 dep
 
 **4-2. 更新內容**（1 次 `notion-update-page` content）
 
-將選定的本地文件內容寫入對應 Notion 區塊。
-
-**Feature 類型的對應**：
-
-| 本地檔案 | Notion 區塊 |
-|---------|------------|
-| spec.md | 📐 技術規格 |
-| db.md | 🗄️ 資料庫設計 |
-| arch.md | 🏗️ 架構設計 |
-| deploy-checklist.md | 🚀 上線前置作業 |
-| deploy.sql | 🗄️ 資料庫設計 → 「部署 SQL」子區塊 |
-| files.md | 📁 程式碼清單 |
-| review.md | 在「📝 開發日誌」前插入「📋 程式碼審查」 |
-| log.md | 📝 開發日誌（附加） |
-
-**Bug 類型的對應**：
-
-| 本地檔案 | Notion 區塊 |
-|---------|------------|
-| investigation.md | 🔍 調查過程 |
-| root-cause.md | 🧠 根因分析 |
-| fix.md | ✅ 修復方案 |
-| log.md | 📝 經驗教訓（附加） |
+將選定的本地文件內容寫入對應 Notion 區塊。對應關係依 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）「本地檔案 ↔ Notion 區塊對應表」；本 skill 只同步使用者選定的項目，且不建立「🚀 部署狀態」區塊（該區塊僅由 `/plan-close` 初始化）。
 
 **4-3. 更新 Properties**（1 次 `notion-update-page` properties）
 
@@ -117,6 +95,16 @@ description: 手動中途同步 .spec/ 目錄的當前進度到 Notion（含 dep
 
 提示：此為中途同步，結案時請使用 /plan-close 做完整同步。
 ```
+
+---
+
+## 何時不用
+
+sync 組——本 skill 是「未結案的中途同步」；結案批次同步用 /plan-close；單一 bug 頁更新用 /bug-update。
+
+- 要結案（最終同步）→ /plan-close
+- 更新單一 bug 頁 → /bug-update
+- 部署 SQL 執行回報 → /plan-deploy-confirm
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: plan-security
-description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文感知/對抗性思維），涵蓋 OWASP Top 10、SQL Injection、XSS、權限控制、敏感資料。當使用者提到「plan-security」、「安全掃描」、「安全檢查」、「security」時觸發此 Skill。
+description: 專職安全掃描 —— CREW 三層架構（靜態規則/上下文感知/對抗性思維），涵蓋 OWASP Top 10、SQLi、XSS、權限控制、敏感資料。當使用者輸入 /plan-security，或提到「CREW 安全掃描」、「.spec 安全檢查」時觸發此 Skill。
 ---
 
 # plan-security — 安全掃描（零 Notion 呼叫）
@@ -11,7 +11,7 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 ## 前置條件
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 - 建議已執行 `/plan-build` 產生程式碼
 - 若無 plan-build 產出，可對任何已有程式碼執行
@@ -20,9 +20,7 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-security 專用」+ `boundaries.md` 「plan-security」段落。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-security 專用」＋ `../../references/boundaries.md`「plan-security」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -75,7 +73,7 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 | 規則 ID | 掃描目標 | 指令 | 嚴重度 |
 |---------|---------|------|--------|
-| L1-SQL-1 | MyBatis ${} 使用 | `grep -rn '\\$\\{' --include='*.xml' --include='*.java'` | 🔴 |
+| L1-SQL-1 | MyBatis ${} 使用 | `grep -rn -F '${' --include='*.xml' --include='*.java'`（用 `-F` 做字面字串比對；原本的正規表示式寫法會轉義過度而完全匹配不到 `${}`，pattern 調整後需以測試檔實測命中） | 🔴 |
 | L1-SQL-2 | 字串拼接 SQL | `grep -rn 'sql.*+=\|"SELECT.*"+\|"INSERT.*"+\|"UPDATE.*"+\|"DELETE.*"+'  --include='*.java'` | 🔴 |
 | L1-XSS-1 | JSP 未轉義輸出 | `grep -rn '<%=' --include='*.jsp'` 後過濾非 JSTL 使用 | 🟡 |
 | L1-XSS-2 | innerHTML / v-html | `grep -rn 'innerHTML\|v-html' --include='*.jsp' --include='*.vue' --include='*.js'` | 🟡 |
@@ -246,6 +244,17 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
   • /plan-verify  — 驗收驗證
   • /plan-close   — 結案並同步 Notion
 ```
+
+---
+
+## 何時不用
+
+本 skill 只負責對 `.spec/` 已產出程式碼做安全「掃描」，不負責實作安全功能、稽核基礎設施、審查當前分支變更或一般程式碼品質。
+
+- 設定 Spring Security 等安全功能 → 直接開發，非掃描
+- 基礎設施 / 供應鏈 / 秘密外洩稽核 → 個人 `cso` skill
+- 當前分支變更安全審查 → 內建 `/security-review`
+- 一般程式碼審查 → `/plan-review`
 
 ---
 

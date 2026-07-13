@@ -1,6 +1,6 @@
 ---
 name: bug-update
-description: 在調查 Bug 過程中，隨時將 log、SQL、判斷、截圖等資訊更新到 Notion 頁面；也支援將已結案的 Bug 重新開啟（reopen）。當使用者提到「更新 bug」、「補充 bug」、「bug-update」、「記錄調查」、「貼 log」、「reopen」、「重新開啟 bug」、「bug 復發」時觸發此 Skill。
+description: 調查 Bug 過程中隨時將 log、SQL、判斷、截圖更新到該 Bug 的 Notion 頁面，並支援重新開啟已結案 Bug。當使用者輸入 /bug-update，或提到「更新 bug 頁面」、「補充 bug 資訊」、「reopen bug」、「bug 復發」時觸發此 Skill。
 ---
 
 # bug-update — 調查過程中更新 Bug 文件 / 重新開啟已結案 Bug
@@ -11,21 +11,11 @@ description: 在調查 Bug 過程中，隨時將 log、SQL、判斷、截圖等�
 
 ---
 
-## 設定檔
-
-執行前依序檢查以下路徑，讀取第一個找到的設定檔：
-1. `~/.claude-company/bug-workflow-config.md`（公司環境）
-2. `~/.claude/bug-workflow-config.md`（個人環境）
-
-若都不存在，提示使用者先執行 `/bug-setup`。
-
----
-
 ## 前置條件
 
 - 已使用 `/bug-start` 建立 Bug 條目
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
 
 ---
 
@@ -40,22 +30,7 @@ description: 在調查 Bug 過程中，隨時將 log、SQL、判斷、截圖等�
 
 ### 1-A. 定位目標 Bug 頁面（一般更新）
 
-從設定檔讀取「任務追蹤工具」Data Source ID，精確查詢該資料庫：
-
-使用 `notion-search` 搭配 `data_source_url: collection://{任務追蹤工具 Data Source ID}` 搜尋：
-- 狀態為「進行中」
-- 任務類型包含「🐞 錯誤」
-
-同時取得 Git Repo 識別碼（從 `git remote get-url origin` 解析），用於輔助篩選同一專案下的 Bug。
-
-優先匹配邏輯：
-1. 若只有 1 筆進行中的 bug → 自動選定
-2. 若「修復分支」欄位與當前 Git branch 完全匹配 → 自動選定
-3. 若有多筆候選，優先顯示與當前 Git Repo 所屬專案相關的條目
-4. 若有多筆候選 → 列出清單讓使用者選擇
-5. 若無候選 → 提示使用者先用 `/bug-start` 建立
-
-選定後，使用 `notion-fetch` 取得頁面完整內容，以便後續 `update_content` 操作。
+參照 plugin 根目錄 `references/locate-bug.md`（相對 SKILL.md 為 `../../references/`）。選定後，使用 `notion-fetch` 取得頁面完整內容，以便後續 `update_content` 操作。
 
 ### 1-B. 定位目標 Bug 頁面（Reopen 模式）
 
@@ -76,8 +51,8 @@ Reopen 模式需要定位「測試中」或「已完成」的 Bug。
 1. 從設定檔讀取「任務追蹤工具」Data Source ID（**所有查詢都用此 ID，不做全 Workspace 搜尋**）
 2. 取得當前 Git Repo 識別碼，匹配設定檔中的專案
 3. 使用 `notion-search` 搭配 `data_source_url: collection://{任務追蹤工具 Data Source ID}`，搜尋狀態為「測試中」或「已完成」且所屬專案匹配的 Bug（按建立時間降序，最多顯示 10 筆）
-3. 若當前在修復分支上且能匹配到 Bug，將該筆標記為推薦
-4. 顯示互動式清單：
+4. 若當前在修復分支上且能匹配到 Bug，將該筆標記為推薦
+5. 顯示互動式清單：
 
 ```
 偵測到 Git Repo：TPE01P2101/LineBC
@@ -94,7 +69,7 @@ Reopen 模式需要定位「測試中」或「已完成」的 Bug。
   • 貼上 Notion 頁面連結
 ```
 
-5. 根據使用者回應：
+6. 根據使用者回應：
    - 數字 → 選定對應的 Bug
    - Notion URL → 直接定位頁面
    - 其他文字 → 作為關鍵字重新搜尋，顯示新的結果清單
@@ -226,6 +201,18 @@ Reopen 模式需要定位「測試中」或「已完成」的 Bug。
 /bug-update reopen https://www.notion.so/abe41af9...      → 直接指定 Notion 頁面連結
 /bug-update reopen SSO登入 正式環境仍出現相同錯誤            → 關鍵字 + 復發說明一起提供
 ```
+
+---
+
+## 何時不用
+
+sync 組 —— 本 skill 只更新「單一 bug 頁面」；.spec 任務的中途同步與結案同步不在此列。
+
+- 修完要結案 → 情境是 bug 已修復要結案，建議改用 `/bug-close`
+- feature/.spec 進度中途同步 Notion → 情境是 feature/.spec 任務尚未結案的中途同步，建議改用 `/plan-sync`
+- feature/.spec 任務結案同步 Notion → 情境是 feature/.spec 任務要結案，建議改用 `/plan-close`
+- 只是貼 log 給你看、不需要寫入 Notion → 情境是不需要更新 Notion 頁面，建議直接貼上即可，無需本 skill
+- 建立新 bug → 情境是這是一個全新的 bug、尚未建立條目，建議改用 `/bug-start`
 
 ---
 

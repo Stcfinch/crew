@@ -1,6 +1,6 @@
 ---
 name: plan-explore
-description: 進入探索模式 — 思考夥伴，在規劃前或規劃中自由探索想法、調查問題、釐清需求。當使用者提到「plan-explore」、「探索」、「想一下」、「討論一下」、「分析一下」、「比較方案」、「explore」時觸發此 Skill。
+description: CREW 探索模式 —— 規劃前或規劃中的思考夥伴，自由探索想法、調查問題、釐清需求（零 Notion 呼叫）。當使用者輸入 /plan-explore，或提到「CREW 規劃前探索」、「規劃前討論需求」時觸發此 Skill。
 ---
 
 # plan-explore — 思考夥伴模式（零 Notion 呼叫）
@@ -307,6 +307,15 @@ flowchart LR
 ```
 
 但這個摘要是可選的。有時候思考本身就是價值。
+
+---
+
+## 何時不用
+
+- 一般決策 / 多角度分析 / 思維模型 → 個人 model-thinking
+- 創作前需求發散 → superpowers:brainstorming
+- 已明確要產出文件 → /plan-spec 或 /plan
+- 除錯調查 → 個人 investigate
 
 ---
 

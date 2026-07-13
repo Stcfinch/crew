@@ -1,6 +1,6 @@
 ---
 name: crew-init
-description: CREW 一鍵首次設定 — 依序執行 /bug-setup → /plan-setup → 提示 /init 與 /project-add，把首次設定 4 步流程包成一個指令。每步含跳過邏輯（已設定則略過），途中失敗可從中斷點續跑。當使用者提到「crew-init」、「一鍵設定」、「初次設定」、「首次設定」、「init crew」時觸發此 Skill。
+description: CREW 一鍵首次設定 —— 依序執行 /bug-setup → /plan-setup 並提示 /init 與 /project-add，含跳過邏輯與斷點續跑。當使用者輸入 /crew-init，或提到「CREW 一鍵設定」、「初始化 CREW」時觸發此 Skill。
 ---
 
 # crew-init — CREW 一鍵首次設定
@@ -21,8 +21,7 @@ description: CREW 一鍵首次設定 — 依序執行 /bug-setup → /plan-setup
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
-> 本 skill 專用條目：`anti-rationalizations.md` 「crew-init 專用」+ `boundaries.md` 「crew-init」段落。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「crew-init 專用」＋ `../../references/boundaries.md`「crew-init」段。
 
 ---
 
@@ -215,6 +214,16 @@ git remote get-url origin
 
 實作上 `--resume` = 跑每階段的偵測（1a/2a/3a/4a），自動跳過 ✅，從第一個未完成處執行。
 與不加 `--resume` 的差別：不加時每階段都顯示提示「即將執行 X」；加 `--resume` 時跳過提示直接執行。
+
+---
+
+## 何時不用
+
+- 只想設定 bug 側 → 改用 `/bug-setup`
+- 只想設定 feature 側 → 改用 `/plan-setup`
+- 只想註冊專案到 Notion → 改用 `/project-add`
+- 只想初始化 CLAUDE.md → 改用內建 `/init`
+- 只想做 CREW 環境檢查 → 改用 `/crew-doctor`
 
 ---
 

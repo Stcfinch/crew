@@ -1,6 +1,6 @@
 ---
 name: bug-setup
-description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、建立設定檔、設定專案對應。當使用者提到「bug-setup」、「設定 bug workflow」、「初始化 bug」時觸發此 Skill。
+description: bug-workflow 首次設定引導 —— 自動偵測 Notion 資料庫、建立設定檔、設定專案對應。當使用者輸入 /bug-setup，或提到「設定 bug workflow」、「初始化 bug workflow」時觸發此 Skill。
 ---
 
 # bug-setup — Bug Workflow 首次設定
@@ -80,8 +80,8 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 若選擇建立：
 1. **parent 設為工作區頁面**（`workspace_page_id`，不再個別詢問位置）
-2. 參照 `references/db-templates.md`「B. 任務追蹤工具」模版
-3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**，Relation 在步驟 2-4 統一補齊）
+2. 參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「B. 任務追蹤工具」模版
+3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**，Relation 在『補齊 Relation 欄位』一節統一補齊）
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 使用 `notion-create-view` 依序建立 4 個 Views：所有任務（table）、依狀態（board）、我的任務（table）、核對清單（list）
 6. 記錄 Data Source ID
@@ -106,7 +106,7 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 若選擇建立：
 1. **parent 設為工作區頁面**（`workspace_page_id`，不再個別詢問位置）
-2. 參照 `references/db-templates.md`「C. Bug 知識庫」模版
+2. 參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「C. Bug 知識庫」模版
 3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**）
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 記錄 Data Source ID
@@ -155,7 +155,7 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 若選擇建立：
 1. **parent 設為工作區頁面**（`workspace_page_id`，不再個別詢問位置）
-2. 參照 `references/db-templates.md`「A. 專案資料庫」模版
+2. 參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「A. 專案資料庫」模版
 3. 使用 `notion-create-database` 建立資料庫，名稱為「專案資料庫」，包含上表所有欄位
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 使用 `notion-create-view` 建立 2 個 Views：預設 Table View（Name 降序 + 狀態篩選）、List View
@@ -165,7 +165,7 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 若本次有**新建**任何資料庫，需在所有資料庫建立完成後補上跨庫 Relation。
 
-參照 `references/db-templates.md`「第二輪：補上 Relation 欄位」，使用 `notion-update-data-source` 執行：
+參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「第二輪：補上 Relation 欄位」，使用 `notion-update-data-source` 執行：
 
 1. **任務追蹤工具** → 專案資料庫：若任務追蹤工具缺少「專案資料庫」Relation
    ```
@@ -198,7 +198,7 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 所有資料庫建立完成後，更新工作區頁面內容，將所有資料庫以 inline linked view 嵌入。
 
-參照 `references/db-templates.md`「E. CREW 工作區頁面」模板，使用 `notion-update-page` 的 `replace_content` 寫入：
+參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「E. CREW 工作區頁面」模板，使用 `notion-update-page` 的 `replace_content` 寫入：
 
 ```markdown
 <database data-source-url="collection://{任務DS_ID}" inline="true" icon="✅">任務追蹤工具</database>
@@ -276,14 +276,9 @@ pwd
   專案名稱：（必填）
   Git Repo：TPE01P2101/LineBC（已自動偵測，Enter 確認或修改）
   狀態：進行中（預設）
-
-以下欄位可現在填寫，或稍後在 Notion 頁面補充：
-  SIT 主機：（如 10.0.1.100，多台用換行分隔）
-  UAT 主機：（如 10.0.1.200）
-  正式環境主機：（如 AP1: 10.0.1.10, AP2: 10.0.1.11, WEB: 10.0.1.20）
-  部署方式：（如 WAR 部署到 Tomcat、Docker、K8s 等）
-  說明：（專案簡要描述）
 ```
+
+其餘欄位（SIT 主機／UAT 主機／正式環境主機／部署方式／說明）為通用欄位引導，參照 plugin 根目錄 `references/project-page-templates.md`（相對 SKILL.md 為 `../../references/`）「建立新專案條目－通用欄位引導」一節。
 
 自動偵測的欄位：
 - **Git Repo**：從 `git remote get-url origin` 解析為識別碼
@@ -293,7 +288,7 @@ pwd
 
 ### 4. 產出設定檔
 
-以 `references/config.template.md` 為模板，填入偵測到的 ID 與對應資訊，寫入使用者在步驟 1 選擇的路徑。
+以 plugin 根目錄 `references/config.template.md`（相對 SKILL.md 為 `../../references/`）為模板，填入偵測到的 ID 與對應資訊，寫入使用者在『決定設定檔位置並檢查是否已存在』一節選擇的路徑。
 
 **新增欄位**：在設定檔中填入「CREW 工作區」區段：
 
@@ -329,9 +324,18 @@ Bug Workflow 設定完成！
   /bug-start <問題簡述>     — 建立 Bug 條目
   /bug-update <內容>        — 更新調查資訊
   /bug-close                — 結案並同步知識庫
-  /bug-search <關鍵字>      — 搜尋過往 Bug 解法
+  /bug-investigate <關鍵字> — 假說驅動調查（含比對 Bug 知識庫過往解法）
   /bug-update reopen <Bug>  — 重新開啟已結案 Bug
 ```
+
+---
+
+## 何時不用
+
+- 想一鍵完成 bug + feature 全部設定 → 用 /crew-init
+- 只設定 feature 側 → 用 /plan-setup
+- 初始化程式專案 / git repo / CLAUDE.md → 用內建 /init 或 git
+- 註冊專案到 Notion 專案庫 → 用 /project-add
 
 ---
 

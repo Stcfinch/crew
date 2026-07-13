@@ -1,6 +1,6 @@
 ---
 name: crew-upgrade
-description: 更新 CREW plugins（bug-workflow + feature-workflow）到最新版本，顯示更新內容摘要。當使用者提到「crew-upgrade」、「更新 crew」、「update crew」、「升級 crew」、「更新 plugin」時觸發此 Skill。
+description: 更新 CREW plugins（bug-workflow + feature-workflow）到最新版本並顯示更新摘要。當使用者輸入 /crew-upgrade，或提到「更新 CREW」、「升級 CREW plugin」時觸發此 Skill。
 ---
 
 # crew-upgrade — 更新 CREW Plugins
@@ -26,9 +26,9 @@ description: 更新 CREW plugins（bug-workflow + feature-workflow）到最新�
 從 `installed_plugins.json` 讀取目前安裝的版本：
 
 ```bash
-INSTALLED_FILE="$HOME/.claude-company/plugins/installed_plugins.json"
+INSTALLED_FILE="$HOME/.claude/plugins/installed_plugins.json"
 if [ ! -f "$INSTALLED_FILE" ]; then
-  INSTALLED_FILE="$HOME/.claude/plugins/installed_plugins.json"
+  INSTALLED_FILE="$HOME/.claude-company/plugins/installed_plugins.json"
 fi
 
 if [ -f "$INSTALLED_FILE" ]; then
@@ -49,7 +49,10 @@ fi
 從 marketplace 原始碼讀取最新版本：
 
 ```bash
-MARKETPLACE_DIR="$HOME/.claude-company/plugins/marketplaces/company-marketplace"
+MARKETPLACE_DIR="$HOME/.claude/plugins/marketplaces/company-marketplace"
+if [ ! -d "$MARKETPLACE_DIR" ]; then
+  MARKETPLACE_DIR="$HOME/.claude-company/plugins/marketplaces/company-marketplace"
+fi
 if [ ! -d "$MARKETPLACE_DIR" ]; then
   echo "找不到 company-marketplace，嘗試 git fetch..."
 fi
@@ -159,9 +162,18 @@ CREW 更新完成！
 
 ---
 
+## 何時不用
+
+- 更新其他 plugin（如 playwright）→ 該 plugin 管道 / claude plugin 指令
+- 更新 gstack → 個人 gstack-upgrade
+- CREW 首次設定 → /crew-init
+- CREW 環境健診 → /crew-doctor
+
+---
+
 ## Gotchas
 
-- **marketplace 原始碼路徑**：company-marketplace 的原始碼在 `~/.claude-company/plugins/marketplaces/company-marketplace/`，但安裝的 plugin cache 在 `~/.claude-company/plugins/cache/company-marketplace/`。版本比較要用 cache 中的 `installed_plugins.json`，不是原始碼。
+- **marketplace 原始碼路徑**：company-marketplace 的原始碼在 `~/.claude/plugins/marketplaces/company-marketplace/`（若不存在則 fallback 到 `~/.claude-company/plugins/marketplaces/company-marketplace/`）。已安裝版本紀錄在 `~/.claude/plugins/installed_plugins.json`（根層，非 cache/ 子目錄），版本比較要讀這個檔案，不是原始碼。
 - **`claude plugin update` 需要網路**：若 marketplace 是 GitHub repo，更新時需要 git fetch。離線環境會失敗。
 - **更新後 skill 不會立即生效**：Claude Code 在 session 啟動時載入 skill，更新後必須重啟才能使用新版本。這是 Claude Code 的限制，不是 CREW 的問題。
 - **版本比較是字串比較**：`3.5.0` vs `3.4.0` 的比較用字串排序。若版本號格式不一致（如 `3.5` vs `3.5.0`），可能判斷錯誤。統一使用三段式版本號。
