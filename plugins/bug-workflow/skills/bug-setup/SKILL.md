@@ -117,29 +117,13 @@ description: bug-workflow 首次設定引導 —— 自動偵測 Notion 資料�
 
 **情境 A：找到現有資料庫**
 
-用 `notion-fetch` 取得資料庫結構，驗證並補齊欄位：
+用 `notion-fetch` 取得資料庫結構，驗證並補齊欄位。
 
-| 欄位 | 類型 | 說明 | 必要性 |
-|------|------|------|--------|
-| Name | Title | 專案名稱（顯示名稱） | 必要 |
-| Git Repo | URL | Git 遠端倉庫 URL | 必要（缺少則新增） |
-| 技術棧 | Select | scaffold 用 | 建議（缺少則詢問是否新增） |
-| 狀態 | Status | 未開始 / 進行中 / 已結束 | 建議 |
-| 程式版本 | Multi-Select | 碩網/偉康/極限/仁大/中華/客製版本 | 選用 |
-| SIT 主機 | Text | SIT 部署主機資訊 | 選用 |
-| UAT 主機 | Text | UAT 部署主機資訊 | 選用 |
-| 正式環境主機 | Text | 正式環境部署主機資訊 | 選用 |
-| 部署方式 | Text | 部署指令或流程簡述 | 選用 |
-| 本機路徑 | Text | 本地開發路徑 | 選用 |
-| JIRA | Text | JIRA 專案連結或代號 | 選用 |
-| 地址 | Text | 客戶地址或辦公室位置 | 選用 |
-| 說明 | Text | 專案簡要描述 | 選用 |
-| Created | Created Time | 建立時間（自動） | 選用 |
-| 上次編輯時間 | Last Edited Time | 最後編輯時間（自動） | 選用 |
+完整欄位清單、型態與 Select/Multi-Select 選項參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「A. 專案資料庫」Schema（權威來源）。以此對照時的必要性分級：
 
-- 必要欄位缺少 → 自動新增（使用 `notion-update-data-source`）
-- 建議欄位缺少 → 詢問使用者是否新增
-- 選用欄位缺少 → 列出可新增的欄位讓使用者勾選
+- **必要**（Name、Git Repo）：缺少 → 自動新增（使用 `notion-update-data-source`）
+- **建議**（技術棧、狀態）：缺少 → 詢問使用者是否新增
+- **選用**（其餘欄位：程式版本、SIT/UAT/正式環境主機、部署方式、本機路徑、JIRA、地址、說明、Created、上次編輯時間）：缺少 → 列出可新增的欄位讓使用者勾選
 
 > 不移動既有資料庫。
 
@@ -156,7 +140,7 @@ description: bug-workflow 首次設定引導 —— 自動偵測 Notion 資料�
 若選擇建立：
 1. **parent 設為工作區頁面**（`workspace_page_id`，不再個別詢問位置）
 2. 參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「A. 專案資料庫」模版
-3. 使用 `notion-create-database` 建立資料庫，名稱為「專案資料庫」，包含上表所有欄位
+3. 使用 `notion-create-database` 建立資料庫，名稱為「專案資料庫」，包含該模版 Schema 所有欄位
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 使用 `notion-create-view` 建立 2 個 Views：預設 Table View（Name 降序 + 狀態篩選）、List View
 6. 記錄 Data Source ID

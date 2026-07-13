@@ -329,6 +329,8 @@ Evidence 命名規則：`verify-{序號}-request.txt`、`verify-{序號}-respons
 
 寫入 `.spec/{slug}/verify.md`：
 
+> 完整範例（涵蓋 PASS / FAIL / SKIP / MANUAL 四種狀態的理想產出格式）：見 [`examples/verify-report-sample.md`](./examples/verify-report-sample.md)。
+
 ```markdown
 # 驗證報告
 
@@ -527,17 +529,11 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 - **httpOnly cookie 無法用 document.cookie 取得**：session cookie 常設為 httpOnly。API 驗證若需登入態，用 Playwright 的 `browser_evaluate` 中 `fetch()` 直接發請求。
 - **Playwright 和 chrome-devtools 的截圖路徑不同**：Playwright 的 `browser_take_screenshot` 存到指定路徑；chrome-devtools 的 `take_screenshot` 回傳 base64。收集截圖到 `.spec/{slug}/screenshots/` 時需注意。
 - **--deep 模式需要 chrome-devtools-mcp**：若未安裝，`--deep` 功能不可用但不影響標準驗證。提示使用者安裝。
-- **Word 報告雙引擎**：優先使用 minimax-docx（需 .NET SDK ≥ 8.0），fallback 為 python-docx（需 Python 3）。前置檢查時偵測可用引擎，step 10 時讓使用者選擇。兩種引擎共用同一份 Markdown 報告內容。
-- **python-docx 臨時安裝**：使用 `pip install --target /tmp/crew-docx-env` 安裝到隔離目錄，不污染使用者的 Python 環境。`PYTHONPATH` 在呼叫時臨時注入。
-- **截圖嵌入 Word**：minimax-docx 接受 Markdown 格式的圖片引用（`![](path)`）；python-docx generator 接受 `--screenshots` 目錄參數，自動嵌入。兩者皆使用相對於 `.spec/{slug}/` 的相對路徑。
-- **封面資訊快取**：`report-config.md` 儲存於 `~/.claude/feature-workflow/` 下，跨專案共用（公司名稱、作者）。首次產出報告時建立。
-- **Evidence 檔案是原始內容**：`evidence/` 目錄下的檔案包含未遮蔽的 Cookie、Token 等敏感資訊，僅供內部技術驗證。Word 報告中的「測試紀錄」段落會自動遮蔽。若報告需交付客戶，不要連同 `evidence/` 目錄一起交付。
-- **回應截斷以行數判斷**：使用 `wc -l` 計算回應行數。JSON 先經過 `python3 -m json.tool` pretty-print 後再計算行數，避免單行 JSON 永遠不觸發截斷。
-- **多次 API 呼叫的 evidence**：若單條驗收項目涉及多次 curl（如 POST 建立 + GET 查詢驗證），每次呼叫各自產出 evidence 檔案，子序號用 a/b/c 區分。
-- **Excel 報告需 Node.js 環境**：`verify-excel-generator.js` 需要 Node.js runtime。若環境無 Node.js，Excel 報告無法產出但不影響其他功能。
 - **記憶檔格式演進**：`verify-memory.md` 的格式可能隨版本演進。讀取時做好 fallback（舊格式仍可讀取，缺少的段落視為空）。
 - **產品知識庫的 i18n 對照表可能不完整**：`products/{id}.md` 只列出高頻操作的翻譯。若驗證時遇到未列出的文字，退回穩定 selector 策略。
 - **Layer 2 記憶需 git push 才能共享**：專案的 `.claude/verify-memory.md` 需要使用者自行 commit 和 push，plugin 不會自動操作 git。
+
+> Word/Excel 報告相關 Gotchas（雙引擎切換、python-docx 臨時安裝、截圖嵌入、封面資訊快取、Evidence 遮蔽、回應截斷判斷、多次 API evidence、Excel 需 Node.js）：見 `phases/word-report.md`「Gotchas（報告相關）」段。
 
 ---
 
@@ -546,20 +542,14 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 - **無驗收條件**：提示使用者手動輸入，或建議先執行 `/plan-spec`
 - **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @playwright/mcp@latest`）
 - **Playwright 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
-- **minimax-docx 和 python-docx 皆不可用**：step 10 提供三選一（安裝 python-docx / 安裝 .NET / 跳過報告），不直接中斷流程
-- **python-docx 安裝失敗**（如無 pip、磁碟滿）：顯示錯誤訊息，提示使用者手動安裝 `python3 -m pip install python-docx`，或改選安裝 .NET
-- **`report-config.md` 不存在**：首次詢問所有封面欄位，產出後自動建立
-- **截圖路徑無效**：報告中標註「（截圖不可用）」，不阻斷報告產出
-- **verify.md 無 `human_steps` 註解**（舊版 verify.md）：從 verify.md 技術內容反推操作敘述（降級模式）
-- **verify.md 無 `evidence` 區塊**（舊版或 UI-only）：Word 報告該項「測試紀錄」顯示「（本次驗證未記錄測試過程詳情）」
 - **evidence 檔案寫入失敗**（磁碟空間不足等）：記錄警告，verify.md 中標註 `evidence_error: {原因}`，不阻斷驗證流程
-- **回應非 UTF-8**（如二進位下載）：evidence 檔案存為 `.bin`，Word 報告測試紀錄顯示「（二進位回應，{N} bytes，請見 evidence 檔案）」
 - **--api-only 跳過 UI**：UI 類型標記為 SKIP，不影響其他驗證
 - **截圖失敗**：記錄警告，不阻斷流程
 - **verify.md 已存在**：詢問覆蓋或追加（--recheck 自動合併）
 - **驗證過程中使用者中斷**：已完成的結果仍寫入 verify.md（部分報告）
 - **products/{id}.md 不存在**：product_id 指向的檔案不存在時，降為通用模式，顯示 WARN
 - **verify-memory.md 格式損壞**：解析失敗時跳過記憶載入，不阻擋驗證流程
-- **ExcelJS 安裝失敗**：跳過 Excel 報告產出，顯示安裝指引
 - **verify-map.json 不存在**（--e2e 模式）：全部退回 MCP 模式
 - **E2E 測試失敗**（--e2e 模式）：對應條件標記 FAIL，記錄測試錯誤訊息
+
+> Word/Excel 報告相關邊界情況（雙引擎皆不可用、python-docx 安裝失敗、report-config.md 不存在、截圖路徑無效、舊版 verify.md 相容、回應非 UTF-8、ExcelJS 安裝失敗）：見 `phases/word-report.md`「邊界情況（報告相關）」段。

@@ -71,7 +71,7 @@ description: CREW bug 修復紀律 —— 根因確認才能改（鐵律）、�
 ```
 
 - 選 1 → 執行 `git checkout <修復分支>`，繼續流程
-- 選 2 → 繼續，不改變分支
+- 選 2 → 繼續，不改變分支（分支不一致僅為引導，不阻擋流程）
 
 **修復分支無值 或 = 當前分支**：跳過，繼續原流程。
 
@@ -247,12 +247,9 @@ Bug 修復驗證完成！
 ## Gotchas
 
 - **根因分析空白的判斷**：Notion 頁面的「根因分析」區塊可能存在但內容只有模板佔位符（如「待填寫」、空白 bullet）。這種情況也算「空白」，應觸發 BLOCK。判斷標準是：去掉模板佔位符和空白行後，是否有實質內容。
-- **最小 diff 原則**：bug-fix 只修改與根因直接相關的程式碼。其他改善（如 code style、重構旁邊的邏輯）應在另一個 commit 完成，否則 revert 時會連帶。
 - **迴歸測試風格匹配**：產出的測試檔案要與專案現有測試使用相同的框架（JUnit 5 / TestNG）、assertion library（AssertJ / Hamcrest）、命名風格（`should_xxx_when_yyy` / `testXxxWhenYyy`）。先搜尋 `src/test` 目錄中的現有測試作為範本。
 - **--skip-test 的使用場景**：僅限以下情況：環境問題（如無法在本地跑測試）、設定類修復（如改 properties 檔）、純 SQL 修復（如改 DB 資料）。其他場景不應跳過。
 - **gstack browse 可用性**：不是所有環境都有安裝 gstack。先偵測 `$HOME/.claude/skills/gstack/browse/dist/browse` 是否存在且可執行，再決定是否進行 UI 驗證。
-- **update_content 語意是覆蓋不是附加**：`notion-update-page` 的 `update_content` 對同一區塊寫入時會覆蓋該區塊內容。寫入「驗證」區塊時，必須先 `notion-fetch` 取得現有內容，串接新內容後再寫回。
-- **分支檢查是引導不是強制**：『分支檢查』一節的分支不一致提示是建議性的，使用者可以選擇繼續在當前分支修復。不要因為分支不一致就 BLOCK 整個流程。
 - **dev_branch 取得路徑**：分支引導需要讀取 feature-workflow 的 `projects/{repo-id}.md`，但 bug-fix 是 bug-workflow 的 skill。需跨 plugin 讀取設定：先嘗試 `~/.claude-company/feature-workflow/projects/{repo-id}.md`，再嘗試 `~/.claude/feature-workflow/projects/{repo-id}.md`。讀取失敗時顯示通用提示。
 
 ---
@@ -267,6 +264,6 @@ Bug 修復驗證完成！
 - **gstack 不可用**：跳過 UI 驗證，在 Notion 標記「UI 驗證：⏭️ 跳過（gstack 不可用）」
 - **API 驗證服務未啟動**：跳過 API 驗證，在 Notion 標記「API 驗證：⏭️ 跳過（服務未啟動）」
 - **--verify-only 模式**：跳過『修復建議』一節，直接從『修復後驗證』一節開始
-- **diff 過大（> 500 行）**：提示使用者確認是否所有變更都與 bug 修復相關，遵循最小 diff 原則
+- **diff 過大（> 500 行）**：提示使用者確認是否所有變更都與 bug 修復相關，遵循最小 diff 原則；其他改善（如 code style、重構旁邊的邏輯）應在另一個 commit 完成，否則 revert 時會連帶
 - **Bug 無「修復分支」欄位**：『分支檢查』一節跳過
 - **feature-workflow 未安裝或未設定**：分支引導顯示通用提示，不阻擋流程

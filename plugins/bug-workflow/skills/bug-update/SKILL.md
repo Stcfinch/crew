@@ -196,6 +196,8 @@ Reopen 模式需要定位「測試中」或「已完成」的 Bug。
 /bug-update reopen SSO登入 正式環境仍出現相同錯誤            → 關鍵字 + 復發說明一起提供
 ```
 
+更多範例（Log 貼入、SQL 查詢記錄、初步判斷、Reopen 復發紀錄的完整輸入輸出對照）見 `examples/update-patterns.md`（相對 SKILL.md 同層目錄）。
+
 ---
 
 ## 何時不用

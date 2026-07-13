@@ -194,23 +194,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 #### 8b 比對設定檔模式
 
-將收集到的檔案路徑逐一比對以下模式清單：
-
-| 模式 | 說明 |
-|------|------|
-| `**/mapper/**/*.xml` | MyBatis Mapper XML |
-| `**/web.xml` | Web 應用設定 |
-| `**/application.properties` | Spring Boot 設定 |
-| `**/application*.yml` | Spring Boot YAML 設定 |
-| `**/pom.xml` | Maven 依賴 |
-| `**/build.gradle` | Gradle 依賴 |
-| `**/Dockerfile` | Docker 映像 |
-| `**/docker-compose*.yml` | Docker Compose |
-| `**/*nginx*.conf` | Nginx 設定 |
-| `**/scheduler/**` | 排程設定 |
-| `**/*.cron` | Cron 設定 |
-| `**/logback*.xml` | Log 設定 |
-| `**/ehcache*.xml` | 快取設定 |
+將收集到的檔案路徑逐一比對設定檔模式清單（13 種常見設定檔模式，如 mapper XML、application.yml、Dockerfile 等）。完整模式表見 plugin 根目錄 `references/deploy-sql-guide.md`（相對 SKILL.md 為 `../../references/deploy-sql-guide.md`）。
 
 #### 8c 更新 deploy-checklist.md
 
@@ -247,37 +231,9 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
 
 1. 讀取 spec.md 判斷區塊的 `DB_REQUIRED` 值
 2. 若為 `false` 或不存在 → 跳過
-3. 若為 `true` 或 `insert-only`：
-   a. 檢查 `.spec/{slug}/deploy.sql` 是否存在
-   b. 若不存在 → 掃描 spec.md、db.md、arch.md 中的 SQL 程式碼區塊（` ```sql `），擷取 INSERT / UPDATE / CREATE / ALTER 語句
-   c. 組合成完整的 deploy.sql，格式如下：
+3. 若為 `true` 或 `insert-only` → 檢查 `.spec/{slug}/deploy.sql` 是否存在；不存在則掃描 spec.md、db.md、arch.md 的 SQL 程式碼區塊擷取 SQL 語句、組合成完整 deploy.sql 並寫入，同時在 files.md 追加「部署 SQL」區段
 
-```sql
--- ================================================================
--- {功能名稱} — 部署 SQL
--- 執行時機：上線部署時，程式更版後執行
--- 資料庫：{DB 名稱}
--- ================================================================
-
--- Step 1：{描述}
-{SQL}
-
--- Step 2：{描述}
-{SQL}
-
--- ================================================================
--- 驗證 SQL（執行後確認）
--- ================================================================
-{驗證 SQL}
-
--- ================================================================
--- 回滾 SQL（如需還原）
--- ================================================================
--- {回滾 SQL，預設註解}
-```
-
-   d. 寫入 `.spec/{slug}/deploy.sql`
-   e. 在 files.md 追加「部署 SQL」區段
+完整模板格式（含 Step 分段、驗證 SQL、回滾 SQL 註解區段）見 plugin 根目錄 `references/deploy-sql-guide.md`（相對 SKILL.md 為 `../../references/deploy-sql-guide.md`）。
 
 #### 驗證結果分級
 
