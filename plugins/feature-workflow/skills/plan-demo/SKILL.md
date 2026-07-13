@@ -13,8 +13,7 @@ description: 純本地產出範例 .spec/ 任務，不依賴 Notion / Agent Team
 
 ## 紀律護欄
 
-> 通用紀律見 plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`）。
-> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`「plan-demo 專用」+ `references/boundaries.md`「plan-demo」段落（相對 SKILL.md 為 `../../references/`）。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-demo 專用」＋ `../../references/boundaries.md`「plan-demo」段。
 
 ---
 

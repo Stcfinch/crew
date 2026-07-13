@@ -11,16 +11,6 @@ description: 調查 Bug 過程中隨時將 log、SQL、判斷、截圖更新到�
 
 ---
 
-## 設定檔
-
-執行前依序檢查以下路徑，讀取第一個找到的設定檔：
-1. `~/.claude-company/bug-workflow-config.md`（公司環境）
-2. `~/.claude/bug-workflow-config.md`（個人環境）
-
-若都不存在，提示使用者先執行 `/bug-setup`。
-
----
-
 ## 前置條件
 
 - 已使用 `/bug-start` 建立 Bug 條目
@@ -40,22 +30,7 @@ description: 調查 Bug 過程中隨時將 log、SQL、判斷、截圖更新到�
 
 ### 1-A. 定位目標 Bug 頁面（一般更新）
 
-從設定檔讀取「任務追蹤工具」Data Source ID，精確查詢該資料庫：
-
-使用 `notion-search` 搭配 `data_source_url: collection://{任務追蹤工具 Data Source ID}` 搜尋：
-- 狀態為「進行中」
-- 任務類型包含「🐞 錯誤」
-
-同時取得 Git Repo 識別碼（從 `git remote get-url origin` 解析），用於輔助篩選同一專案下的 Bug。
-
-優先匹配邏輯：
-1. 若只有 1 筆進行中的 bug → 自動選定
-2. 若「修復分支」欄位與當前 Git branch 完全匹配 → 自動選定
-3. 若有多筆候選，優先顯示與當前 Git Repo 所屬專案相關的條目
-4. 若有多筆候選 → 列出清單讓使用者選擇
-5. 若無候選 → 提示使用者先用 `/bug-start` 建立
-
-選定後，使用 `notion-fetch` 取得頁面完整內容，以便後續 `update_content` 操作。
+參照 plugin 根目錄 `references/locate-bug.md`（相對 SKILL.md 為 `../../references/`）。選定後，使用 `notion-fetch` 取得頁面完整內容，以便後續 `update_content` 操作。
 
 ### 1-B. 定位目標 Bug 頁面（Reopen 模式）
 

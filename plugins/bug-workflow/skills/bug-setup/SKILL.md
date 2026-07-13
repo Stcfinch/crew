@@ -276,14 +276,9 @@ pwd
   專案名稱：（必填）
   Git Repo：TPE01P2101/LineBC（已自動偵測，Enter 確認或修改）
   狀態：進行中（預設）
-
-以下欄位可現在填寫，或稍後在 Notion 頁面補充：
-  SIT 主機：（如 10.0.1.100，多台用換行分隔）
-  UAT 主機：（如 10.0.1.200）
-  正式環境主機：（如 AP1: 10.0.1.10, AP2: 10.0.1.11, WEB: 10.0.1.20）
-  部署方式：（如 WAR 部署到 Tomcat、Docker、K8s 等）
-  說明：（專案簡要描述）
 ```
+
+其餘欄位（SIT 主機／UAT 主機／正式環境主機／部署方式／說明）為通用欄位引導，參照 plugin 根目錄 `references/project-page-templates.md`（相對 SKILL.md 為 `../../references/`）「建立新專案條目－通用欄位引導」一節。
 
 自動偵測的欄位：
 - **Git Repo**：從 `git remote get-url origin` 解析為識別碼

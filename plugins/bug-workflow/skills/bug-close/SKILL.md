@@ -9,16 +9,6 @@ description: 修復 Bug 後從 Git diff 自動擷取修復細節並更新 Notion
 
 ---
 
-## 設定檔
-
-執行前依序檢查以下路徑，讀取第一個找到的設定檔：
-1. `~/.claude-company/bug-workflow-config.md`（公司環境）
-2. `~/.claude/bug-workflow-config.md`（個人環境）
-
-若都不存在，提示使用者先執行 `/bug-setup`。
-
----
-
 ## 前置條件
 
 - 已使用 `/bug-start` 建立 Bug 條目（Notion「任務追蹤工具」中有狀態為「進行中」的 🐞 錯誤條目）

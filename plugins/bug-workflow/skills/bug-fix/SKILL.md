@@ -18,19 +18,7 @@ description: CREW bug 修復紀律 —— 根因確認才能改（鐵律）、�
 
 ## 紀律護欄
 
-> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`）（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`（相對 SKILL.md 為 `../../references/`）「bug-fix 專用」+ plugin 根目錄 `references/boundaries.md`（相對 SKILL.md 為 `../../references/`）「bug-fix」段落。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
-
----
-
-## 設定檔
-
-執行前依序檢查以下路徑，讀取第一個找到的設定檔：
-1. `~/.claude-company/bug-workflow-config.md`（公司環境）
-2. `~/.claude/bug-workflow-config.md`（個人環境）
-
-若都不存在，提示使用者先執行 `/bug-setup`。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「bug-fix 專用」＋ `../../references/boundaries.md`「bug-fix」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -57,17 +45,7 @@ description: CREW bug 修復紀律 —— 根因確認才能改（鐵律）、�
 
 ### 1. 定位目標 Bug
 
-與 `/bug-update` 相同邏輯：
-
-1. 從設定檔讀取「任務追蹤工具」Data Source ID，精確查詢該資料庫
-2. 使用 `notion-search` 搭配 `data_source_url: collection://{任務追蹤工具 Data Source ID}` 搜尋：
-   - 狀態為「進行中」
-   - 任務類型包含「🐞 錯誤」
-3. 同時取得 Git Repo 識別碼（從 `git remote get-url origin` 解析），用於輔助篩選同一專案下的 Bug
-4. Git branch 匹配 → 自動選定
-5. 多個候選 → 列出選擇
-
-選定後使用 `notion-fetch` 讀取頁面完整內容。
+與 `/bug-update` 相同邏輯：參照 plugin 根目錄 `references/locate-bug.md`（相對 SKILL.md 為 `../../references/`）。
 
 ### 2. 分支檢查
 

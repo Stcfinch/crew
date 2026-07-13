@@ -9,16 +9,6 @@ description: 在 Notion 任務追蹤工具建立 Bug 條目並填入標準化模
 
 ---
 
-## 設定檔
-
-執行前依序檢查以下路徑，讀取第一個找到的設定檔：
-1. `~/.claude-company/bug-workflow-config.md`（公司環境）
-2. `~/.claude/bug-workflow-config.md`（個人環境）
-
-若都不存在，提示使用者先執行 `/bug-setup` 完成初始設定。
-
----
-
 ## 流程
 
 > **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
@@ -176,34 +166,17 @@ git remote get-url origin 2>/dev/null || echo ""
 
 #### 收集項目
 
-1. **最近 commit**：
+1. **最近 commit**（bug-start 專屬）：
    ```bash
    git log --oneline -5
    ```
    寫入「調查過程 > 最近變更」
 
-2. **當前環境狀態**：
-   ```bash
-   git branch --show-current
-   git status --short
-   ```
-   寫入「調查過程 > 環境狀態」
-
-3. **知識庫快速搜尋**：
-   用 bug 標題關鍵字搜尋 Notion Bug 知識庫（Data Source ID 見設定檔）
-   若有相似案例 → 寫入「調查過程 > 歷史參考」
-   格式：「[{日期}] {類似 bug 標題} — 根因：{摘要}」
-
-4. **學習快速搜尋**：
-   ```bash
-   LEARN_FILE="$HOME/.claude-company/bug-workflow/learnings/{project-slug}.jsonl"
-   [ -f "$LEARN_FILE" ] && grep -i "<keywords>" "$LEARN_FILE" | tail -3
-   ```
-   若有匹配 → 寫入「調查過程 > 歷史學習」
+2–4. **環境狀態／知識庫快速搜尋／學習快速搜尋**：與 `/bug-investigate` 共用收集指令，參照 plugin 根目錄 `references/evidence-collection.md`（相對 SKILL.md 為 `../../references/`）「共用收集項目」段。
 
 #### 寫入格式
 
-使用 `notion-update-page` 的 `update_content`，在「調查過程」區塊寫入：
+使用 `notion-update-page` 的 `update_content`，在「調查過程」區塊寫入，標題為「### [HH:mm] 初始環境快照」，先列本 skill 專屬的「最近 5 筆 commit」，再接 `references/evidence-collection.md`「共用 Notion 寫入格式」段的三段共用區塊：
 
 ```markdown
 ### [HH:mm] 初始環境快照
@@ -213,20 +186,12 @@ git remote get-url origin 2>/dev/null || echo ""
 - def5678 feat: 新增推播統計 API
 - ...
 
-**環境狀態**：
-- 分支：{branch}
-- 未提交變更：{N} 個檔案
-
-**歷史參考**：
-- [{日期}] {類似 bug 標題} — 根因：{摘要}
-
-**歷史學習**：
-- {insight}（confidence {N}/10，{date}）
+（接續共用區塊：環境狀態／歷史參考／歷史學習，見 references/evidence-collection.md）
 ```
 
 #### 不阻擋流程
 
-任何收集步驟失敗（如知識庫未設定、不在 Git repo 中、學習檔案不存在）都靜默跳過，不影響 bug-start 的主流程。
+參照 `references/evidence-collection.md`「不阻擋流程」段。
 
 ### 8. 自動關聯來源 Feature
 

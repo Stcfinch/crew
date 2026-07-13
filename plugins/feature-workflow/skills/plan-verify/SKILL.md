@@ -32,32 +32,17 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 
 ### Playwright MCP（必要，預設驗證工具）
 
-```bash
-claude mcp add playwright --scope user -- \
-  npx @playwright/mcp@latest
-```
-
-Microsoft 維護，支援截圖、元素互動、表單填寫、頁面導航。安裝後**重啟 Claude Code**。
+> 安裝指令與說明：plugin 根目錄 `references/mcp-install.md`（相對 SKILL.md 為 `../../references/`）「Playwright MCP」段。
 
 ### chrome-devtools-mcp（選配，--deep 模式除錯用）
 
-```bash
-claude mcp add chrome-devtools --scope user -- \
-  npx chrome-devtools-mcp@latest --autoConnect
-```
-
-Google 官方維護，提供 console log 串流、network 請求分析、performance trace。
-可連接已登入的 Chrome session，適合需要 SSO/VPN 的內部系統。
-
-> 💡 兩者定位不同可同時安裝：Playwright 做 QA 驗收，chrome-devtools 做除錯診斷。
+> 安裝指令與說明：plugin 根目錄 `references/mcp-install.md`（相對 SKILL.md 為 `../../references/`）「chrome-devtools-mcp」段。
 
 ---
 
 ## 紀律護欄
 
-> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`；通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`（相對 SKILL.md 為 `../../references/`）「plan-verify 專用」+ plugin 根目錄 `references/boundaries.md`（相對 SKILL.md 為 `../../references/`）「plan-verify」段落。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-verify 專用」＋ `../../references/boundaries.md`「plan-verify」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 

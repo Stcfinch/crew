@@ -69,29 +69,7 @@ description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy
 
 **4-2. 更新內容**（1 次 `notion-update-page` content）
 
-將選定的本地文件內容寫入對應 Notion 區塊。
-
-**Feature 類型的對應**：
-
-| 本地檔案 | Notion 區塊 |
-|---------|------------|
-| spec.md | 📐 技術規格 |
-| db.md | 🗄️ 資料庫設計 |
-| arch.md | 🏗️ 架構設計 |
-| deploy-checklist.md | 🚀 上線前置作業 |
-| deploy.sql | 🗄️ 資料庫設計 → 「部署 SQL」子區塊 |
-| files.md | 📁 程式碼清單 |
-| review.md | 在「📝 開發日誌」前插入「📋 程式碼審查」 |
-| log.md | 📝 開發日誌（附加） |
-
-**Bug 類型的對應**：
-
-| 本地檔案 | Notion 區塊 |
-|---------|------------|
-| investigation.md | 🔍 調查過程 |
-| root-cause.md | 🧠 根因分析 |
-| fix.md | ✅ 修復方案 |
-| log.md | 📝 經驗教訓（附加） |
+將選定的本地文件內容寫入對應 Notion 區塊。對應關係依 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）「本地檔案 ↔ Notion 區塊對應表」；本 skill 只同步使用者選定的項目，且不建立「🚀 部署狀態」區塊（該區塊僅由 `/plan-close` 初始化）。
 
 **4-3. 更新 Properties**（1 次 `notion-update-page` properties）
 

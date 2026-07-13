@@ -28,9 +28,7 @@ description: 以 Agent Teams 3 人並行審查 .spec 任務的程式碼（邏輯
 
 ## 紀律護欄
 
-> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`；通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`「plan-review 專用」+ `references/boundaries.md`「plan-review」段落（相對 SKILL.md 為 `../../references/`）。
-> 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-review 專用」＋ `../../references/boundaries.md`「plan-review」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 

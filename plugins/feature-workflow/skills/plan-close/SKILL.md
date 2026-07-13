@@ -38,30 +38,7 @@ Bug 類型還需 bug-workflow 設定檔（`~/.claude-company/bug-workflow-config
 
 ### 2. 收集所有本地設計文件
 
-掃描 `.spec/{slug}/` 目錄，列出所有可用文件：
-
-**Feature 類型**：
-
-| 檔案 | Notion 區塊 | 存在？ |
-|------|------------|--------|
-| spec.md | 📐 技術規格 | ✅/❌ |
-| db.md | 🗄️ 資料庫設計 | ✅/❌ |
-| arch.md | 🏗️ 架構設計 | ✅/❌ |
-| deploy-checklist.md | 🚀 上線前置作業 | ✅/❌ |
-| deploy.sql | 🗄️ 資料庫設計 → 「部署 SQL」子區塊 ＋ 🚀 部署狀態（初始化，每筆預設「待執行」） | ✅/❌ |
-| files.md | 📁 程式碼清單 | ✅/❌ |
-| review.md | 📋 程式碼審查（新增區塊） | ✅/❌ |
-| verify.md | 🧪 驗證報告（新增區塊） | ✅/❌ |
-| log.md | 📝 開發日誌 | ✅/❌ |
-
-**Bug 類型**：
-
-| 檔案 | Notion 區塊 | 存在？ |
-|------|------------|--------|
-| investigation.md | 🔍 調查過程 | ✅/❌ |
-| root-cause.md | 🧠 根因分析 | ✅/❌ |
-| fix.md | ✅ 修復方案 | ✅/❌ |
-| log.md | 📝 經驗教訓 | ✅/❌ |
+掃描 `.spec/{slug}/` 目錄，依 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）「本地檔案 ↔ Notion 區塊對應表」逐一檢查每個檔案是否存在（✅/❌）。deploy.sql 額外對應「🚀 部署狀態」區塊（初始化，每筆預設「待執行」，見下方 5-2a）。
 
 ### 3. 從 Git 擷取變更摘要
 

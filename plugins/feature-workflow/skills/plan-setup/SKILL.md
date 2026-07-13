@@ -155,13 +155,7 @@ description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資�
 2. 跳過（使用內建 cdp.mjs，需 Node.js 22+）
 ```
 
-若選擇安裝：
-```bash
-claude mcp add chrome-devtools --scope user -- \
-  npx chrome-devtools-mcp@latest --autoConnect
-```
-
-提示安裝後**重啟 Claude Code**。
+若選擇安裝，安裝指令與說明：plugin 根目錄 `references/mcp-install.md`（相對 SKILL.md 為 `../../references/`）「chrome-devtools-mcp」段。
 
 ### 7. 產出設定目錄
 
