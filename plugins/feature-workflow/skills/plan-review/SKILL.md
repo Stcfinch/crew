@@ -22,14 +22,14 @@ description: 以 Agent Teams 3 人並行審查程式碼（邏輯/品質/效能�
 > 💡 plan-review 從 .spec/ 和程式碼檔案讀取所有輸入，不依賴對話歷史。
 >    若剛執行完 /plan-build，建議先 /clear 再執行，確保有足夠 context 空間。
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 ---
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-review 專用」+ `boundaries.md` 「plan-review」段落。
+> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`；通用紀律 — 反合理化、動作邊界、鐵律）。
+> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`「plan-review 專用」+ `references/boundaries.md`「plan-review」段落（相對 SKILL.md 為 `../../references/`）。
 > 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---

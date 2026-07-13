@@ -12,8 +12,8 @@ description: CREW 環境健診 — 一次性檢查所有必要與選配依賴（
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
-> 本 skill 專用條目：`anti-rationalizations.md` 「crew-doctor 專用」+ `boundaries.md` 「crew-doctor」段落。
+> 通用紀律見 plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`）。
+> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`「crew-doctor 專用」+ `references/boundaries.md`「crew-doctor」段落（相對 SKILL.md 為 `../../references/`）。
 
 ---
 

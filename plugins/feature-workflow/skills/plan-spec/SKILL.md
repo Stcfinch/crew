@@ -11,7 +11,7 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ## 前置條件
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 - 適用類型：**Feature**
 - 前置檔案：`README.md`（由 `/plan-start` 建立）
@@ -22,7 +22,7 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ### 1. 定位活躍任務 + 讀取專案上下文
 
-參照 `references/plan-common.md`。
+參照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）。
 
 ### 2. 產出技術規格
 
@@ -66,7 +66,7 @@ description: 產出技術規格書，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ### 3. 一致性驗證 + 更新日誌
 
-參照 `references/plan-common.md`。
+參照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）。
 
 ### 4. 規格確認迴圈（必須執行）
 

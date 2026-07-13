@@ -15,8 +15,8 @@ description: 智慧推薦當前任務的下一步指令。讀取 .spec/{slug}/ �
 
 ## 紀律護欄
 
-> 通用紀律見 `references/discipline-preamble.md`。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-next 專用」+ `boundaries.md` 「plan-next」段落。
+> 通用紀律見 plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`）。
+> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`「plan-next 專用」+ `references/boundaries.md`「plan-next」段落。
 
 ---
 
@@ -125,7 +125,7 @@ description: 智慧推薦當前任務的下一步指令。讀取 .spec/{slug}/ �
 - **verify.md 解析失敗**：若摘要段落格式變動 → 退回「verify.md 存在但狀態不明」處理，推薦 `/plan-review`
 - **多階段並進**：使用者可能跳過某步（如 DB_REQUIRED=false 跳 plan-db），按決策表第一匹配規則處理即可，不視為缺失
 - **bug 類型任務**：本 skill 主要服務 feature 任務；bug 流程的下一步建議由 `/bug-investigate` / `/bug-fix` 內建邏輯處理，不在本 skill 範圍
-- **任務已 close**：若 `_index.md` 中該任務列於「已完成」區段（`/plan-close` 步驟 9 會將任務從「進行中」移至此區段）→ 不推薦任何指令，提示「任務已結案，可用 /plan-start 開新任務」
+- **任務已 close**：若 `_index.md` 中該任務列於「已完成」區段（`/plan-close` 的『更新 _index.md 與 README.md status』一節會將任務從「進行中」移至此區段）→ 不推薦任何指令，提示「任務已結案，可用 /plan-start 開新任務」
 
 ---
 

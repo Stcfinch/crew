@@ -55,8 +55,8 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-verify 專用」+ `boundaries.md` 「plan-verify」段落。
+> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`；通用紀律 — 反合理化、動作邊界、鐵律）。
+> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`（相對 SKILL.md 為 `../../references/`）「plan-verify 專用」+ plugin 根目錄 `references/boundaries.md`（相對 SKILL.md 為 `../../references/`）「plan-verify」段落。
 > 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
@@ -68,7 +68,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 ```
 1. 檢查 claude mcp list 是否含 "playwright"
    → 有 → 使用 Playwright MCP（預設）
-   → 沒有 → 進入步驟 2
+   → 沒有 → 繼續下一項檢查（chrome-devtools MCP 退回）
 
 2. 檢查 claude mcp list 是否含 "chrome-devtools"
    → 有 → 退回使用 chrome-devtools-mcp
@@ -106,7 +106,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 - `python-docx`：.NET 未安裝，python-docx 已就緒，可產出基礎排版報告
 - `python-docx（需安裝）`：兩者皆未安裝，到 step 10 時引導安裝
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 ---
 
@@ -120,7 +120,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 ### 1.5 產品偵測
 
-讀取 `projects/{repo-id}.md` 的 `product_id` 欄位（見 `references/plan-common.md` 第 4 層）。
+讀取 `projects/{repo-id}.md` 的 `product_id` 欄位（見 plugin 根目錄 `references/plan-common.md`，相對 SKILL.md 為 `../../references/`，第 4 層）。
 
 - **有 product_id** → 🟢 產品模式
   1. 讀取 `products/{product_id}.md`（頁面導航地圖、常用 Selector、i18n 對照表、特殊操作 Recipe、API 格式）
@@ -143,7 +143,7 @@ Google 官方維護，提供 console log 串流、network 請求分析、perform
 
 按以下順序載入驗證記憶，後者覆蓋前者：
 
-1. **Layer 3 產品級記憶**（若步驟 1.5 偵測到 product_id）
+1. **Layer 3 產品級記憶**（若『產品偵測』一節偵測到 product_id）
    → 讀取 `products/{product_id}-memory.md`
 2. **Layer 2 專案級記憶**
    → 讀取專案 repo 的 `.claude/verify-memory.md`（若存在）
@@ -203,7 +203,7 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 **產品模式增強**：有 product_id 時，驗證計畫建構可參考：
 - 頁面導航地圖 → 精確的 URL 路徑和選單路徑
 - 常用 Selector → 優先使用已知穩定的 selector
-- i18n 對照表 → 用翻譯文字定位元素（見 `references/verify-i18n.md`）
+- i18n 對照表 → 用翻譯文字定位元素（見 plugin 根目錄 `references/verify-i18n.md`，相對 SKILL.md 為 `../../references/`）
 - 特殊操作 Recipe → CKEditor、SweetAlert2 等元件的操作方式
 - API 格式 → 精確驗證回傳格式（如 Spring Page 的 content/totalElements/size/number）
 
@@ -268,7 +268,7 @@ $CDP list
 1. 讀取 E2E repo 的 `tests/verify-map.json` 匹配映射檔
 2. 對每個驗收條件，嘗試匹配 mappings[*].condition
 3. 有匹配 → `PROFILE={profile} npx playwright test {file}` 直接跑測試
-4. 無匹配 → 退回 MCP 模式（步驟 5 原流程）
+4. 無匹配 → 退回 MCP 模式（見『逐條驗證』一節原流程）
 5. 收集 JSON 結果 + 截圖 → 轉換成 verify.md 條目
 
 Profile 選擇：讀取 E2E repo 的 `tests/config/profile-*.js`，提取 name + baseUrl 顯示給使用者選擇。
@@ -295,7 +295,7 @@ verify-map.json 格式：
 - 依序對每條驗收條件執行驗證
 - 各類型（API / UI 操作 / UI 檢查 / 表單）用對應工具
 - Selector 失敗走 6 級 fallback 並記錄到 Layer 1 記憶
-- 每步驟後判斷是否值得記憶（Step 5.5）
+- 每步驟後判斷是否值得記憶（見『記憶記錄判斷』一節）
 
 ### 5.5 記憶記錄判斷（每步驟後）
 

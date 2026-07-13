@@ -11,7 +11,7 @@ description: 一次性批次同步 .spec/ 設計文件到 Notion（含 deploy.sq
 
 ## 設定目錄
 
-依 `references/config-resolver.md` 的漸進式載入邏輯讀取設定。本 Skill 需要：
+依 plugin 根目錄 `references/config-resolver.md`（相對 SKILL.md 為 `../../references/`）的漸進式載入邏輯讀取設定。本 Skill 需要：
 - **第 1 層**：`config.md`（Notion IDs — 功能設計庫 / 專案資料庫）
 - **第 2 層**：`projects/{repo-id}.md`（專案對應、技術棧 ID）
 - **第 3 層**：`stacks/{id}.md`（技術棧定義，用於設計庫同步）
@@ -26,7 +26,7 @@ Bug 類型還需 bug-workflow 設定檔（`~/.claude-company/bug-workflow-config
 - 已完成規劃和開發（`.spec/{slug}/` 下有設計文件）
 - 程式碼已 commit
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
 
 ---
 
@@ -86,7 +86,7 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 - 含「測試」、「QA」→ `測試中`
 - 無法判斷 → 詢問，預設 `測試中`
 
-### 4.5 deploy-checklist 勾選檢查
+### 5. deploy-checklist 勾選檢查
 
 #### 觸發條件
 
@@ -115,7 +115,7 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
   2. 中止，先完成前置作業
 ```
 
-- 選 1 → 在 log.md 記錄「使用者確認跳過未完成的 deploy-checklist 項目」，繼續步驟 5
+- 選 1 → 在 log.md 記錄「使用者確認跳過未完成的 deploy-checklist 項目」，繼續『一次性 Notion 批次更新』一節
 - 選 2 → 終止 plan-close
 
 #### deploy-checklist 不存在時
@@ -123,7 +123,7 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 - 若 db.md 或 db.sql 存在（有 DB 變更但未產生 checklist）→ 提示：「偵測到 DB 設計文件但無 deploy-checklist.md，建議先執行 /plan-db 重新產出」
 - 若無 DB 相關文件 → 靜默跳過
 
-### 5. 一次性 Notion 批次更新
+### 6. 一次性 Notion 批次更新
 
 **5-1. Fetch 現有頁面**（1 次 `notion-fetch`）
 
@@ -196,7 +196,7 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 
 | 欄位 | 值 |
 |------|-----|
-| 狀態 | 步驟 4 判斷結果 |
+| 狀態 | 『智慧判斷目標狀態』判斷結果 |
 | 開發階段 | `測試中` |
 | 修復分支 | 當前 Git branch |
 
@@ -204,11 +204,11 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 
 | 欄位 | 值 |
 |------|-----|
-| 狀態 | 步驟 4 判斷結果 |
+| 狀態 | 『智慧判斷目標狀態』判斷結果 |
 | 根因分類 | 從 root-cause.md 推斷（邏輯錯誤/資料異常/設定問題/第三方API/效能/權限/前端UI） |
 | 修復分支 | 當前 Git branch |
 
-### 6. 同步到知識庫
+### 7. 同步到知識庫
 
 **Feature → 功能設計庫**（1 次 `notion-create-pages`）
 
@@ -235,7 +235,7 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 | 專案資料庫 | 同一專案 |
 | 參考連結 | Notion 頁面 URL |
 
-### 7. Feature-Bug 關聯（僅 Bug 且有 related_feature）
+### 8. Feature-Bug 關聯（僅 Bug 且有 related_feature）
 
 若 README.md 中 `related_feature` 不為空：
 
@@ -252,7 +252,7 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 
 4. `notion-update-page` 更新 Feature 頁面（1 次）
 
-### 8. 提交 .spec/ 設計文件到 Git
+### 9. 提交 .spec/ 設計文件到 Git
 
 將最終版本的設計文件提交。`plan-start` 在 `.gitignore` 寫入的是整個 `.spec/`（排除目錄），此時用 `!.spec/{slug}/` 反向取消忽略**無效**（Git 不會遞迴進入已被排除的目錄），因此改用 `git add -f` 強制加入：
 
@@ -263,7 +263,7 @@ git add -f .spec/{slug}/
 git commit -m "docs: 新增 {slug} 設計文件"
 ```
 
-### 9. 更新 _index.md 與 README.md status
+### 10. 更新 _index.md 與 README.md status
 
 **9-1. 更新 `.spec/{slug}/README.md` 的 status 欄位**
 
@@ -273,7 +273,7 @@ git commit -m "docs: 新增 {slug} 設計文件"
 status: 已結案
 ```
 
-> **契約**：此值固定用「已結案」，與 `/plan-deploy-confirm` 步驟 1 掃描本地待回報任務（`.spec/*/` 含 deploy.sql 且 `status: 已結案`）所讀取的狀態詞一致。缺這一步，deploy.sql 的執行回流機制永遠掃不到已結案任務。
+> **契約**：此值固定用「已結案」，與 `/plan-deploy-confirm` 『定位待回報任務』一節掃描本地待回報任務（`.spec/*/` 含 deploy.sql 且 `status: 已結案`）所讀取的狀態詞一致。缺這一步，deploy.sql 的執行回流機制永遠掃不到已結案任務。
 
 **9-2. 更新 `_index.md`**
 
@@ -289,7 +289,7 @@ status: 已結案
 
 **不刪除 `.spec/{slug}/` 目錄**，保留供未來 Bug 關聯匹配。
 
-### 10. 回傳結果
+### 11. 回傳結果
 
 ```
 結案完成！

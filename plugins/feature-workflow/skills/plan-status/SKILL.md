@@ -7,7 +7,7 @@ description: 列出 .spec/ 目錄中所有活躍和已完成的任務，純本�
 
 純本地操作，讀取 `.spec/_index.md` 和各任務的 `README.md`，格式化顯示所有任務狀態。**不呼叫任何 Notion API**。
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 ---
 
@@ -164,7 +164,7 @@ ls -d .spec/*/
 
 ## Gotchas
 
-- **_index.md 與實際目錄常不同步**：`_index.md` 是快取性質，手動刪除目錄或中斷操作都可能造成不一致。掃描時應以「目錄存在 + README.md 可解析」為準，`_index.md` 僅作為輔助，發現不一致時自動修復（步驟 5）。
+- **_index.md 與實際目錄常不同步**：`_index.md` 是快取性質，手動刪除目錄或中斷操作都可能造成不一致。掃描時應以「目錄存在 + README.md 可解析」為準，`_index.md` 僅作為輔助，發現不一致時自動修復（見『索引修復』一節）。
 - **--cleanup 的天數計算基準**：應從移入「已完成」的日期算起，不是 `README.md` 中的 `created` 日期。完成日期從 `_index.md` 的「已完成」表的「完成日期」欄位讀取；若該欄位不存在，fallback 到 `log.md` 最後一筆紀錄的日期。
 - **--park 不能暫停已完成的任務**：已完成的任務不應被暫停，因為暫停的語意是「稍後繼續」，已完成的任務沒有繼續的必要。
 - **--unpark 要求 parked_status 存在**：若 README.md 的 `parked_status` 欄位不存在（手動修改造成），無法自動恢復。此時提示使用者手動指定要恢復到的狀態。

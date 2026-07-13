@@ -80,8 +80,8 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 若選擇建立：
 1. **parent 設為工作區頁面**（`workspace_page_id`，不再個別詢問位置）
-2. 參照 `references/db-templates.md`「B. 任務追蹤工具」模版
-3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**，Relation 在步驟 2-4 統一補齊）
+2. 參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「B. 任務追蹤工具」模版
+3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**，Relation 在『補齊 Relation 欄位』一節統一補齊）
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 使用 `notion-create-view` 依序建立 4 個 Views：所有任務（table）、依狀態（board）、我的任務（table）、核對清單（list）
 6. 記錄 Data Source ID
@@ -106,7 +106,7 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 若選擇建立：
 1. **parent 設為工作區頁面**（`workspace_page_id`，不再個別詢問位置）
-2. 參照 `references/db-templates.md`「C. Bug 知識庫」模版
+2. 參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「C. Bug 知識庫」模版
 3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**）
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 記錄 Data Source ID
@@ -155,7 +155,7 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 若選擇建立：
 1. **parent 設為工作區頁面**（`workspace_page_id`，不再個別詢問位置）
-2. 參照 `references/db-templates.md`「A. 專案資料庫」模版
+2. 參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「A. 專案資料庫」模版
 3. 使用 `notion-create-database` 建立資料庫，名稱為「專案資料庫」，包含上表所有欄位
 4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
 5. 使用 `notion-create-view` 建立 2 個 Views：預設 Table View（Name 降序 + 狀態篩選）、List View
@@ -165,7 +165,7 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 若本次有**新建**任何資料庫，需在所有資料庫建立完成後補上跨庫 Relation。
 
-參照 `references/db-templates.md`「第二輪：補上 Relation 欄位」，使用 `notion-update-data-source` 執行：
+參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「第二輪：補上 Relation 欄位」，使用 `notion-update-data-source` 執行：
 
 1. **任務追蹤工具** → 專案資料庫：若任務追蹤工具缺少「專案資料庫」Relation
    ```
@@ -198,7 +198,7 @@ description: Bug Workflow 首次設定引導。自動偵測 Notion 資料庫、�
 
 所有資料庫建立完成後，更新工作區頁面內容，將所有資料庫以 inline linked view 嵌入。
 
-參照 `references/db-templates.md`「E. CREW 工作區頁面」模板，使用 `notion-update-page` 的 `replace_content` 寫入：
+參照 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「E. CREW 工作區頁面」模板，使用 `notion-update-page` 的 `replace_content` 寫入：
 
 ```markdown
 <database data-source-url="collection://{任務DS_ID}" inline="true" icon="✅">任務追蹤工具</database>
@@ -293,7 +293,7 @@ pwd
 
 ### 4. 產出設定檔
 
-以 `references/config.template.md` 為模板，填入偵測到的 ID 與對應資訊，寫入使用者在步驟 1 選擇的路徑。
+以 plugin 根目錄 `references/config.template.md`（相對 SKILL.md 為 `../../references/`）為模板，填入偵測到的 ID 與對應資訊，寫入使用者在『決定設定檔位置並檢查是否已存在』一節選擇的路徑。
 
 **新增欄位**：在設定檔中填入「CREW 工作區」區段：
 

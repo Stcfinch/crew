@@ -25,7 +25,7 @@ description: 在調查 Bug 過程中，隨時將 log、SQL、判斷、截圖等�
 
 - 已使用 `/bug-start` 建立 Bug 條目
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
 
 ---
 
@@ -76,8 +76,8 @@ Reopen 模式需要定位「測試中」或「已完成」的 Bug。
 1. 從設定檔讀取「任務追蹤工具」Data Source ID（**所有查詢都用此 ID，不做全 Workspace 搜尋**）
 2. 取得當前 Git Repo 識別碼，匹配設定檔中的專案
 3. 使用 `notion-search` 搭配 `data_source_url: collection://{任務追蹤工具 Data Source ID}`，搜尋狀態為「測試中」或「已完成」且所屬專案匹配的 Bug（按建立時間降序，最多顯示 10 筆）
-3. 若當前在修復分支上且能匹配到 Bug，將該筆標記為推薦
-4. 顯示互動式清單：
+4. 若當前在修復分支上且能匹配到 Bug，將該筆標記為推薦
+5. 顯示互動式清單：
 
 ```
 偵測到 Git Repo：TPE01P2101/LineBC
@@ -94,7 +94,7 @@ Reopen 模式需要定位「測試中」或「已完成」的 Bug。
   • 貼上 Notion 頁面連結
 ```
 
-5. 根據使用者回應：
+6. 根據使用者回應：
    - 數字 → 選定對應的 Bug
    - Notion URL → 直接定位頁面
    - 其他文字 → 作為關鍵字重新搜尋，顯示新的結果清單

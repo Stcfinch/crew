@@ -23,7 +23,7 @@ description: 完整規劃串接器（自動依序執行 plan-spec → plan-db �
 
 ### 1. 定位活躍任務
 
-參照 `references/plan-common.md`。
+參照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）。
 
 ### 2. 依序執行
 

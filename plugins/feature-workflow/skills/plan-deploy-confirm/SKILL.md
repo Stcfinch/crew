@@ -14,8 +14,8 @@ description: 部署 SQL 執行回報 — DBA 或執行者在實際跑完 deploy.
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-deploy-confirm 專用」+ `boundaries.md` 「plan-deploy-confirm」段落。
+> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`；通用紀律 — 反合理化、動作邊界、鐵律）。
+> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`「plan-deploy-confirm 專用」+ `references/boundaries.md`「plan-deploy-confirm」段落（相對 SKILL.md 為 `../../references/`）。
 > 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
@@ -37,6 +37,8 @@ description: 部署 SQL 執行回報 — DBA 或執行者在實際跑完 deploy.
 - 任務必須已執行過 `/plan-close` 並產出 `deploy.sql`
 - Notion 條目已存在且含「🚀 部署狀態」可寫入區塊（plan-close 會自動建立）
 - 設定檔含「任務追蹤工具」資料庫 ID
+
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
 
 ---
 
@@ -162,7 +164,7 @@ SQL：
 
 每次回報新增一段，舊紀錄保留。
 
-### 7. 更新 .spec/ 與回傳
+### 7. 更新 .spec/
 
 更新 `.spec/{slug}/log.md`：
 
@@ -174,7 +176,7 @@ SQL：
 - Notion 已同步：🔗 {頁面連結}
 ```
 
-回傳：
+### 8. 回傳結果
 
 ```
 ✅ 部署回報已寫回 Notion
@@ -216,7 +218,7 @@ SQL：
 
 | 操作 | 呼叫 |
 |------|------|
-| 搜尋待回報任務（步驟 1） | 1-2 次 |
+| 搜尋待回報任務（見『定位待回報任務』一節） | 1-2 次 |
 | 讀取目標頁面（取得區塊 ID） | 1 次 |
 | 更新「🚀 部署狀態」區塊 | 1-2 次 |
 | 總計 | **3-5 次** |

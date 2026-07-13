@@ -18,8 +18,8 @@ description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修�
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「bug-fix 專用」+ `boundaries.md` 「bug-fix」段落。
+> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`）（通用紀律 — 反合理化、動作邊界、鐵律）。
+> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`（相對 SKILL.md 為 `../../references/`）「bug-fix 專用」+ plugin 根目錄 `references/boundaries.md`（相對 SKILL.md 為 `../../references/`）「bug-fix」段落。
 > 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
@@ -39,7 +39,7 @@ description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修�
 - 已使用 `/bug-start` 建立 Bug 條目（Notion 有「進行中」的 🐞 錯誤）
 - 修復程式碼已 commit 或即將 commit
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
 
 ---
 
@@ -69,7 +69,7 @@ description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修�
 
 選定後使用 `notion-fetch` 讀取頁面完整內容。
 
-### 1.5 分支檢查
+### 2. 分支檢查
 
 確保修復在正確的分支上進行（依 Git-flow 規定：修改應在 feature branch 提交，再 merge 回 DEV）。
 
@@ -97,7 +97,7 @@ description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修�
 
 **修復分支無值 或 = 當前分支**：跳過，繼續原流程。
 
-### 2. 鐵律檢查
+### 3. 鐵律檢查
 
 讀取 Notion 頁面「根因分析」區塊：
 
@@ -114,7 +114,7 @@ description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修�
 鐵律：沒有根因確認，不能開始修復。
 ```
 
-### 3. 修復建議
+### 4. 修復建議
 
 AI 根據 Notion 頁面的根因分析，產出修復建議：
 
@@ -132,11 +132,11 @@ AI 根據 Notion 頁面的根因分析，產出修復建議：
 
 使用者確認方向後自行修復（或請 AI 修復）。
 
-### 4. 修復後驗證
+### 5. 修復後驗證
 
 使用者修復並 commit 後，執行驗證：
 
-#### 4.1 編譯檢查
+#### 5.1 編譯檢查
 
 ```bash
 # 自動偵測 build 指令
@@ -147,7 +147,7 @@ AI 根據 Notion 頁面的根因分析，產出修復建議：
 - 通過 → ✅
 - 失敗 → 顯示錯誤，要求修正
 
-#### 4.2 迴歸測試產出
+#### 5.2 迴歸測試產出
 
 AI 根據根因分析和修復 diff，產出 1 個迴歸測試：
 
@@ -172,7 +172,7 @@ mvn test -pl {module} -Dtest={TestClass} 2>&1 | tail -20
 - 通過 → ✅ commit 測試：`git add {test-file} && git commit -m "test: 迴歸測試 — {bug 摘要}"`
 - 失敗 → 修正一次，仍失敗 → 標記為 WARN，不阻擋
 
-#### 4.3 UI 驗證（若為前端相關 bug 且 gstack 可用）
+#### 5.3 UI 驗證（若為前端相關 bug 且 gstack 可用）
 
 ```bash
 B="$HOME/.claude/skills/gstack/browse/dist/browse"
@@ -193,7 +193,7 @@ $B screenshot .spec/{slug}/screenshots/bugfix-{N}-after.png
 $B console --errors
 ```
 
-#### 4.4 API 驗證（若為 API 相關 bug）
+#### 5.4 API 驗證（若為 API 相關 bug）
 
 ```bash
 curl -s "http://localhost:8080/api/xxx" -H "Cookie: <cookie>" | head -50
@@ -201,7 +201,7 @@ curl -s "http://localhost:8080/api/xxx" -H "Cookie: <cookie>" | head -50
 
 檢查 HTTP 狀態碼 + 回應 body。
 
-### 5. 驗證結果寫入 Notion
+### 6. 驗證結果寫入 Notion
 
 更新 Notion 頁面「驗證」區塊：
 
@@ -219,7 +219,7 @@ curl -s "http://localhost:8080/api/xxx" -H "Cookie: <cookie>" | head -50
 - [ ] 通報者確認問題已解決
 ```
 
-### 6. 回傳結果
+### 7. 回傳結果
 
 ```
 Bug 修復驗證完成！
@@ -265,7 +265,7 @@ Bug 修復驗證完成！
 - **--skip-test 的使用場景**：僅限以下情況：環境問題（如無法在本地跑測試）、設定類修復（如改 properties 檔）、純 SQL 修復（如改 DB 資料）。其他場景不應跳過。
 - **gstack browse 可用性**：不是所有環境都有安裝 gstack。先偵測 `$HOME/.claude/skills/gstack/browse/dist/browse` 是否存在且可執行，再決定是否進行 UI 驗證。
 - **update_content 語意是覆蓋不是附加**：`notion-update-page` 的 `update_content` 對同一區塊寫入時會覆蓋該區塊內容。寫入「驗證」區塊時，必須先 `notion-fetch` 取得現有內容，串接新內容後再寫回。
-- **分支檢查是引導不是強制**：Step 1.5 的分支不一致提示是建議性的，使用者可以選擇繼續在當前分支修復。不要因為分支不一致就 BLOCK 整個流程。
+- **分支檢查是引導不是強制**：『分支檢查』一節的分支不一致提示是建議性的，使用者可以選擇繼續在當前分支修復。不要因為分支不一致就 BLOCK 整個流程。
 - **dev_branch 取得路徑**：分支引導需要讀取 feature-workflow 的 `projects/{repo-id}.md`，但 bug-fix 是 bug-workflow 的 skill。需跨 plugin 讀取設定：先嘗試 `~/.claude-company/feature-workflow/projects/{repo-id}.md`，再嘗試 `~/.claude/feature-workflow/projects/{repo-id}.md`。讀取失敗時顯示通用提示。
 
 ---
@@ -279,7 +279,7 @@ Bug 修復驗證完成！
 - **迴歸測試無法產出**：某些修復（如純設定變更）難以寫自動化測試，標記為 WARN 並在 Notion 說明原因
 - **gstack 不可用**：跳過 UI 驗證，在 Notion 標記「UI 驗證：⏭️ 跳過（gstack 不可用）」
 - **API 驗證服務未啟動**：跳過 API 驗證，在 Notion 標記「API 驗證：⏭️ 跳過（服務未啟動）」
-- **--verify-only 模式**：跳過步驟 3（修復建議），直接從步驟 4（修復後驗證）開始
+- **--verify-only 模式**：跳過『修復建議』一節，直接從『修復後驗證』一節開始
 - **diff 過大（> 500 行）**：提示使用者確認是否所有變更都與 bug 修復相關，遵循最小 diff 原則
-- **Bug 無「修復分支」欄位**：Step 1.5 跳過分支檢查
+- **Bug 無「修復分支」欄位**：『分支檢查』一節跳過
 - **feature-workflow 未安裝或未設定**：分支引導顯示通用提示，不阻擋流程

@@ -11,9 +11,9 @@ description: 自動偵測或互動式建立自訂技術棧，掃描專案分層�
 
 ## 設定目錄
 
-依 `references/config-resolver.md` 的解析邏輯載入設定目錄。技術棧檔案寫入 `stacks/{id}.md`。
+依 plugin 根目錄 `references/config-resolver.md`（相對 SKILL.md 為 `../../references/`）的解析邏輯載入設定目錄。技術棧檔案寫入 `stacks/{id}.md`。
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 ---
 
@@ -66,7 +66,7 @@ description: 自動偵測或互動式建立自訂技術棧，掃描專案分層�
 
 ### 6. 寫入技術棧檔案
 
-建立或更新 `stacks/{id}.md`，格式參照 `references/config.template.md` 的自訂技術棧模板：
+建立或更新 `stacks/{id}.md`，格式參照 plugin 根目錄 `references/config.template.md`（相對 SKILL.md 為 `../../references/`）的自訂技術棧模板：
 
 ```markdown
 ---
@@ -106,7 +106,7 @@ scaffold: {scaffold 行為}
 ## Gotchas
 
 - **自訂技術棧 ID 不可與內建 ID 重複**：內建 ID 包括 `spring-mvc-mybatis`、`spring-boot-mybatis`、`spring-boot-jpa`、`spring-boot-mybatis-plus`。衝突時會靜默覆蓋內建定義，導致其他使用相同內建 ID 的專案行為改變。
-- **掃描結果受 package 命名影響**：DAO 層叫 `repository` 而非 `dao` 時仍可辨識，但非標準命名（如 `persistence`、`store`）可能辨識失敗。掃描結果必須展示給使用者確認（步驟 5），不可跳過。
+- **掃描結果受 package 命名影響**：DAO 層叫 `repository` 而非 `dao` 時仍可辨識，但非標準命名（如 `persistence`、`store`）可能辨識失敗。掃描結果必須展示給使用者確認（見「展示結果並確認」一節），不可跳過。
 
 ---
 

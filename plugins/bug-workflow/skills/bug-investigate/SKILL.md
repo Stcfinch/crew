@@ -18,8 +18,8 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「bug-investigate 專用」+ `boundaries.md` 「bug-investigate」段落。
+> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`；通用紀律 — 反合理化、動作邊界、鐵律）。
+> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`（相對 SKILL.md 為 `../../references/`）「bug-investigate 專用」+ plugin 根目錄 `references/boundaries.md`（相對 SKILL.md 為 `../../references/`）「bug-investigate」段落。
 > 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
@@ -39,7 +39,7 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 - 已使用 `/bug-start` 建立 Bug 條目（Notion 有「進行中」的 🐞 錯誤）
 - 或使用者直接描述 bug 症狀（此時先執行 /bug-start 再進入調查）
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
 
 ---
 
@@ -171,9 +171,9 @@ fi
 
 ### 3. Phase 2：模式比對
 
-AI 根據收集到的證據，比對已知 bug 模式表（`references/bug-patterns.md`）。
+AI 根據收集到的證據，比對已知 bug 模式表（plugin 根目錄 `references/bug-patterns.md`，相對 SKILL.md 為 `../../references/`）。
 
-讀取 `references/bug-patterns.md` 的 7 種模式定義，將證據中的症狀逐一比對：
+讀取 plugin 根目錄 `references/bug-patterns.md`（相對 SKILL.md 為 `../../references/`）的 7 種模式定義，將證據中的症狀逐一比對：
 
 ```
 依據證據比對結果：

@@ -11,7 +11,7 @@ description: 建立 Notion 條目 + .spec/ 本地規劃目錄 + Git branch 的�
 
 ## 設定目錄
 
-依 `references/config-resolver.md` 的漸進式載入邏輯讀取設定。本 Skill 需要：
+依 plugin 根目錄 `references/config-resolver.md`（相對 SKILL.md 為 `../../references/`）的漸進式載入邏輯讀取設定。本 Skill 需要：
 - **第 1 層**：`config.md`（Notion IDs）
 - **第 2 層**：`projects/{repo-id}.md`（專案對應、技術棧 ID）
 
@@ -23,7 +23,7 @@ Bug 類型還需檢查 bug-workflow 設定檔（`~/.claude-company/bug-workflow-
 
 ## 流程
 
-> **前置檢查**：參照 `references/prerequisites.md` 執行完整前置檢查（CLAUDE.md + 設定檔 + 專案註冊）。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）執行完整前置檢查（CLAUDE.md + 設定目錄 + 專案註冊）。
 
 ### 1. 解析使用者輸入
 
@@ -109,15 +109,15 @@ Git Repo 識別碼解析規則：
 | 難度 | 使用者選擇 |
 | 開發階段 | `需求分析` |
 | 專案資料庫 | 關聯的專案頁面 URL |
-| 負責人 | 步驟 5 偵測到的 Notion 使用者（若有） |
+| 負責人 | 「偵測負責人」一節偵測到的 Notion 使用者（若有） |
 
 #### 兩步法建立頁面
 
 **Step A**：使用 `post-page` 建立頁面（僅 properties，不帶 children）。
 
-> **database_id 解析**：`config.md` 中的 Data Source ID 不能直接用於 `post-page` 的 `parent.database_id`。需先依照 `references/plan-common.md` 的「Notion database_id 解析」邏輯，呼叫 `retrieve-a-data-source` 取得底層 `database_id`。
+> **database_id 解析**：`config.md` 中的 Data Source ID 不能直接用於 `post-page` 的 `parent.database_id`。需先依照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）的「Notion database_id 解析」邏輯，呼叫 `retrieve-a-data-source` 取得底層 `database_id`。
 
-**Step B**：取得 `page_id` 後，使用 `patch-block-children` 追加 `references/notion-page-template.md` 的標準 8 區塊模板。
+**Step B**：取得 `page_id` 後，使用 `patch-block-children` 追加 plugin 根目錄 `references/notion-page-template.md`（相對 SKILL.md 為 `../../references/`）的標準 8 區塊模板。
 
 **錯誤處理**：
 - Step A 失敗 → 本地 `.spec/` 目錄照常建立，`notion_page_id` 留空
@@ -135,7 +135,7 @@ Git Repo 識別碼解析規則：
 | 優先順序 | 使用者選擇 |
 | 環境 | 使用者選擇 |
 | 專案資料庫 | 關聯的專案頁面 URL |
-| 負責人 | 步驟 5 偵測到的 Notion 使用者（若有） |
+| 負責人 | 「偵測負責人」一節偵測到的 Notion 使用者（若有） |
 
 頁面 content 使用 bug-start 的標準模板。建立方式同 Feature 的兩步法（Step A + Step B），但模板內容改用 bug-start 的區塊。
 
@@ -240,7 +240,7 @@ created: {當前日期 YYYY-MM-DD}
    ```
 3. 失敗 → 記錄到 `log.md`，不阻擋流程
 
-若本地關聯未成功（`.spec/` 中無匹配 feature），嘗試 Notion 層盲搜（同 `/bug-start` Step 6.7 邏輯）：
+若本地關聯未成功（`.spec/` 中無匹配 feature），嘗試 Notion 層盲搜（同 `/bug-start`「自動關聯來源 Feature」一節邏輯）：
 
 1. 從 Bug 標題擷取關鍵字（去除停詞）
 2. 使用 `API-query-data-source` 查詢同專案的 Feature 條目（任務類型 contains 💬 功能要求）
@@ -248,7 +248,7 @@ created: {當前日期 YYYY-MM-DD}
 4. 匹配成功 → patch-page 設定 relation
 5. 匹配失敗 → 跳過，在回傳結果中提示可手動關聯
 
-**Feature Branch 偵測**（同 `/bug-start` Step 6.8）：
+**Feature Branch 偵測**（同 `/bug-start`「偵測來源 Feature Branch」一節）：
 
 若成功關聯到 Feature（本地或 Notion 層），進一步偵測 Feature 的開發分支：
 
@@ -256,7 +256,7 @@ created: {當前日期 YYYY-MM-DD}
 2. 驗證分支存在：`git branch -a | grep -F "<branch-name>"`
 3. 分支存在 → 設定 Bug 的修復分支為 feature branch，詢問是否切換
 4. 分支不存在 → 提示使用者選擇（建新分支 / 當前分支 / 手動指定）
-5. 失敗 → 跳過，修復分支保持步驟 9 的設定
+5. 失敗 → 跳過，修復分支保持「建立 Git branch」一節的設定
 
 ### 8. 更新 .spec/_index.md
 
@@ -298,19 +298,19 @@ created: {當前日期 YYYY-MM-DD}
 
 > 若 `prod_branch` 未設定（舊專案），回退到從當前分支建立，並提示使用者執行 `/project-add` 補充分支設定。
 
-### 9.5 退出驗證（強制，不可跳過）
+### 10. 退出驗證（強制，不可跳過）
 
 在回傳結果前，逐項檢查以下退出條件，確保 Notion 條目與本地 `.spec/` 的完整性。
 
 #### 驗證方式
 
-對 Notion 欄位的驗證，**一律用 `notion-fetch` 讀回頁面確認欄位有值**，不信任 Agent 在步驟 6 的記憶。
+對 Notion 欄位的驗證，**一律用 `notion-fetch` 讀回頁面確認欄位有值**，不信任 Agent 在「建立 Notion 條目」一節的記憶。
 
 #### 自動驗證項目
 
 | # | 檢查項目 | 驗證方式 | 失敗處理 |
 |---|---------|---------|---------|
-| S1 | Notion 頁面已建立 | `.spec/{slug}/README.md` 的 `notion_page_id` 非空 | 若步驟 6 Step A 已失敗（走降級路徑）→ 降為 ⚠️ WARN，提示稍後用 `/plan-sync` 補建；否則重試建立 |
+| S1 | Notion 頁面已建立 | `.spec/{slug}/README.md` 的 `notion_page_id` 非空 | 若「建立 Notion 條目」一節 Step A 已失敗（走降級路徑）→ 降為 ⚠️ WARN，提示稍後用 `/plan-sync` 補建；否則重試建立 |
 | S2 | 專案資料庫已設定 | `notion-fetch` 讀回頁面，確認「專案資料庫」relation 欄位非空 | 從 `projects/{repo-id}.md` 取得 `notion_page_id`，用 `notion-update-page` 補上 relation |
 | S3 | 修復分支已設定 | `.spec/{slug}/README.md` 的 `branch` 欄位非空 **且** `notion-fetch` 確認「修復分支」欄位非空 | 見下方 S3 特殊處理 |
 | S4 | 開發階段已設定（僅 Feature） | Feature → `notion-fetch` 確認「開發階段」欄位 = `需求分析`；Bug → 跳過此項 | 用 `notion-update-page` 補上 |
@@ -318,22 +318,22 @@ created: {當前日期 YYYY-MM-DD}
 | S6 | .spec/ 目錄已建立 | `.spec/{slug}/README.md` 存在 | 重試建立 |
 | S7 | _index.md 已更新 | `.spec/_index.md` 包含新 slug | 重試寫入 |
 
-> **S1 條件式降級**：步驟 6 的設計允許 Notion API 不可用時繼續建立本地 `.spec/`（offline-first）。若步驟 6 Step A 已失敗，S1 不應阻擋整個流程，改為 WARN 並記錄。僅在 Step A 成功（頁面應已建立）但 `notion_page_id` 為空時才視為 BLOCK。
+> **S1 條件式降級**：「建立 Notion 條目」一節的設計允許 Notion API 不可用時繼續建立本地 `.spec/`（offline-first）。若該節 Step A 已失敗，S1 不應阻擋整個流程，改為 WARN 並記錄。僅在 Step A 成功（頁面應已建立）但 `notion_page_id` 為空時才視為 BLOCK。
 
 #### S3 特殊處理（刻意 friction）
 
-若步驟 9 使用者選擇了「否，稍後再建立」，退出驗證時 **必須再次確認**（即使在 auto mode 下，**強制詢問**）：
+若「建立 Git branch」一節使用者選擇了「否，稍後再建立」，退出驗證時 **必須再次確認**（即使在 auto mode 下，**強制詢問**）：
 
 ```
 ⚠️ 修復分支尚未建立。
    Notion 的「修復分支」欄位將為空，可能影響團隊協作（其他成員無法從 Notion 得知開發分支）。
 
    確定不建立分支嗎？
-   1. 建立分支（回到步驟 9 流程）
+   1. 建立分支（回到「建立 Git branch」一節流程）
    2. 確定跳過，我稍後自己建立
 ```
 
-選 1 → 回到步驟 9 的建立流程。
+選 1 → 回到「建立 Git branch」一節的建立流程。
 選 2 → S3 標記為 ⚠️ WARN（不阻擋），繼續。
 
 #### 驗證結果分級
@@ -341,7 +341,7 @@ created: {當前日期 YYYY-MM-DD}
 - **🔴 BLOCK**（S1, S2, S3, S6, S7）：必須解決後才能回傳結果
 - **⚠️ WARN**（S4, S5）：記錄提醒但不阻擋
 
-> S1 在步驟 6 Step A 已失敗（Notion 不可用）時，降級為 ⚠️ WARN。
+> S1 在「建立 Notion 條目」一節 Step A 已失敗（Notion 不可用）時，降級為 ⚠️ WARN。
 > S3 在使用者明確確認跳過後，降級為 ⚠️ WARN。
 > S4 對 Bug 類型自動跳過（Bug 不設定開發階段）。
 
@@ -366,7 +366,7 @@ created: {當前日期 YYYY-MM-DD}
   結論：{全部通過 / 有 N 項 WARN，建議處理後再進 plan-spec}
 ```
 
-### 10. 回傳結果
+### 11. 回傳結果
 
 ```
 任務已建立！
@@ -406,7 +406,7 @@ created: {當前日期 YYYY-MM-DD}
 - **.gitignore 追加位置**：追加 `.spec/` 到 `.gitignore` 時，如果檔案末尾沒有換行，新增的行會和最後一行黏在一起。追加前確認末尾有換行。
 - **Notion 層 relation 用 page ID 不是 URL**：`notion-update-page` 設定「相關任務」relation 時，`id` 欄位要填 page ID（UUID 格式），不是頁面 URL。`.spec/` README.md 的 `notion_page_id` 就是正確的值。
 - **本地關聯和 Notion 關聯可能不一致**：`.spec/` 中的 `related_feature` 和 Notion 的「相關任務」是兩個獨立的關聯。使用者在 Notion 手動刪除關聯不會更新 `.spec/`，反之亦然。這是已知的 offline-first 限制。
-- **Bug 的 Feature Branch 偵測依賴關聯結果**：Feature Branch 偵測是步驟 7-3 的延伸邏輯，若關聯 Feature 失敗則整個分支偵測都跳過。不要獨立於關聯結果執行分支偵測。
+- **Bug 的 Feature Branch 偵測依賴關聯結果**：Feature Branch 偵測是「Bug 自動關聯 Feature」一節的延伸邏輯，若關聯 Feature 失敗則整個分支偵測都跳過。不要獨立於關聯結果執行分支偵測。
 
 ---
 

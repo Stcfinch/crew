@@ -11,7 +11,7 @@ description: 將當前專案新增到 Notion 專案資料庫，或更新已存�
 
 ## 前置條件
 
-參照 `references/prerequisites.md` — 本 Skill 只檢查第 2 項（設定檔是否存在）。
+參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）— 本 Skill 只檢查 Notion 後端偵測（0.5）與設定檔（2）是否就緒。
 
 - 已安裝 Notion MCP Server（`claude plugin install notion`）
 - 已執行過 `/bug-setup` 或 `/plan-setup`（至少有一個設定檔存在）
@@ -75,7 +75,7 @@ git branch --show-current 2>/dev/null || echo ""
 2. 取消
 ```
 
-**不存在** → 繼續步驟 3。
+**不存在** → 繼續『搜尋 Notion 專案資料庫』一節。
 
 ### 3. 搜尋 Notion 專案資料庫
 
@@ -91,7 +91,7 @@ git branch --show-current 2>/dev/null || echo ""
 是否將此專案加入設定檔的專案對應？[Y/n]
 ```
 
-若確認 → 跳到步驟 7（更新設定檔）。
+若確認 → 跳到『同步更新所有設定』一節（更新設定檔）。
 
 **情境 B：Notion 中有專案但未匹配**
 
@@ -107,10 +107,10 @@ Notion 專案資料庫中有以下專案：
 請選擇要對應的專案（輸入編號）：
 ```
 
-選擇現有專案 → 將 Git Repo 識別碼寫入該專案的「Git Repo」欄位（`notion-update-page`），跳到步驟 7。
-選擇建立新專案 → 繼續步驟 4。
+選擇現有專案 → 將 Git Repo 識別碼寫入該專案的「Git Repo」欄位（`notion-update-page`），跳到『同步更新所有設定』一節。
+選擇建立新專案 → 繼續『偵測專案類型與架構』一節。
 
-**情境 C：Notion 專案資料庫為空或未找到匹配** → 繼續步驟 4。
+**情境 C：Notion 專案資料庫為空或未找到匹配** → 繼續『偵測專案類型與架構』一節。
 
 ### 4. 偵測專案類型與架構
 
@@ -295,7 +295,7 @@ Git Flow 分支偵測：
 
 #### 5-3. 產生頁面內容
 
-參照 `references/project-page-templates.md`，根據步驟 4 偵測到的專案類型套用對應模版：
+參照 plugin 根目錄 `references/project-page-templates.md`（相對 SKILL.md 為 `../../references/`），根據『偵測專案類型與架構』一節偵測到的專案類型套用對應模版：
 
 - **簡單型** → 模版 A
 - **產品型** → 模版 B（含中介軟體、H2、VM Options 範本）
@@ -406,7 +406,7 @@ uat_branch: {UAT 分支名稱，可空}
 | {專案名稱} | `{Git Repo 識別碼}` | {技術棧} | {PROD 分支} | {UAT 分支} | {說明} |
 ```
 
-**更新已存在的專案**（步驟 2 選擇「更新」時）：
+**更新已存在的專案**（『檢查是否已存在』一節選擇「更新」時）：
 - 使用 `notion-update-page` 更新 Notion 中的專案欄位
 - 新格式：更新 `projects/{sanitized-repo-id}.md` 的 frontmatter
 - 舊格式：更新設定檔中該專案的對應列
@@ -462,8 +462,8 @@ CLAUDE.md：{✅ 已推送 / ⚠️ 建議推送}
 
 ## Gotchas
 
-- **設定同步必須更新「所有存在的」**：bug-workflow（單一檔案）+ feature-workflow（階層式目錄或舊檔案），遺漏任一個會導致另一個 workflow 找不到專案對應。步驟 7 的所有路徑每個存在的都要更新。若同時存在新舊格式的 feature-workflow 設定，**只更新新格式**，忽略舊格式。
-- **intumit 判斷是硬編碼規則**：Git host 含 `intumit`（公司 GitLab）→ 只取 `{group}/{repo}`。未來若遷移到其他 GitLab 實例，需修改步驟 1 的解析邏輯。
+- **設定同步必須更新「所有存在的」**：bug-workflow（單一檔案）+ feature-workflow（階層式目錄或舊檔案），遺漏任一個會導致另一個 workflow 找不到專案對應。『同步更新所有設定』一節的所有路徑每個存在的都要更新。若同時存在新舊格式的 feature-workflow 設定，**只更新新格式**，忽略舊格式。
+- **intumit 判斷是硬編碼規則**：Git host 含 `intumit`（公司 GitLab）→ 只取 `{group}/{repo}`。未來若遷移到其他 GitLab 實例，需修改『自動偵測環境資訊』一節的解析邏輯。
 - **Relation 值是頁面 URL 不是名稱**：`notion-create-pages` 的 Relation 欄位需要填入「被關聯頁面的 URL」（如 `https://www.notion.so/xxx`），不是填專案名稱字串。填錯格式會靜默成功但 Relation 為空。
 
 ---

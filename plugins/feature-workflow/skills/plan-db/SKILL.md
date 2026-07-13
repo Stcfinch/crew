@@ -11,7 +11,7 @@ description: 產出資料庫設計，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ## 前置條件
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 - 適用類型：**Feature**
 - 前置檔案：`spec.md`（建議但非必要，若不存在則從 README.md 需求描述直接設計）
@@ -22,7 +22,7 @@ description: 產出資料庫設計，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ### 1. 定位活躍任務 + 讀取專案上下文
 
-參照 `references/plan-common.md`。
+參照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）。
 
 ### 2. 產出 DB 設計
 
@@ -40,23 +40,23 @@ description: 產出資料庫設計，寫入 .spec/ 目錄，不呼叫 Notion API
 
 ### 3. 一致性驗證 + 更新日誌
 
-參照 `references/plan-common.md`。
+參照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）。
 
-### 3.5 產出 deploy-checklist.md（僅本地）
+### 4. 產出 deploy-checklist.md（僅本地）
 
 完成 DB 設計後，自動從 `.spec/{slug}/db.sql` 擷取上線必做項目，寫入 `.spec/{slug}/deploy-checklist.md`。
 
-#### 3.5a 擷取 SQL 項目
+#### 4a. 擷取 SQL 項目
 
-從 `db.sql` 中擷取 DDL/DML 語句，依照 `references/plan-common.md` 的「deploy-checklist.md 格式規範 > SQL 擷取規則」處理。
+從 `db.sql` 中擷取 DDL/DML 語句，依照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）的「deploy-checklist.md 格式規範 > SQL 擷取規則」處理。
 
 每個項目格式：`- [ ] \`{SQL 類型} {表名/索引名}\` — {說明}`
 
-#### 3.5b 建立 deploy-checklist.md
+#### 4b. 建立 deploy-checklist.md
 
-依照 `references/plan-common.md` 的「deploy-checklist.md 格式規範」建立檔案。SQL 遷移區段填入擷取結果，設定檔變更區段留空（待 plan-build 填入）。
+依照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）的「deploy-checklist.md 格式規範」建立檔案。SQL 遷移區段填入擷取結果，設定檔變更區段留空（待 plan-build 填入）。
 
-#### 3.5c db.sql 不存在時
+#### 4c. db.sql 不存在時
 
 若 `db.sql` 不存在但 `db.md` 中描述了表結構：
 - 仍建立 deploy-checklist.md
@@ -64,7 +64,7 @@ description: 產出資料庫設計，寫入 .spec/ 目錄，不呼叫 Notion API
 
 若 `db.md` 描述為「無 DB 變更」→ 不建立 deploy-checklist.md。
 
-### 4. 回傳結果
+### 5. 回傳結果
 
 ```
 DB 設計完成！

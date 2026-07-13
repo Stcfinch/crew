@@ -11,7 +11,7 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 ## 前置條件
 
-> **前置檢查**：參照 `references/prerequisites.md` 檢查 CLAUDE.md 是否存在。
+> **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 - 建議已執行 `/plan-build` 產生程式碼
 - 若無 plan-build 產出，可對任何已有程式碼執行
@@ -20,8 +20,8 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 ## 紀律護欄
 
-> **執行前必讀**：`references/discipline-preamble.md`（通用紀律 — 反合理化、動作邊界、鐵律）。
-> 本 skill 專用條目：`anti-rationalizations.md` 「plan-security 專用」+ `boundaries.md` 「plan-security」段落。
+> **執行前必讀**：plugin 根目錄 `references/discipline-preamble.md`（相對 SKILL.md 為 `../../references/`；通用紀律 — 反合理化、動作邊界、鐵律）。
+> 本 skill 專用條目：plugin 根目錄 `references/anti-rationalizations.md`「plan-security 專用」+ `references/boundaries.md`「plan-security」段落（相對 SKILL.md 為 `../../references/`）。
 > 在感到「可以跳過」「應該夠了」的衝動時，**停下查表**確認是否為已知偏離模式。
 
 ---
