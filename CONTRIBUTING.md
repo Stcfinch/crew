@@ -127,15 +127,15 @@ git add -f .spec/{slug}/
 - `db-templates.md`
 - `discipline-preamble.md`
 
-CI 的 `shared-refs-consistency` job 用 sha256 強制兩份內容一致。
-**修改其一時必須同改另一份**，否則 CI block。
+**單一權威來源（C9）**：`plugins/bug-workflow/references/` 那份是唯一權威，
+**只改這份**；`feature-workflow` 那份一律視為同步產物，不要直接編輯。
 
-修法：
+改完共用 reference 後，跑一次同步腳本把權威份同步到 feature-workflow：
 
 ```bash
-# 改完 bug-workflow 那份後同步給 feature-workflow
-cp plugins/bug-workflow/references/prerequisites.md \
-   plugins/feature-workflow/references/prerequisites.md
-
-# 或反向，依哪份是正確版
+./scripts/sync-shared-refs.sh          # 以 bug-workflow 為準同步到 feature-workflow
+./scripts/sync-shared-refs.sh --check  # push 前檢查是否一致（CI 同款檢查，不修改）
 ```
+
+CI 的 `shared-refs-consistency` job（`scripts/check-shared-refs.py`）仍用 sha256
+強制兩份一致，是最後防線：忘了跑同步腳本、或誤改了 feature-workflow 那份，都會被 CI block。

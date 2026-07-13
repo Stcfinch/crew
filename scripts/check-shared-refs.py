@@ -55,7 +55,7 @@ def main() -> int:
             print(f"❌ {ref} 兩 plugin 內容不同：")
             print(f"   {PLUGIN_A:>20}: {ha[:12]}...")
             print(f"   {PLUGIN_B:>20}: {hb[:12]}...")
-            print(f"   修法：先決定哪份正確，再 cp 覆寫另一份；下次 commit 應同改兩份")
+            print(f"   修法：只改 bug-workflow 那份（權威），再跑 ./scripts/sync-shared-refs.sh 同步")
             rc = 1
 
     return rc

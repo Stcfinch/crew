@@ -53,8 +53,26 @@
 | C：保留跨 plugin 引用 | 違反「plugin 可獨立安裝」核心契約 |
 | Symlink | git 在 Windows 對 symlink 支援差、且 plugin 安裝時可能不展開 |
 
+## 更新紀錄
+
+### 2026-07-13（C9：單一權威來源 + 同步腳本）
+
+本決策（雙份副本 + CI 防漂移）維持不變——「plugin 可獨立安裝」契約不動，
+兩 plugin 仍各帶實體副本，發佈物不變。C9 只改善「負面」中「更新時要手動 cp 一次」：
+
+- 確立 `plugins/bug-workflow/references/` 為 3 個共用檔的**單一權威來源**
+  （`prerequisites.md`、`db-templates.md` 原生於 bug-workflow，且 bug-workflow 較基礎）；
+  `feature-workflow` 那份一律視為同步產物。
+- 新增 `scripts/sync-shared-refs.sh`：以 bug-workflow 為準單向同步，支援 `--check`；
+  把手動 cp 升級為一鍵/可檢查機制。
+- `check-shared-refs.py`（CI sha256 檢查）維持為最後防線，錯誤訊息改為指向同步腳本。
+
+未採 symlink / crew-common / pre-commit hook 的理由同下方「考慮過的替代方案」
+與本次評估（pre-commit hook 需額外安裝、`.git/hooks` 不隨 repo、改變 commit 行為）。
+
 ## 相關
 
 - CONTRIBUTING.md「共用 reference 同步規則」
+- `scripts/sync-shared-refs.sh`（C9 單一權威同步）
 - `scripts/check-shared-refs.py`
 - `.github/workflows/lint.yml` 的 `shared-refs-consistency` job
