@@ -157,6 +157,8 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 ```
 
 > **契約**：區塊標題固定為「🚀 部署狀態」、狀態詞固定用「待執行」，與 `/plan-deploy-confirm` 讀寫的名稱一致。若 deploy.sql 無 `-- Step N` 註解無法分段，退回單一列（Step 1 = 整個 deploy.sql，狀態「待執行」）。
+>
+> **語意一致性註記**：Notion「狀態」欄位值（本步驟『智慧判斷目標狀態』寫入的 `測試中`/`已完成`）與本地 README `status: 已結案`（見下方步驟 10）是兩套獨立語意，不可混用。`/plan-deploy-confirm` 的 Notion 搜尋以「🚀 部署狀態含待執行」為主判準，不依賴 Notion 狀態欄位值。
 
 **Bug 類型**：
 

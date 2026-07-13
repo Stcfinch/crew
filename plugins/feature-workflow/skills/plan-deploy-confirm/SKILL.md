@@ -48,7 +48,9 @@ description: 部署 SQL 執行回報 —— 實際跑完 deploy.sql 後勾選每
 
 **本地**：掃 `.spec/*/` 含 `deploy.sql` 且 README.md 標示 `status: 已結案` 的任務。
 
-**Notion**（更新鮮）：用 `notion-search` 搜尋同 Git Repo 下狀態為「已結案」、含「🚀 部署狀態」區塊但部署狀態為「待執行」的條目。
+**Notion**（更新鮮）：用 `notion-search` 搜尋同一 Git Repo 下、頁面含「🚀 部署狀態」區塊且該區塊仍有「待執行」項的條目。
+
+> 注意：Notion「狀態」欄位（合法值僅 未開始/進行中/測試中/已完成，無「已結案」）**不作為**此搜尋的過濾條件——plan-close 依情境可能將狀態標為「測試中」或「已完成」，與本地 README `status: 已結案` 是兩套獨立語意。以「🚀 部署狀態含待執行」判斷最可靠。
 
 合併後呈現：
 
