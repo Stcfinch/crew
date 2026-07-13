@@ -1,6 +1,6 @@
 ---
 name: project-add
-description: 將當前專案新增到 Notion 專案資料庫，或更新已存在的專案資訊。自動偵測 Git Repo、技術棧、專案類型（簡單型/產品型），產生 Notion 頁面內容，可選安裝 DB MCP。當使用者提到「新增專案」、「加專案」、「project-add」、「設定專案」、「註冊專案」時觸發此 Skill。
+description: 將當前專案新增或更新到 Notion 專案資料庫 —— 自動偵測 Git Repo、技術棧、專案類型，產生 Notion 頁面，可選裝 DB MCP。當使用者輸入 /project-add，或提到「新增專案到 Notion」、「註冊專案」時觸發此 Skill。
 ---
 
 # project-add — 新增或更新 Notion 專案
@@ -457,6 +457,15 @@ CLAUDE.md：{✅ 已推送 / ⚠️ 建議推送}
   /bug-start <問題簡述>     — 建立 Bug 條目（自動關聯此專案）
   /plan-start <功能簡述>    — 建立功能需求（自動關聯此專案）
 ```
+
+---
+
+## 何時不用
+
+- 首次整體設定（尚未執行過 `/bug-setup` 或 `/plan-setup`）→ `/crew-init`（或分別執行 `/bug-setup` + `/plan-setup`）
+- 要建立任務條目（非專案）→ `/plan-start` 或 `/bug-start`
+- 要把含多個 sub-repo 的目錄轉成 virtual monorepo / 跨 repo workspace → `repo-atlas:atlas`
+- 只是要初始化 `CLAUDE.md` → 內建 `/init`
 
 ---
 

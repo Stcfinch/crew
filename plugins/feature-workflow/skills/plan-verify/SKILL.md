@@ -1,6 +1,6 @@
 ---
 name: plan-verify
-description: 透過 Playwright MCP 操作瀏覽器，逐條驗證 .spec/ 中的驗收條件，產出 verify.md 驗證報告與 Health Score。可選搭配 chrome-devtools-mcp 查 console/network（--deep 模式）。驗證完成後可選擇產出 Word 驗收報告。當使用者提到「plan-verify」、「驗證」、「verify」、「驗收」時觸發此 Skill。
+description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條件，產出 verify.md 與 Health Score，可選 --deep 查 console/network。當使用者輸入 /plan-verify，或提到「.spec 驗收條件驗證」、「瀏覽器驗收 spec」時觸發此 Skill。
 ---
 
 # plan-verify — 瀏覽器驗收驗證
@@ -518,6 +518,16 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 | `emulate` | 裝置/網路模擬 | 行動裝置驗證 |
 
 結果追加到 verify.md 的「除錯分析」段落。
+
+---
+
+## 何時不用
+
+本 skill 專責「透過瀏覽器逐條驗證 .spec/ 驗收條件」，以下情境不屬此範圍：
+- 驗證程式改動是否生效（非瀏覽器驗收）→ 改用內建 `/verify`
+- 宣稱完成前的一般驗證 → 改用 `superpowers:verification-before-completion`
+- 驗證 SQL 語法對不對 → 直接檢查語法，非本 skill 職責
+- 審查程式碼品質/邏輯 → 改用 `/plan-review`
 
 ---
 

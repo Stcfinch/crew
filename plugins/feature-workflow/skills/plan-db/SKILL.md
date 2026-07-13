@@ -1,6 +1,6 @@
 ---
 name: plan-db
-description: 產出資料庫設計，寫入 .spec/ 目錄，不呼叫 Notion API。當使用者提到「plan-db」、「DB 設計」、「資料庫設計」、「設計資料表」時觸發此 Skill。
+description: 產出資料庫設計文件寫入 .spec/ 目錄（零 Notion 呼叫）。當使用者輸入 /plan-db，或提到「產出 DB 設計文件」、「.spec 資料庫設計」時觸發此 Skill。
 ---
 
 # plan-db — 資料庫設計（零 Notion 呼叫）
@@ -80,3 +80,12 @@ DB 設計完成！
 ```
 
 若未建立 deploy-checklist.md（無 DB 變更），「📋 上線前置作業」和「💡 提示」行不顯示。
+
+---
+
+## 何時不用
+
+- 建立 / 執行 migration 檔（Flyway / Liquibase）→ 改用個人 `java-migration-helper` skill
+- 查詢 / 索引 / 連線池效能優化 → 改用個人 `db-optimization-review` skill
+- 需要完整規劃（技術規格＋DB 設計＋架構設計一次到位）→ 改用 `/plan`
+- 只需要技術規格，不需 DB 設計 → 改用 `/plan-spec`

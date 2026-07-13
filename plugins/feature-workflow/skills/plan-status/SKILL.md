@@ -1,6 +1,6 @@
 ---
 name: plan-status
-description: 列出 .spec/ 目錄中所有活躍和已完成的任務，純本地操作不呼叫 Notion。當使用者提到「plan-status」、「任務狀態」、「目前有哪些任務」、「任務列表」時觸發此 Skill。
+description: 列出 .spec/ 目錄中所有活躍與已完成的任務（純本地操作，不呼叫 Notion）。當使用者輸入 /plan-status，或提到「.spec 任務狀態」、「CREW 任務列表」時觸發此 Skill。
 ---
 
 # plan-status — 查看任務狀態
@@ -159,6 +159,15 @@ ls -d .spec/*/
   + 新增 push-tag-query 到索引（目錄存在但索引缺少）
   - 移除 old-feature 從索引（索引有但目錄不存在）
 ```
+
+---
+
+## 何時不用
+
+- 查 background task 執行狀態 → 非本 skill
+- 查 Jira 單狀態 → jira-from-pm 或 jira MCP
+- 要推薦下一步該做什麼 → /plan-next
+- 看規劃文件內容（spec/db/arch 等） → /plan-browse
 
 ---
 

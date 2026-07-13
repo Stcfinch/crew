@@ -1,6 +1,6 @@
 ---
 name: bug-investigate
-description: 假說驅動的 Bug 根因調查 — 自動收集證據、模式比對、假說驗證，全程同步更新 Notion。當使用者提到「bug-investigate」、「調查 bug」、「查原因」、「根因分析」、「investigate」時觸發此 Skill。
+description: 假說驅動的 CREW Bug 根因調查 —— 自動收集證據、模式比對、假說驗證，全程同步 Notion 任務追蹤。當使用者輸入 /bug-investigate，或提到「調查 bug 根因」、「CREW bug 根因分析」時觸發此 Skill。
 ---
 
 # bug-investigate — 假說驅動根因調查
@@ -390,6 +390,15 @@ Bug 調查完成！
   • /bug-investigate --resume — 繼續調查（有新線索時）
   • /bug-update <新線索>      — 補充新發現的資訊
 ```
+
+---
+
+## 何時不用
+
+- 非 CREW、未建 Notion 任務的一般除錯 → 個人 `investigate` skill 或 `superpowers:systematic-debugging`
+- 根因已確認、要開始修 → `/bug-fix`
+- 只把新證據補進既有頁面 → `/bug-update`
+- CREW 環境本身為何不能用 → `/crew-doctor`
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: plan-stack
-description: 自動偵測或互動式建立自訂技術棧，掃描專案分層結構產生範本掃描規則，寫入設定檔。當使用者提到「plan-stack」、「自訂技術棧」、「新增技術棧」、「設定技術棧」、「tech stack」時觸發此 Skill。
+description: 自動偵測或互動式建立自訂技術棧 —— 掃描專案分層結構產生範本掃描規則，寫入設定檔。當使用者輸入 /plan-stack，或提到「自訂技術棧」、「新增掃描技術棧」時觸發此 Skill。
 ---
 
 # plan-stack — 自訂技術棧設定
@@ -100,6 +100,14 @@ scaffold: {scaffold 行為}
 
 現在執行 /plan-build 時會自動使用此技術棧的掃描規則。
 ```
+
+---
+
+## 何時不用
+
+- 首次整體設定 → 改用 `/plan-setup` 或 `/crew-init`
+- 詢問專案用什麼技術 → 自行查看專案檔案，非本 skill 的職責
+- 註冊專案 → 改用 `/project-add`
 
 ---
 

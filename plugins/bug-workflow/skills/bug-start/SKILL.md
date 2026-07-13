@@ -1,6 +1,6 @@
 ---
 name: bug-start
-description: 在 Notion「任務追蹤工具」建立 Bug 條目並填入標準化模板。當使用者提到「建立 bug」、「記錄 bug」、「bug 通報」、「bug-start」、「開始修 bug」時觸發此 Skill。
+description: 在 Notion 任務追蹤工具建立 Bug 條目並填入標準化模板（僅建條目，不含 .spec/ 目錄與 Git branch）。當使用者輸入 /bug-start，或提到「建立 bug 條目」、「記錄 bug 到 Notion」、「bug 通報」時觸發此 Skill。
 ---
 
 # Bug Start — 建立 Bug 條目與標準化文件
@@ -374,6 +374,17 @@ git remote get-url origin 2>/dev/null || echo ""
   • /bug-fix             — 確認根因後修復
   • /bug-close          — 修復完成後結案
   ```
+
+---
+
+## 何時不用
+
+start 組 —— 本 skill 只建 Notion bug 條目；需完整入口（Notion + .spec/ + branch）用 `/plan-start`。
+
+- 需同時建 .spec/ 目錄 + Git branch → 使用 `/plan-start`（type=bug）
+- 條目已建、要開始修 → 使用 `/bug-fix`
+- 補充既有 bug 資訊 → 使用 `/bug-update`
+- 建立 feature 新任務 → 使用 `/plan-start`
 
 ---
 

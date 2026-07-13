@@ -1,6 +1,6 @@
 ---
 name: plan-start
-description: 建立 Notion 條目 + .spec/ 本地規劃目錄 + Git branch 的統一入口，含退出驗證（S1~S7）確保必填欄位完整。支援 feature 和 bug 兩種類型。當使用者提到「plan-start」、「新任務」、「開始規劃」時觸發此 Skill。
+description: 建立 Notion 條目 + .spec/ 規劃目錄 + Git branch 的統一任務入口（支援 feature 與 bug），含退出驗證確保必填欄位完整。當使用者輸入 /plan-start，或提到「開新 CREW 任務」、「建立規劃任務」時觸發此 Skill。
 ---
 
 # plan-start — 統一任務入口（本地規劃模式）
@@ -407,6 +407,17 @@ created: {當前日期 YYYY-MM-DD}
 - **Notion 層 relation 用 page ID 不是 URL**：`notion-update-page` 設定「相關任務」relation 時，`id` 欄位要填 page ID（UUID 格式），不是頁面 URL。`.spec/` README.md 的 `notion_page_id` 就是正確的值。
 - **本地關聯和 Notion 關聯可能不一致**：`.spec/` 中的 `related_feature` 和 Notion 的「相關任務」是兩個獨立的關聯。使用者在 Notion 手動刪除關聯不會更新 `.spec/`，反之亦然。這是已知的 offline-first 限制。
 - **Bug 的 Feature Branch 偵測依賴關聯結果**：Feature Branch 偵測是「Bug 自動關聯 Feature」一節的延伸邏輯，若關聯 Feature 失敗則整個分支偵測都跳過。不要獨立於關聯結果執行分支偵測。
+
+---
+
+## 何時不用
+
+start 組 —— 本 skill 是完整入口（Notion + .spec/ + branch）；只要建 Notion bug 條目用 `/bug-start`。
+
+- 只需 Notion bug 條目、不要 .spec/ 與 branch → 改用 `/bug-start`
+- 任務已建、要規劃內容 → 改用 `/plan` 或 `/plan-spec`
+- 規劃前探索 → 改用 `/plan-explore`
+- 註冊專案（非任務）→ 改用 `/project-add`
 
 ---
 

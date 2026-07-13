@@ -1,6 +1,6 @@
 ---
 name: crew-upgrade
-description: 更新 CREW plugins（bug-workflow + feature-workflow）到最新版本，顯示更新內容摘要。當使用者提到「crew-upgrade」、「更新 crew」、「update crew」、「升級 crew」、「更新 plugin」時觸發此 Skill。
+description: 更新 CREW plugins（bug-workflow + feature-workflow）到最新版本並顯示更新摘要。當使用者輸入 /crew-upgrade，或提到「更新 CREW」、「升級 CREW plugin」時觸發此 Skill。
 ---
 
 # crew-upgrade — 更新 CREW Plugins
@@ -159,6 +159,15 @@ CREW 更新完成！
   • 關閉當前 Claude Code 視窗，重新開啟
   • 或在終端執行：claude（重新啟動 session）
 ```
+
+---
+
+## 何時不用
+
+- 更新其他 plugin（如 playwright）→ 該 plugin 管道 / claude plugin 指令
+- 更新 gstack → 個人 gstack-upgrade
+- CREW 首次設定 → /crew-init
+- CREW 環境健診 → /crew-doctor
 
 ---
 

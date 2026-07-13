@@ -1,6 +1,6 @@
 ---
 name: plan-next
-description: 智慧推薦當前任務的下一步指令。讀取 .spec/{slug}/ 既有檔案、Git 狀態、verify.md 結果，判斷流程位置並建議下一個 /plan-* 或 /bug-* 指令。當使用者提到「plan-next」、「下一步」、「接下來」、「next step」、「該做什麼」、「what's next」時觸發此 Skill。
+description: 智慧推薦 CREW 當前任務下一步 —— 讀 .spec/{slug}/ 檔案、Git 狀態、verify.md 判斷流程位置並建議下一個 /plan-* 或 /bug-* 指令。當使用者輸入 /plan-next，或提到「CREW 下一步指令」、「這個 spec 接下來做什麼」時觸發此 Skill。
 ---
 
 # plan-next — 智慧推薦下一步
@@ -116,6 +116,14 @@ description: 智慧推薦當前任務的下一步指令。讀取 .spec/{slug}/ �
 ```
 
 `--all` 模式：列出所有活躍任務各自的「下一步建議」摘要，不顯示順帶提醒。
+
+---
+
+## 何時不用
+
+- 一般對話「接下來呢」→ 非 skill，直接回答
+- 看任務清單 → /plan-status
+- 瀏覽規劃內容 → /plan-browse
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: plan-build
-description: 從 .spec/ 讀取設計文件，以 Agent Teams leader-delegate 模式（最多 5 人團隊）產生程式碼，含退出驗證（E1~E7）與 deploy.sql 自動產出（DB_REQUIRED=insert-only 支援）。Leader 只協調不寫 code。當使用者提到「plan-build」、「build」、「產生程式碼」時觸發此 Skill。
+description: 從 .spec/ 設計文件以 Agent Teams leader-delegate 模式產生程式碼，含退出驗證與 deploy.sql 自動產出，Leader 只協調不寫 code。當使用者輸入 /plan-build，或提到「從 spec 產生程式碼」、「plan-build 產碼」時觸發此 Skill。
 ---
 
 # plan-build — Agent Teams 程式碼產生
@@ -374,6 +374,15 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
 『判斷團隊組成』一節檢查 DB MCP 可用性（`claude mcp list` 是否有 `dbhub`）後，根據結果決定是否加入 DB 工程師：
 - **已安裝**：Agent Teams 加入「成員 0：DB 工程師」；Subagent 模式嵌入 `{db_mcp_instruction}`
 - **未安裝**：不加入 DB 工程師；`{db_mcp_instruction}` 替換為空字串
+
+---
+
+## 何時不用
+
+- 編譯專案（mvn / npm build）→ 直接跑 build 指令，非本 skill
+- 尚無 .spec 設計文件 → 先執行 `/plan`
+- 產完後要審查 → `/plan-review`；要驗收 → `/plan-verify`
+- 只要拆分 commit → 個人 `git-smart-commit`（本 skill 只產碼）
 
 ---
 

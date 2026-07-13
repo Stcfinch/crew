@@ -1,6 +1,6 @@
 ---
 name: plan-browse
-description: 瀏覽與探索已有的 .spec/ 規劃文件，支援深度閱讀、跨任務比較、模式搜尋。當使用者提到「plan-browse」、「瀏覽規劃」、「看一下之前的設計」、「哪些任務有類似的」、「browse」、「查看規劃」時觸發此 Skill。
+description: 瀏覽與探索已有的 .spec/ 規劃文件 —— 深度閱讀、跨任務比較、模式搜尋。當使用者輸入 /plan-browse，或提到「瀏覽 .spec 規劃」、「看之前的規劃設計」時觸發此 Skill。
 ---
 
 # plan-browse — 規劃瀏覽器（零 Notion 呼叫）
@@ -263,6 +263,15 @@ grep -r "<關鍵字>" .spec/ --include="*.md" --include="*.sql"
 | 「這個可以開始寫了」 | `/plan-build` |
 | 「想建立類似的新任務」 | `/plan-start` |
 | 「暫停這個任務」 | `/plan-status --park <slug>` |
+
+---
+
+## 何時不用
+
+- 開瀏覽器看網站 → claude-in-chrome / playwright
+- 看任務清單與狀態 → `/plan-status`
+- 要推薦下一步 → `/plan-next`
+- 產出新規劃 → `/plan` 或 `/plan-spec`
 
 ---
 

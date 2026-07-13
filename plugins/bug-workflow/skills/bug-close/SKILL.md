@@ -1,6 +1,6 @@
 ---
 name: bug-close
-description: 修復 Bug 後，從 Git diff 自動擷取修復細節並更新 Notion 頁面。當使用者提到「結案」、「關閉 bug」、「bug 完成」、「bug-close」、「修完了」時觸發此 Skill。
+description: 修復 Bug 後從 Git diff 自動擷取修復細節並更新 Notion 任務追蹤頁面（僅限 bug 型任務）。當使用者輸入 /bug-close，或提到「關閉 bug」、「bug 結案並補修復細節」時觸發此 Skill。
 ---
 
 # Bug Close — 結案並自動補齊修復細節
@@ -275,6 +275,17 @@ mkdir -p ~/.claude-company/bug-workflow/learnings
   • 若上線後問題復發，可使用 /bug-update reopen 重新開啟
   {若 feature branch 不再需要} • git branch -d feature/xxx  — 清理分支
   ```
+
+---
+
+## 何時不用
+
+close 組 —— 本 skill 只結 bug 型任務；feature/.spec 任務結案用 /plan-close。
+
+- feature/.spec 任務結案 → 用 `/plan-close`
+- 尚未修完、只想中途補調查資訊 → 用 `/bug-update`
+- Jira 單結案（非 Notion bug 流程）→ 用 jira MCP（`mcp-atlassian`）或 `jira-from-pm`
+- 未建立 Notion bug 條目就想結案 → 先執行 `/bug-start`
 
 ---
 

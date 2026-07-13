@@ -1,6 +1,6 @@
 ---
 name: bug-fix
-description: Bug 修復紀律 — 鐵律檢查（根因確認才能修）、修復建議、迴歸測試產出、gstack browse 驗證。當使用者提到「bug-fix」、「修 bug」、「修復」、「fix bug」時觸發此 Skill。
+description: CREW bug 修復紀律 —— 根因確認才能改（鐵律）、產出修復建議與迴歸測試、瀏覽器驗證，隸屬 CREW bug 流程。當使用者輸入 /bug-fix，或提到「進行 CREW bug 修復」、「開始修復這個 bug」時觸發此 Skill。
 ---
 
 # bug-fix — 修復紀律
@@ -254,6 +254,15 @@ Bug 修復驗證完成！
 🔀 分支引導：
   目前在 feature branch，記得修復完成後 merge 回開發分支。
 ```
+
+---
+
+## 何時不用
+
+- 根因尚未確認 → 先 `/bug-investigate`（或個人 `investigate` / `superpowers:systematic-debugging`）
+- 一般錯誤排查、非 CREW 任務 → 個人 `investigate` / `superpowers:systematic-debugging`
+- 只想記錄修復結果並結案 → `/bug-close`
+- typo 或瑣碎改動 → 直接改，無需本 skill
 
 ---
 

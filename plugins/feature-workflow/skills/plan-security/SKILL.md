@@ -1,6 +1,6 @@
 ---
 name: plan-security
-description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文感知/對抗性思維），涵蓋 OWASP Top 10、SQL Injection、XSS、權限控制、敏感資料。當使用者提到「plan-security」、「安全掃描」、「安全檢查」、「security」時觸發此 Skill。
+description: 專職安全掃描 —— CREW 三層架構（靜態規則/上下文感知/對抗性思維），涵蓋 OWASP Top 10、SQLi、XSS、權限控制、敏感資料。當使用者輸入 /plan-security，或提到「CREW 安全掃描」、「.spec 安全檢查」時觸發此 Skill。
 ---
 
 # plan-security — 安全掃描（零 Notion 呼叫）
@@ -246,6 +246,17 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
   • /plan-verify  — 驗收驗證
   • /plan-close   — 結案並同步 Notion
 ```
+
+---
+
+## 何時不用
+
+本 skill 只負責對 `.spec/` 已產出程式碼做安全「掃描」，不負責實作安全功能、稽核基礎設施、審查當前分支變更或一般程式碼品質。
+
+- 設定 Spring Security 等安全功能 → 直接開發，非掃描
+- 基礎設施 / 供應鏈 / 秘密外洩稽核 → 個人 `cso` skill
+- 當前分支變更安全審查 → 內建 `/security-review`
+- 一般程式碼審查 → `/plan-review`
 
 ---
 
