@@ -7,6 +7,42 @@
 
 ---
 
+## [feature-workflow@4.24.0] - 2026-07-13
+
+> 全面 SKILL.md 品質優化（29 個 skill 稽核，181 條已驗證發現，四梯次修復）。詳見 marketplace 內 `plugins/.skill-audit-2026-07-12/` 稽核報告。
+
+### 修復
+- **plan-verify MCP 設定錯誤** — 安裝套件由不存在的 `@anthropic-ai/mcp-server-playwright`（npm 404）改為 `@playwright/mcp`（Microsoft 維護）；MCP 模式主流程工具名統一為 Playwright `browser_*`，chrome-devtools 工具名只保留在 `--deep` 段
+- **plan-deploy-confirm 部署回報機制失效** — Notion 搜尋原以「狀態為『已結案』」過濾，但 Notion 狀態欄位無此值（合法值僅 未開始/進行中/測試中/已完成），搜尋永遠回空；改以「🚀 部署狀態含待執行」為主判準。plan-close 明文建立「🚀 部署狀態」區塊使契約成立
+- **plan-close 結案流程** — `.spec/` 提交改用 `git add -f`（原 `!.spec/{slug}/` 反向忽略無效）；README `status: 已結案` 寫回，對齊 plan-deploy-confirm 本地掃描
+- **plan-next 結案偵測** — 改讀 `_index.md`「已完成」區段（原 `status: closed` 全 plugin 無此值、永不命中）
+- **plan-security L1-SQL-1** — grep pattern 改字面比對（原 `\$\{` 寫法實測匹配不到 MyBatis `${}`）
+- **plan-sync** — 修正對 plan-start 的步驟編號指涉腐化
+
+### 改善
+- **新增 `docs/SKILL-TEMPLATE.md`** — 統一段落順序、前置檢查句式、步驟編號規則與觸發詞格式，作為未來新 skill 撰寫依據
+- **references 路徑統一** — 19 個 skill 內文引用改為可正確解析的相對路徑寫法（原從 skill 目錄解析不到 plugin 根層 references/）
+- **觸發詞收斂** — description 移除單字級英文詞與日常口語（避免與內建工具及日常對話誤觸發），每個 skill 第一觸發固定為斜線指令；19 個 skill 全數新增「何時不用」反向指引段，並標注與內部/環境 skill 的分工邊界
+- **步驟編號整數連續化、跨檔指涉改用段落名稱**（抗編號腐化）
+- **跨 skill 重複內容抽共用** — 「本地檔案↔Notion 區塊對應表」「MCP 安裝指令」等抽到 references/ 單一來源
+- **獨立 marketplace.json 修正** — 補齊過期的 skills 清單（plan-security/plan-verify/plan-next/plan-demo/plan-deploy-confirm）與版本號
+
+## [bug-workflow@3.11.0] - 2026-07-13
+
+> 與 feature-workflow@4.24.0 同批 SKILL.md 品質優化。
+
+### 修復
+- **crew-doctor MCP 套件名** — 由不存在的 `@anthropic-ai/mcp-server-playwright` 改為 `@playwright/mcp`
+- **bug-setup 死引用** — 完成訊息指向不存在的 `/bug-search`，改為 `/bug-investigate`
+- **crew-upgrade 路徑斷言** — marketplace 原始碼與 installed_plugins.json 路徑更正為 `~/.claude/plugins/` 為主、`~/.claude-company/` 降為 fallback（原主路徑不存在，版本比對必失敗）
+
+### 改善
+- **references 路徑統一、步驟編號整數化、前置檢查句式收斂**（同 feature 批次規範）
+- **觸發詞收斂 + 10 個 skill 新增「何時不用」段**
+- **補齊 references 專用段** — anti-rationalizations.md / boundaries.md 補上 crew-init、crew-doctor 等被引用卻不存在的段落
+- **跨 skill 重複抽共用** — 刪除 5 個 skill 與 prerequisites.md 冗餘的「設定檔」區塊；「定位目標 Bug」「證據收集流程」抽到 references/ 單一來源；紀律護欄樣板壓成單行引用
+- **獨立 marketplace.json 修正** — 補齊 crew-doctor/crew-init 並將版本自 3.8.0 對齊到 3.11.0
+
 ## [feature-workflow@4.23.0] - 2026-05-28
 
 ### 新增
