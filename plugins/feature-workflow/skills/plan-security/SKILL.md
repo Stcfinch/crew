@@ -78,7 +78,7 @@ description: 專職安全掃描 —— CREW 三層架構（靜態規則/上下�
 | L1-XSS-1 | JSP 未轉義輸出 | `grep -rn '<%=' --include='*.jsp'` 後過濾非 JSTL 使用 | 🟡 |
 | L1-XSS-2 | innerHTML / v-html | `grep -rn 'innerHTML\|v-html' --include='*.jsp' --include='*.vue' --include='*.js'` | 🟡 |
 | L1-SEC-1 | 硬編碼密碼 | `grep -rn 'password\s*=\s*"\|secret\s*=\s*"\|token\s*=\s*"' --include='*.java' --include='*.properties' --include='*.yml'` | 🔴 |
-| L1-SEC-2 | 缺少參數驗證 | 掃描 Controller 方法，檢查 @RequestParam/@RequestBody 是否有 @Valid/@Validated | 🟡 |
+| L1-SEC-2 | 缺少參數驗證 | `grep -rn '@RequestBody\|@RequestParam' --include='*.java' \| grep -v '@Valid\|@Validated'`（命中列為疑似缺驗證，需人工確認） | 🟡 |
 | L1-SEC-3 | CORS 配置 | `grep -rn 'Access-Control-Allow-Origin\|@CrossOrigin\|CorsConfiguration' --include='*.java'` | 🟡 |
 
 每條匹配結果需 AI 判斷是否為 false positive（如 ${} 在註解中、password 是欄位名不是值等）。

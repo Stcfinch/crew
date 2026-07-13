@@ -13,7 +13,7 @@ description: 將當前專案新增或更新到 Notion 專案資料庫 —— 自
 
 參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）— 本 Skill 只檢查 Notion 後端偵測（0.5）與設定檔（2）是否就緒。
 
-- 已安裝 Notion MCP Server（`claude plugin install notion`）
+- 依 §0.5 偵測結果取得可用的 Notion 後端（`NOTION_BACKEND = "plugin"` 或 `"local"`）；兩者皆不可用時依 §0.5 提示安裝，不限定單一後端
 - 已執行過 `/bug-setup` 或 `/plan-setup`（至少有一個設定檔存在）
 
 ---
@@ -92,6 +92,11 @@ git branch --show-current 2>/dev/null || echo ""
 ```
 
 若確認 → 跳到『同步更新所有設定』一節（更新設定檔）。
+
+> **缺值處理**：『同步更新所有設定』一節的 feature-workflow 新格式必填 `stack`（技術棧）、`prod_branch`（PROD 分支）；`uat_branch` 可空。情境 A 跳過了『偵測專案類型與架構』（4）與『Git Flow 分支偵測』（4-5），若 Notion 既有專案頁面缺少對應欄位值，寫入設定檔前需補齊：
+> 1. 優先從 Notion 既有頁面欄位讀取技術棧／PROD 分支／UAT 分支
+> 2. 仍缺值 → 針對缺的項目才執行對應偵測（技術棧跑 4-1、分支跑 4-5），不需重跑整個『偵測專案類型與架構』流程
+> 3. 偵測不出 → 詢問使用者手動輸入 `stack` 與 `prod_branch`（必填不可留空；`uat_branch` 可留空）
 
 **情境 B：Notion 中有專案但未匹配**
 

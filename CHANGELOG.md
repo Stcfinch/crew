@@ -7,6 +7,21 @@
 
 ---
 
+## [feature-workflow@4.24.1] - 2026-07-13
+
+> reconciliation 稽核收尾——正確性類修復（死引用、內部矛盾、錯誤引用、不實宣稱）。
+
+### 修復
+- **死引用/缺檔** — plan-close 經 prerequisites 指向的 `notion-backend.md` 在 feature 側不存在，補上並納入共用同步清單；plan-next 移除不存在的 `/plan-start --resume` 推薦；plan-verify 修正懸空引用與未定義的 `$CDP`
+- **內部矛盾** — crew-init 前置項數、plan-close API 次數（3-5 vs 7）、plan-demo `--keep`、plan-stack ID 覆蓋規則、plan-review prod_branch 回退各自統一
+- **錯誤引用** — plan-review 報告模板 Reviewer 由 security 更正為 performance；plan-setup Agent 名補 `feature-` 前綴（feature-spec-analyst 等）
+- **不實宣稱** — plan-demo 不再宣稱 plan-status 會標 `[DEMO]`（實際無此邏輯）
+- **與 C9 對齊** — plan-deploy-confirm/plan-status 對齊 plan-close 改用 `git add -f`、由 plan-close 建部署狀態區塊的新做法
+- **plan-verify Excel 報告** — `npx --yes exceljs`（無 bin，無法執行）改為可執行方式
+
+### 工程（marketplace 層級）
+- 共用 reference 同步清單由 3 個增為 4 個（納入 `notion-backend.md`），防兩份漂移
+
 ## [feature-workflow@4.24.0] - 2026-07-13
 
 > 全面 SKILL.md 品質優化（29 個 skill 稽核，181 條已驗證發現，四梯次修復）。詳見 marketplace 內 `plugins/.skill-audit-2026-07-12/` 稽核報告。
@@ -26,6 +41,17 @@
 - **步驟編號整數連續化、跨檔指涉改用段落名稱**（抗編號腐化）
 - **跨 skill 重複內容抽共用** — 「本地檔案↔Notion 區塊對應表」「MCP 安裝指令」等抽到 references/ 單一來源
 - **獨立 marketplace.json 修正** — 補齊過期的 skills 清單（plan-security/plan-verify/plan-next/plan-demo/plan-deploy-confirm）與版本號
+
+## [bug-workflow@3.11.1] - 2026-07-13
+
+> 與 feature-workflow@4.24.1 同批 reconciliation 正確性修復。
+
+### 修復
+- **內部矛盾** — crew-init 前置檢查項數（3/5/8）統一；crew-doctor 進階檢查前置條件統一
+- **crew-upgrade** — 目錄不存在時早退出（不再對死路徑 grep）；補版本比較指令（`sort -V`）
+- **bug-setup** — 專案資料庫 Title 欄由「專案名稱」對齊 db-templates 的「Name」
+- **project-add** — 移除硬寫的單一 Notion 後端安裝，改依 `NOTION_BACKEND` 偵測；情境 A 補缺值設定指引
+- **#17 rtk** — 經確認環境無 rtk，bug-investigate/anti-rationalizations/bug-patterns 的 `rtk proxy` 全改為 Read tool 讀 log
 
 ## [bug-workflow@3.11.0] - 2026-07-13
 

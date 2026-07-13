@@ -34,17 +34,19 @@ description: 自動偵測或互動式建立自訂技術棧 —— 掃描專案�
 
 - 讀取 `stacks/_builtin.md` 取得內建 ID 清單
 - 檢查 `stacks/{id}.md` 是否已存在
-- 若已是內建技術棧 → 提示已有內建支援，詢問是否自訂覆蓋
+- 若已是內建技術棧 ID → 提示已有內建支援，且**不可**用同一 ID 建立自訂檔案覆蓋（見下方「決定技術棧 ID」與 Gotchas 的一致規則）；引導改用不同的自訂 ID
 - 若已有自訂技術棧檔案 → 詢問是否更新
 - 若為空 → 繼續
 
 ### 2. 偵測框架資訊
 
+> 目前範本以 Java（Maven/Gradle）專案為例；非 Java 專案請參照下方「邊界情況」改用對應語言的建置檔與 Pattern。
+
 掃描建置檔（pom.xml / build.gradle），擷取框架、ORM、DB。
 
 ### 3. 決定技術棧 ID
 
-驗證：不可與內建或已有 ID 重複，格式為小寫英文 + 數字 + 連字號。
+驗證：**不可**與內建 ID（`spring-mvc-mybatis`、`spring-boot-mybatis`、`spring-boot-jpa`、`spring-boot-mybatis-plus`）或已有的自訂 ID 重複，格式為小寫英文 + 數字 + 連字號。此檢查為硬性擋下，不提供「覆蓋內建」的選項——原因見下方 Gotchas。
 
 ### 4. 掃描專案分層結構
 
@@ -113,7 +115,7 @@ scaffold: {scaffold 行為}
 
 ## Gotchas
 
-- **自訂技術棧 ID 不可與內建 ID 重複**：內建 ID 包括 `spring-mvc-mybatis`、`spring-boot-mybatis`、`spring-boot-jpa`、`spring-boot-mybatis-plus`。衝突時會靜默覆蓋內建定義，導致其他使用相同內建 ID 的專案行為改變。
+- **自訂技術棧 ID 不可與內建 ID 重複**：內建 ID 包括 `spring-mvc-mybatis`、`spring-boot-mybatis`、`spring-boot-jpa`、`spring-boot-mybatis-plus`。依 `references/config-resolver.md` 的解析邏輯，凡專案 `stack` 欄位值屬於內建 ID，一律讀取 `stacks/_builtin.md` 中的對應區塊，**不會**去讀同名的 `stacks/{id}.md`；因此就算手動用內建 ID 建立自訂檔案，該檔案也不會被套用（不是「靜默覆蓋內建定義」，而是自訂檔案本身失效、不生效）。步驟 3 會擋下此重複，若要調整內建行為，須改用不同的自訂 ID，並更新對應專案的 `projects/{repo-id}.md` 之 `stack` 欄位指向新 ID。
 - **掃描結果受 package 命名影響**：DAO 層叫 `repository` 而非 `dao` 時仍可辨識，但非標準命名（如 `persistence`、`store`）可能辨識失敗。掃描結果必須展示給使用者確認（見「展示結果並確認」一節），不可跳過。
 
 ---

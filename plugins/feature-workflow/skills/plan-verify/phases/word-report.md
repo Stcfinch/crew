@@ -430,11 +430,12 @@ python-docx 產出規格見 `references/verify-docx-template.md`。
 呼叫 plugin 內建的 `references/verify-excel-generator.js`：
 
 ```bash
-# 安裝 ExcelJS（臨時，不污染專案）
-npm_config_prefix=$(mktemp -d) npx --yes exceljs
+# 安裝 ExcelJS（臨時，不污染專案；exceljs 無 bin 欄位，不可用 npx 直接執行）
+NPM_TMP=$(mktemp -d)
+npm install --prefix "$NPM_TMP" exceljs --no-save --silent
 
-# 產出 Excel 報告
-node {plugin_path}/references/verify-excel-generator.js \
+# 產出 Excel 報告（透過 NODE_PATH 注入臨時安裝的 exceljs）
+NODE_PATH="$NPM_TMP/node_modules" node {plugin_path}/references/verify-excel-generator.js \
   --verify .spec/{slug}/verify.md \
   --screenshots .spec/{slug}/screenshots/ \
   --evidence .spec/{slug}/evidence/ \

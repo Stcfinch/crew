@@ -13,7 +13,23 @@ description: 以 Agent Teams 3 人並行審查 .spec 任務的程式碼（邏輯
 
 ### 環境變數
 
-必須啟用 Agent Teams 實驗功能（同 plan-build）。
+必須啟用 Agent Teams 實驗功能（同 plan-build，擇一設定）：
+
+**方式 A**：加入 shell profile（`~/.zshrc` 或 `~/.bashrc`）
+```bash
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+```
+
+**方式 B**：加入 settings.json 的 `env` 區塊
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+> ⚠️ 未設定時，建立 Agent Team 的指令會**靜默失敗**（不報錯但不產出 Reviewer 結果），難以 debug，務必在此先確認已設定。
 
 ### 程式碼
 
@@ -52,7 +68,7 @@ description: 以 Agent Teams 3 人並行審查 .spec 任務的程式碼（邏輯
 確定要審查的程式碼範圍：
 
 1. 若 `.spec/{slug}/files.md` 存在 → 從中取得檔案清單
-2. 否則，從 Git diff 取得（`{prod_branch}` 從專案設定讀取，未設定時依序嘗試 `production` → `master` → `main`）：
+2. 否則，從 Git diff 取得（`{prod_branch}` 從專案設定讀取；未設定時，先取 `origin/HEAD` 指向的分支，若無則依序嘗試 `production` → `master` → `main`）：
    ```bash
    git diff $(git merge-base HEAD {prod_branch})..HEAD --name-only
    ```
@@ -205,7 +221,7 @@ Leader 收集所有 Reviewer 的發現（含交叉分享結果），彙整寫入
 
 ### [{序號}] {問題標題}
 - **檔案**：{路徑}:{行號}
-- **Reviewer**：{logic/quality/security}
+- **Reviewer**：{logic/quality/performance}
 - **問題**：{描述}
 - **建議**：{修復建議}
 

@@ -46,7 +46,7 @@ description: CREW 一鍵首次設定 —— 依序執行 /bug-setup → /plan-se
 | Git | 顯示對應 OS 安裝指令並終止 |
 | Notion MCP 已安裝 | 提示 `claude plugin install notion`，等使用者完成後重跑 |
 
-進階檢查交由 `/crew-doctor`，本 skill 只跑必要 5 項即可開始。
+進階檢查交由 `/crew-doctor`（完整 18 項，含必要 8 項），本 skill 只跑上表必要 3 項即可開始。
 
 ---
 
@@ -89,12 +89,16 @@ bug-setup 失敗或使用者中斷 → 停止 crew-init，提示「下次可用 
 
 #### 2a. 偵測是否已設定
 
-檢查設定目錄：
+檢查設定目錄（新版階層式）：
 1. `~/.claude-company/feature-workflow/config.md`
 2. `~/.claude/feature-workflow/config.md`
 
-**已存在** → 標示為 ✅ 跳過，進階段 3。
-**不存在** → 進 2b。
+若以上皆不存在，再檢查舊單一檔格式（向下相容，同 `/plan-setup` 的偵測邏輯）：
+3. `~/.claude-company/feature-workflow-config.md`
+4. `~/.claude/feature-workflow-config.md`
+
+**新版或舊版任一存在** → 標示為 ✅ 跳過，進階段 3（偵測到舊版時附註：可執行 `/plan-setup --migrate` 遷移到新階層式目錄，非必要）。
+**皆不存在** → 進 2b。
 
 #### 2b. 觸發 /plan-setup
 

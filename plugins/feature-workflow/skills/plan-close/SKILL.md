@@ -5,7 +5,7 @@ description: 一次性批次同步 .spec/ 設計文件到 Notion（含 deploy.sq
 
 # plan-close — 統一結案（批次 Notion 同步）
 
-將 `.spec/{slug}/` 中的所有設計文件一次性批次同步到 Notion，更新狀態，同步到知識庫，並提交設計文件到 Git。**整個流程僅 3-5 次 Notion API 呼叫**。
+將 `.spec/{slug}/` 中的所有設計文件一次性批次同步到 Notion，更新狀態，同步到知識庫，並提交設計文件到 Git。**整個流程約 3-7 次 Notion API 呼叫**（Bug 類型有 `related_feature` 時會多出關聯 Feature 頁面的 fetch + update，達到上限）。
 
 ---
 
@@ -303,7 +303,7 @@ close 組 + sync 組 —— feature/.spec 任務結案用本 skill；bug 型結�
 - **一次 update_content 的大小限制**：Notion API request body 約 2MB 上限。大型功能的設計文件（spec.md + db.md + arch.md 合計）可能超過此限制，需分批呼叫 `update_content`。
 - **Bug 類型需讀取兩個設定檔**：知識庫 ID（Bug 知識庫）在 bug-workflow 設定檔中，只讀 feature-workflow 設定檔會靜默跳過知識庫同步。Bug 類型結案時，兩個 workflow 的設定檔都要讀取。
 - **提交 .spec/ 用 `git add -f`**：`plan-start` 在 `.gitignore` 忽略整個 `.spec/`，而 Git 無法用 `!.spec/{slug}/` 反向取消對「已排除目錄」的忽略（re-include 對已被排除目錄下的內容無效）。故一律用 `git add -f .spec/{slug}/`；力求不改動 `.gitignore`，避免規則順序踩坑。強制加入後檔案即成 tracked，後續修改 Git 會正常追蹤。
-- **Notion 呼叫次數統計**：承諾 3-5 次，但 Bug 有 `related_feature` 時會多 2 次（fetch + update 關聯 Feature 頁面），實際可達 7 次。回傳結果的統計數字要如實反映。
+- **Notion 呼叫次數統計**：基本情況 3-5 次，但 Bug 有 `related_feature` 時會多 2 次（fetch + update 關聯 Feature 頁面），實際可達 7 次。回傳結果的統計數字要如實反映。
 
 ---
 

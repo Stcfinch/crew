@@ -21,6 +21,7 @@ SHARED_REFS = [
     "references/prerequisites.md",
     "references/db-templates.md",
     "references/discipline-preamble.md",
+    "references/notion-backend.md",
 ]
 
 PLUGIN_A = "bug-workflow"

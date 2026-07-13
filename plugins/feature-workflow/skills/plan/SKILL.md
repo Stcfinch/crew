@@ -37,12 +37,14 @@ description: CREW 完整規劃串接器 —— 自動依序執行 plan-spec → 
 
 ### 3. 回傳結果
 
+> 若步驟 2 判斷 DB_REQUIRED=false（未執行 `/plan-db`），下方模板不列出 db.md + db.sql 該行。
+
 ```
 完整規劃完成！
 
 📁 產出檔案：
   • .spec/{slug}/spec.md
-  • .spec/{slug}/db.md + db.sql
+  • .spec/{slug}/db.md + db.sql（僅 DB_REQUIRED=true 時產出）
   • .spec/{slug}/arch.md
 📊 狀態：架構設計
 

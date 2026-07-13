@@ -17,7 +17,8 @@ description: 列出 .spec/ 目錄中所有活躍與已完成的任務（純本�
 /plan-status               # 列出所有任務
 /plan-status --active      # 只列出進行中的任務
 /plan-status --detail      # 詳細模式，顯示每個任務的設計文件完成度
-/plan-status --cleanup     # 清除超過 N 天的已完成任務
+/plan-status --cleanup           # 清除超過 30 天（預設）的已完成任務
+/plan-status --cleanup=<N>      # 清除超過 N 天的已完成任務，例：--cleanup=60
 /plan-status --park <slug>   # 暫停指定任務
 /plan-status --unpark <slug> # 恢復指定任務
 ```
@@ -135,6 +136,8 @@ ls -d .spec/*/
 
 ### 5. 清理模式（--cleanup）
 
+未指定 `<N>` 時預設 30 天；指定 `--cleanup=<N>` 時以 N 天為基準。
+
 ```
 以下已完成任務超過 30 天：
 
@@ -148,7 +151,7 @@ ls -d .spec/*/
 確認後：
 1. 刪除 `.spec/{slug}/` 目錄
 2. 從 `_index.md` 的「已完成」表移除對應列
-3. 還原 `.gitignore` 中的 `!.spec/{slug}/` 排除規則
+3. 若該任務已於 `/plan-close` 用 `git add -f` 加入版本控制（見 plan-close 的 Gotchas），需一併 `git rm -r --cached .spec/{slug}/` 取消追蹤；`plan-start` 產生的 `.gitignore` 規則本身不需還原或修改
 
 ### 6. 索引修復
 

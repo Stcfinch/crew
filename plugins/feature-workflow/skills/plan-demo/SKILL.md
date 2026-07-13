@@ -22,7 +22,7 @@ description: 純本地產出範例 .spec/ 任務，不依賴 Notion / Agent Team
 ```
 /plan-demo                       # 用內建預設範例「使用者管理 API」
 /plan-demo <自訂題目>            # 簡短描述自訂任務（仍跑本地產出，不寫 Notion）
-/plan-demo --keep                # 保留產出（預設清理會在 demo 結束時清除）
+/plan-demo --keep                # 保留產出（純 UX 信號，效果與預設相同：預設本就不自動清理）
 /plan-demo --cleanup             # 立即清除既有 demo 產物（.spec/demo-*/）
 ```
 
@@ -147,7 +147,7 @@ Controller / Service / Repository / Entity 類別清單與介面定義。
 ### 4. 自動清理時機
 
 `/plan-demo` 預設**不自動清理**（使用者要主動 `--cleanup`）。
-但會在 README.md 寫明「demo: true」，讓 `/plan-status` 顯示時標示「[DEMO]」並排在末尾。
+會在 README.md 寫明「demo: true」，供未來擴充判斷用；目前 `/plan-status` 並未讀取此欄位，demo 任務會與一般任務混在同一份清單顯示，不會標示「[DEMO]」也不會分組。
 
 `--keep` 旗標：明示「我之後會自己處理」，效果與預設相同（純 UX 信號）。
 
@@ -207,7 +207,7 @@ Controller / Service / Repository / Entity 類別清單與介面定義。
 
 ## Gotchas
 
-- **demo 產物會污染 `.spec/_index.md`**：若使用者已用 plan-start 建立過任務，index 會多一筆 demo 條目。/plan-status 會分組顯示讓使用者一眼分辨
+- **demo 產物會污染 `.spec/_index.md`**：若使用者已用 plan-start 建立過任務，index 會多一筆 demo 條目；`/plan-status` 目前不會特別標示或分組，demo 任務會與真實任務混在同一份清單中，用完建議 `--cleanup` 清除
 - **CLAUDE.md 技術棧偵測不到** → 用 `spring-boot-jpa` 預設範本；不阻擋
 - **重複跑 /plan-demo** → 若 `.spec/demo-{slug}/` 已存在，提示「是否覆寫？」
 - **demo 不會建立 Git branch**：避免污染分支樹。真實 plan-start 會建分支
