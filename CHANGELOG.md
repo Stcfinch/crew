@@ -7,6 +7,19 @@
 
 ---
 
+## [feature-workflow@4.24.2] - 2026-07-13
+
+> reconciliation 一致性補全 + 文件套件名修正。
+
+### 修復
+- **文件套件名漏網** — feature README 與 `docs/prerequisites.md` 的 Playwright MCP 安裝指令由不存在的 `@anthropic-ai/mcp-server-playwright` 改為 `@playwright/mcp`（Microsoft 維護）；補上 4.24.0 只修 SKILL.md 的漏網（同事照 README 安裝會失敗）
+
+### 改善
+- **範例全量中性化** — 移除殘留客戶專案名改中性假例，涵蓋 SKILL.md/references/README/examples，全 repo 0 殘留
+- **argument-hint** — plan-next、plan-start 補上
+- **文字/引用一致** — plan-browse 註解涵蓋 .sql、深度閱讀範本補 verify/review/deploy、「規格確認迴圈」正名；plan-build 移除時效性版本指涉；plan-demo 移除前瞻死引用；plan-security 移除過時待辦
+- **一致性小修** — plan-db 路徑寫全、plan-spec type=bug 導向、plan-stack 回傳顯示實際解析路徑、plan-setup MCP 已裝跳過
+
 ## [feature-workflow@4.24.1] - 2026-07-13
 
 > reconciliation 稽核收尾——正確性類修復（死引用、內部矛盾、錯誤引用、不實宣稱）。
@@ -41,6 +54,15 @@
 - **步驟編號整數連續化、跨檔指涉改用段落名稱**（抗編號腐化）
 - **跨 skill 重複內容抽共用** — 「本地檔案↔Notion 區塊對應表」「MCP 安裝指令」等抽到 references/ 單一來源
 - **獨立 marketplace.json 修正** — 補齊過期的 skills 清單（plan-security/plan-verify/plan-next/plan-demo/plan-deploy-confirm）與版本號
+
+## [bug-workflow@3.11.2] - 2026-07-13
+
+> 與 feature-workflow@4.24.2 同批一致性補全。
+
+### 改善
+- **範例全量中性化** — 客戶專案名改中性假例（bug-setup/bug-start/bug-close/bug-update/project-add）
+- **argument-hint** — bug-start 補上
+- **去重與一致** — bug-close merge 衝突 Gotchas/邊界情況去重、bug-update 範例去重、crew-init 三處去重、crew-doctor 退出碼段改健診狀態
 
 ## [bug-workflow@3.11.1] - 2026-07-13
 

@@ -13,7 +13,7 @@ description: 產出技術規格書寫入 .spec/ 目錄（零 Notion 呼叫）。
 
 > **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
-- 適用類型：**Feature**
+- 適用類型：**Feature**（活躍任務 `type=bug` 時，導向 `/bug-fix`，不執行本 skill）
 - 前置檔案：`README.md`（由 `/plan-start` 建立）
 
 ---

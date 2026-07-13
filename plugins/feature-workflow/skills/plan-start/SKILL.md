@@ -1,6 +1,7 @@
 ---
 name: plan-start
 description: 建立 Notion 條目 + .spec/ 規劃目錄 + Git branch 的統一任務入口（支援 feature 與 bug），含退出驗證確保必填欄位完整。當使用者提到 /plan-start、「開新 CREW 任務」、「建立規劃任務」時觸發此 Skill。
+argument-hint: "<任務簡述> [選項]"
 ---
 
 # plan-start — 統一任務入口（本地規劃模式）
@@ -453,7 +454,7 @@ created: {當前日期 YYYY-MM-DD}
 
 ## Gotchas
 
-- **slug 翻譯品質影響全流程**：slug 會成為 `.spec/` 目錄名稱和 Git branch 名稱，一旦建立就很難改。中文翻譯成英文時，優先用專案中已有的術語（如 LineBC 專案中的「推播」→ `push` 而非 `broadcast`），保持與 codebase 一致。
+- **slug 翻譯品質影響全流程**：slug 會成為 `.spec/` 目錄名稱和 Git branch 名稱，一旦建立就很難改。中文翻譯成英文時，優先用專案中已有的術語（如範例專案中的「推播」→ `push` 而非 `broadcast`），保持與 codebase 一致。
 - **_index.md 的 Markdown 表格格式脆弱**：如果使用者手動編輯了 `_index.md` 破壞了表格格式（缺少 `|` 或對齊跑掉），後續 `/plan-status` 讀取會解析失敗。寫入時確保表格格式正確。
 - **Bug 類型的 Notion 模板與 bug-start 不同步**：plan-start 建立 Bug 時用的模板要和 `bug-start` 的完全一致。如果 bug-start 更新了模板但 plan-start 沒跟上，會導致 `/bug-close` 找不到預期的區塊標題。
 - **.gitignore 追加位置**：追加 `.spec/` 到 `.gitignore` 時，如果檔案末尾沒有換行，新增的行會和最後一行黏在一起。追加前確認末尾有換行。

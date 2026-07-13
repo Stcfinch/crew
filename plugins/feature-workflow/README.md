@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.24.1`
+# Feature Workflow Plugin `v4.24.2`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
@@ -180,10 +180,10 @@ flowchart TD
 
 ```bash
 claude mcp add playwright --scope user -- \
-  npx @anthropic-ai/mcp-server-playwright@latest
+  npx @playwright/mcp@latest
 ```
 
-Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航。
+Microsoft 維護，支援截圖、元素互動、表單填寫、頁面導航。
 
 **chrome-devtools-mcp（選配，--deep 模式除錯用）**
 
@@ -300,8 +300,8 @@ flowchart LR
 │   ├── _builtin.md        # 內建技術棧總表
 │   └── spring-mvc-jpa.md  # 自訂技術棧（/plan-stack 產生）
 ├── projects/              # 專案對應（/project-add 產生）
-│   ├── FUB02P2101--LineBC.md
-│   └── FUB03P2402--PushAPIService.md
+│   ├── ORG01P2401--sample-app.md
+│   └── ORG01P2401--PushAPIService.md
 └── report-config.md       # Word/Excel 報告封面設定（首次產出時建立）
 ```
 

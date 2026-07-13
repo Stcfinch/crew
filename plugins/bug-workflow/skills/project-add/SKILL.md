@@ -56,9 +56,9 @@ git branch --show-current 2>/dev/null || echo ""
 **解析 Git Repo 識別碼**：從 `git remote get-url origin` 的結果解析，規則如下：
 
 - 去掉 `.git` 後綴（若有）
-- Git host 含 `intumit`（公司 GitLab）→ 只取 `{group}/{repo}`，例如 `FUB03P2402/PushAPIService`
+- Git host 含 `intumit`（公司 GitLab）→ 只取 `{group}/{repo}`，例如 `ORG01P2401/PushAPIService`
 - 其他（GitHub 等）→ 加上 host：`{host}/{group}/{repo}`，例如 `github.com/mark22013333/crew`
-- 同時支援 HTTPS（`https://gitlab.intumit.com/FUB03P2402/PushAPIService.git`）和 SSH（`git@gitlab.intumit.com:FUB03P2402/PushAPIService.git`）格式
+- 同時支援 HTTPS（`https://gitlab.intumit.com/ORG01P2401/PushAPIService.git`）和 SSH（`git@gitlab.intumit.com:ORG01P2401/PushAPIService.git`）格式
 
 ### 2. 檢查是否已存在
 
@@ -67,8 +67,8 @@ git branch --show-current 2>/dev/null || echo ""
 **已存在** → 顯示現有資訊，詢問：
 ```
 此專案已在設定檔中：
-  專案名稱：北市府-TPE01P2101
-  Git Repo：FUB03P2402/LineBC
+  專案名稱：範例機關-ORG01P2401
+  Git Repo：ORG01P2401/sample-app
 
 請選擇：
 1. 更新專案資訊（Notion + 設定檔）
@@ -85,8 +85,8 @@ git branch --show-current 2>/dev/null || echo ""
 
 ```
 偵測到 Notion 專案資料庫中已有匹配的專案：
-  專案名稱：北市府-TPE01P2101
-  Git Repo：FUB03P2402/LineBC
+  專案名稱：範例機關-ORG01P2401
+  Git Repo：ORG01P2401/sample-app
 
 是否將此專案加入設定檔的專案對應？[Y/n]
 ```
@@ -103,8 +103,8 @@ git branch --show-current 2>/dev/null || echo ""
 ```
 Notion 專案資料庫中有以下專案：
 
-1. 北市府-TPE01P2101（Git Repo：FUB03P2402/LineBC）
-2. FIA01P2403 WCS（Git Repo：FUB03P2402/WCS）
+1. 範例機關-ORG01P2401（Git Repo：ORG01P2401/sample-app）
+2. FIA01P2403 WCS（Git Repo：ORG01P2401/WCS）
 3. 專案 C（Git Repo：未設定）
 
 0. 建立新專案
@@ -265,7 +265,7 @@ Git Flow 分支偵測：
 建立新專案，請填寫以下資訊：
 
   專案名稱：（必填）
-  Git Repo：FUB03P2402/NewProject（已自動偵測）
+  Git Repo：ORG01P2401/NewProject（已自動偵測）
   技術棧：spring-boot-mybatis（已自動偵測，Enter 確認或修改）
   PROD 分支：production（已自動偵測，Enter 確認或修改）
   UAT 分支：uat（已自動偵測，Enter 確認或修改）
@@ -436,7 +436,7 @@ git ls-files --error-unmatch CLAUDE.md 2>/dev/null
 專案已新增到 Notion 專案資料庫！
 
   專案名稱：XXX
-  Git Repo：FUB03P2402/NewProject
+  Git Repo：ORG01P2401/NewProject
   專案類型：{簡單型 / 產品型}
   技術棧：spring-boot-mybatis
   PROD 分支：production
@@ -446,7 +446,7 @@ git ls-files --error-unmatch CLAUDE.md 2>/dev/null
 
 已同步更新設定檔：
   ✅ ~/.claude-company/bug-workflow-config.md
-  ✅ ~/.claude-company/feature-workflow-config.md
+  ✅ ~/.claude-company/feature-workflow/projects/{sanitized-repo-id}.md
 
 CLAUDE.md：{✅ 已推送 / ⚠️ 建議推送}
 

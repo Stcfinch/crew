@@ -144,15 +144,15 @@ uat_branch: {測試環境分支，選填}
 
 ### 範例
 
-檔名：`FUB03P2402--PushAPIService.md`
+檔名：`ORG01P2401--PushAPIService.md`
 
 ```markdown
 ---
-notion_name: 北富銀Push API(微服務)-FUB03P2402
-git_repo: FUB03P2402/PushAPIService
+notion_name: 範例銀行Push API(微服務)-ORG01P2401
+git_repo: ORG01P2401/PushAPIService
 stack: spring-boot-jpa
 prod_branch: production
 uat_branch: uat
 ---
-富邦銀行 LINE 推播微服務
+範例銀行 LINE 推播微服務
 ```

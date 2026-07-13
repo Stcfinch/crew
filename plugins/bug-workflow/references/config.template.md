@@ -18,13 +18,13 @@
 Skill 透過 `git remote get-url origin` 取得 Git 遠端 URL，解析為識別碼後精確匹配對應的 Notion 專案。
 
 **識別碼解析規則**：
-- 公司 GitLab（host 含 `intumit`）：`{group}/{repo}`（如 `FUB03P2402/PushAPIService`）
+- 公司 GitLab（host 含 `intumit`）：`{group}/{repo}`（如 `ORG01P2401/PushAPIService`）
 - 外部（GitHub 等）：`{host}/{group}/{repo}`（如 `github.com/org/repo`）
 - 自動去除 `.git` 後綴，支援 HTTPS / SSH 格式
 
 | Notion 專案名稱 | Git Repo | 說明 |
 |----------------|----------|------|
-| （範例）我的專案 | `FUB03P2402/MyProject` | 範例，請替換 |
+| （範例）我的專案 | `ORG01P2401/MyProject` | 範例，請替換 |
 
 ## CREW 工作區
 
