@@ -118,7 +118,7 @@ CREW 環境健診摘要
 建議下一步：
   1. 安裝 Playwright 解開 plan-verify：
      claude mcp add playwright --scope user -- \
-       npx @anthropic-ai/mcp-server-playwright@latest
+       npx @playwright/mcp@latest
 ```
 
 ### 6. `--fix` 模式

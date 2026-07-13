@@ -75,7 +75,7 @@ description: 專職安全掃描 — 三層掃描架構（靜態規則/上下文�
 
 | 規則 ID | 掃描目標 | 指令 | 嚴重度 |
 |---------|---------|------|--------|
-| L1-SQL-1 | MyBatis ${} 使用 | `grep -rn '\\$\\{' --include='*.xml' --include='*.java'` | 🔴 |
+| L1-SQL-1 | MyBatis ${} 使用 | `grep -rn -F '${' --include='*.xml' --include='*.java'`（用 `-F` 做字面字串比對；原本的正規表示式寫法會轉義過度而完全匹配不到 `${}`，pattern 調整後需以測試檔實測命中） | 🔴 |
 | L1-SQL-2 | 字串拼接 SQL | `grep -rn 'sql.*+=\|"SELECT.*"+\|"INSERT.*"+\|"UPDATE.*"+\|"DELETE.*"+'  --include='*.java'` | 🔴 |
 | L1-XSS-1 | JSP 未轉義輸出 | `grep -rn '<%=' --include='*.jsp'` 後過濾非 JSTL 使用 | 🟡 |
 | L1-XSS-2 | innerHTML / v-html | `grep -rn 'innerHTML\|v-html' --include='*.jsp' --include='*.vue' --include='*.js'` | 🟡 |

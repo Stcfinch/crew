@@ -40,7 +40,7 @@ description: 手動中途同步 .spec/ 目錄的當前進度到 Notion（含 dep
 
 若 `notion_page_id` 為空（例如 `/plan-start` 時 Notion 建立失敗）：
 - 詢問使用者是否要補建 Notion 條目
-- 若是，執行與 `/plan-start` 步驟 5 相同的建立邏輯
+- 若是，執行與 `/plan-start` 的「建立 Notion 條目」步驟相同的建立邏輯
 - 建立後更新 README.md 的 `notion_page_id` 和 `notion_url`
 
 ### 3. 確定同步範圍

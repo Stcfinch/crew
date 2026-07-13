@@ -329,7 +329,7 @@ Bug Workflow 設定完成！
   /bug-start <問題簡述>     — 建立 Bug 條目
   /bug-update <內容>        — 更新調查資訊
   /bug-close                — 結案並同步知識庫
-  /bug-search <關鍵字>      — 搜尋過往 Bug 解法
+  /bug-investigate <關鍵字> — 假說驅動調查（含比對 Bug 知識庫過往解法）
   /bug-update reopen <Bug>  — 重新開啟已結案 Bug
 ```
 

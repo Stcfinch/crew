@@ -34,10 +34,10 @@ description: 透過 Playwright MCP 操作瀏覽器，逐條驗證 .spec/ 中的�
 
 ```bash
 claude mcp add playwright --scope user -- \
-  npx @anthropic-ai/mcp-server-playwright@latest
+  npx @playwright/mcp@latest
 ```
 
-Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航。安裝後**重啟 Claude Code**。
+Microsoft 維護，支援截圖、元素互動、表單填寫、頁面導航。安裝後**重啟 Claude Code**。
 
 ### chrome-devtools-mcp（選配，--deep 模式除錯用）
 
@@ -180,12 +180,14 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 | 類型 | MCP 工具 | 範例 |
 |------|---------|------|
 | API | curl + Bash | 「可依日期範圍查詢」→ `curl GET /api/xxx?startDate=...&endDate=...` |
-| UI 操作 | `click` / `type_text` / `fill` / `take_snapshot` / `take_screenshot` | 「支援分頁」→ 點擊下一頁按鈕，確認表格更新 |
-| UI 檢查 | `take_snapshot` → AI 分析 | 「表格顯示正確欄位」→ 讀取無障礙樹檢查欄位 |
-| 等待非同步 | `wait_for` | 「搜尋結果載入」→ 等待文字出現 |
-| 表單填寫 | `fill_form` | 「表單驗證」→ 批次填入所有欄位 |
-| 前端錯誤 | `list_console_messages` | 「頁面無 JS 錯誤」→ 檢查 console |
+| UI 操作 | `browser_click` / `browser_type` / `browser_fill_form` / `browser_snapshot` / `browser_take_screenshot` | 「支援分頁」→ 點擊下一頁按鈕，確認表格更新 |
+| UI 檢查 | `browser_snapshot` → AI 分析 | 「表格顯示正確欄位」→ 讀取無障礙樹檢查欄位 |
+| 等待非同步 | `browser_wait_for` | 「搜尋結果載入」→ 等待文字出現 |
+| 表單填寫 | `browser_fill_form` | 「表單驗證」→ 批次填入所有欄位 |
+| 前端錯誤 | `browser_console_messages` | 「頁面無 JS 錯誤」→ 檢查 console |
 | 資料驗證 | API + UI 交叉比對 | 「統計數據一致」→ API 回傳值與頁面顯示比對 |
+
+> 上表工具名為 playwright plugin 提供之短名，實際完整工具名前綴為 `mcp__plugin_playwright_playwright__`（如 `mcp__plugin_playwright_playwright__browser_click`）。
 
 **Bash 模式工具對照：**
 
@@ -237,15 +239,15 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 
 MCP 的 `--autoConnect` 會自動連接本機 Chrome，不需手動處理連線。
 
-使用 `list_pages` 列出所有開啟的分頁，智慧匹配目標 URL：
+使用 `browser_tabs`（`action: list`）列出所有開啟的分頁，智慧匹配目標 URL：
 
 1. 使用者透過參數指定的 URL
 2. 從 `arch.md` 或 `spec.md` 推斷的頁面路徑（如 `/admin/xxx`）
 3. 包含 `localhost` 的分頁
 
-匹配後使用 `select_page` 切換到目標分頁。
+匹配後使用 `browser_tabs`（`action: select`）切換到目標分頁。
 
-找不到 → 提示使用者在 Chrome 開啟目標頁面，然後重新 `list_pages`。
+找不到 → 提示使用者在 Chrome 開啟目標頁面，然後重新 `browser_tabs`（`action: list`）。
 
 #### Bash 模式
 
@@ -322,7 +324,7 @@ mkdir -p .spec/{slug}/evidence
 
 將驗證過程中的截圖複製到 `.spec/{slug}/screenshots/`，API 測試的完整請求/回應存入 `.spec/{slug}/evidence/`：
 
-**MCP 模式**：`take_screenshot` 回傳截圖內容，直接儲存。
+**MCP 模式**：`browser_take_screenshot` 回傳截圖內容，直接儲存。
 
 **Bash 模式**：
 ```bash
@@ -347,7 +349,7 @@ Evidence 命名規則：`verify-{序號}-request.txt`、`verify-{序號}-respons
 | 驗證日期 | {YYYY-MM-DD} |
 | 環境 | {localhost:8080 或使用者指定} |
 | 模式 | {完整 / api-only / manual / recheck} |
-| 驗證工具 | {chrome-devtools-mcp / cdp.mjs} |
+| 驗證工具 | {Playwright MCP / cdp.mjs} |
 
 ## 統計
 
@@ -412,7 +414,7 @@ response_lines: 42
 ```markdown
 ### [{日期}] 驗收驗證
 - **模式**：{完整/api-only/manual/recheck}
-- **工具**：{chrome-devtools-mcp / cdp.mjs}
+- **工具**：{Playwright MCP / cdp.mjs}
 - **結果**：✅ {N} / ⚠️ {N} / ❌ {N} / ⏭️ {N} / 👤 {N}
 - **報告**：verify.md
 ```
@@ -542,7 +544,7 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 ## 邊界情況
 
 - **無驗收條件**：提示使用者手動輸入，或建議先執行 `/plan-spec`
-- **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @anthropic-ai/mcp-server-playwright@latest`）
+- **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @playwright/mcp@latest`）
 - **Playwright 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
 - **minimax-docx 和 python-docx 皆不可用**：step 10 提供三選一（安裝 python-docx / 安裝 .NET / 跳過報告），不直接中斷流程
 - **python-docx 安裝失敗**（如無 pip、磁碟滿）：顯示錯誤訊息，提示使用者手動安裝 `python3 -m pip install python-docx`，或改選安裝 .NET

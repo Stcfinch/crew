@@ -77,3 +77,22 @@
 ### 🔴 NEVER
 - 覆蓋已有的調查記錄
 - Reopen 時刪除原有的修復方案
+
+---
+
+## crew-init
+
+### 🟢 ALWAYS
+- 依序檢查四階段（bug-workflow 設定 / feature-workflow 設定 / CLAUDE.md / 專案註冊）的設定檔是否存在
+- 每階段結束後才進下一階段，不可跳過偵測直接假設已完成
+- 失敗或中斷時提示 `/crew-init --resume` 續跑方式
+
+### 🟡 ASK FIRST
+- `/bug-setup`、`/plan-setup` 中需要使用者互動的部分（選資料庫、確認 ID）
+- 使用者選擇跳過某階段（顯示 `s` 選項）時
+- CLAUDE.md 或專案已存在但內容疑似不完整時，是否仍視為該階段完成
+
+### 🔴 NEVER
+- 自行修改 `/bug-setup`、`/plan-setup` 產出的設定檔內容
+- 略過某階段的偵測就把該階段標示為 ✅ 完成
+- 嘗試清理或回滾 `/bug-setup`、`/plan-setup` 中斷後留下的半成品設定檔
