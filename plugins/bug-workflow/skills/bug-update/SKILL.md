@@ -55,7 +55,7 @@ Reopen 模式需要定位「測試中」或「已完成」的 Bug。
 5. 顯示互動式清單：
 
 ```
-偵測到 Git Repo：TPE01P2101/LineBC
+偵測到 Git Repo：ORG01P2401/sample-app
 
 以下為該專案近期已結案的 Bug：
 
@@ -137,13 +137,7 @@ Reopen 模式需要定位「測試中」或「已完成」的 Bug。
 /bug-update 關鍵 log：NullPointerException at PushService.java:235
 ```
 
-```
-/bug-update 初步判斷：推播排程在取得 access token 時發生空指標，可能是 token 過期未更新
-```
-
-```
-/bug-update 通報來源：公共運輸處窗口 王小明
-```
+其他區塊寫法同理（`通報來源：`、`初步判斷：`…），完整範例見下方「快捷用法彙整」。
 
 #### 方式 B：從剪貼簿或終端機貼入
 

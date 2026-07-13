@@ -138,7 +138,7 @@ response_lines: 3
 
 ---
 
-# 北富銀Push API(微服務)-FUB03P2402
+# 範例專案 Push API(微服務)-ORG01P2401
 
 ## 推播標籤查詢統計 — 驗收報告
 

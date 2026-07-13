@@ -14,7 +14,7 @@ description: 產出資料庫設計文件寫入 .spec/ 目錄（零 Notion 呼叫
 > **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
 - 適用類型：**Feature**
-- 前置檔案：`spec.md`（建議但非必要，若不存在則從 README.md 需求描述直接設計）
+- 前置檔案：`spec.md`（建議但非必要，若不存在則從 `.spec/{slug}/README.md` 需求描述直接設計）
 
 ---
 
@@ -30,13 +30,13 @@ description: 產出資料庫設計文件寫入 .spec/ 目錄（零 Notion 呼叫
 
 **輸入來源**：
 - 技術規格從 `.spec/{slug}/spec.md` 讀取
-- 若 spec.md 不存在，提示建議先執行 `/plan-spec`，但允許從 README.md 需求描述直接設計
+- 若 spec.md 不存在，提示建議先執行 `/plan-spec`，但允許從 `.spec/{slug}/README.md` 需求描述直接設計
 
 **輸出目標**：
 - 設計文件 → `.spec/{slug}/db.md`
 - SQL 檔案 → `.spec/{slug}/db.sql`（含 CREATE TABLE / INDEX / 範例資料 / Rollback SQL）
 
-完成後更新 README.md 的 `status: DB 設計`。
+完成後更新 `.spec/{slug}/README.md` 的 `status: DB 設計`。
 
 ### 3. 一致性驗證 + 更新日誌
 

@@ -192,7 +192,7 @@ Controller / Service / Repository / Entity 類別清單與介面定義。
 - [ ] API 回應格式符合 ApiResult 標準
 ```
 
-完整範本檔見 `references/demo-spec-template.md`（如未來新增該檔；目前 prompt 內 inline）。
+完整範本 inline 於本 skill（如上），不依賴外部 references 檔。
 
 ---
 

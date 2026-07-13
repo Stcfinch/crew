@@ -147,7 +147,9 @@ description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資�
 
 ### 6. Chrome DevTools MCP 安裝（選用）
 
-若使用者計畫使用 `/plan-verify` 驗收驗證，詢問是否安裝：
+先檢查本機是否已安裝對應 MCP（例如 `claude mcp list` 或既有設定可見 `chrome-devtools`）；若已偵測到則直接跳過本步驟，不重複詢問安裝。
+
+若尚未安裝，且使用者計畫使用 `/plan-verify` 驗收驗證，詢問是否安裝：
 
 ```
 是否安裝 Chrome DevTools MCP？（Google 官方維護，推薦）
@@ -178,7 +180,7 @@ mkdir -p {設定目錄}/projects
 
 每個專案一個檔案，寫入 `projects/{sanitized-repo-id}.md`。
 
-**檔名規則**：Git Repo 識別碼中的 `/` 替換為 `--`。例如 `FUB03P2402/PushAPIService` → `FUB03P2402--PushAPIService.md`。
+**檔名規則**：Git Repo 識別碼中的 `/` 替換為 `--`。例如 `ORG01P2401/PushAPIService` → `ORG01P2401--PushAPIService.md`。
 
 ### 8. 回傳結果
 

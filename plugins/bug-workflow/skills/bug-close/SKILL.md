@@ -59,8 +59,8 @@ git diff HEAD~1..HEAD
 ```
 📋 結案前分支合併
 
-當前在 feature/qa-log-user-id-statistics
-目標 DEV 分支：MOM01P2401_DEV
+當前在 feature/sample-fix
+目標 DEV 分支：ORG01P2401_DEV
 
 要合併回 DEV 嗎？
   1. 是，merge --no-ff 並繼續結案
@@ -116,7 +116,7 @@ git diff HEAD~1..HEAD
 |---|--------|---------|---------|
 | C1 | 根因分析已填寫 | Notion 頁面「根因分析」區塊非空 | WARN：提醒補填，允許繼續但狀態強制為「測試中」 |
 | C2 | 修復 commit 存在 | `git log --oneline -10` 中有相關 commit | BLOCK：必須先 commit |
-| C3 | 迴歸測試存在 | grep test 目錄中含 "Regression: {bug 相關關鍵字}" | WARN：建議用 /bug-fix 產出 |
+| C3 | 迴歸測試存在 | `grep -rF "Regression: {Bug 標題}" --include="*Test.java" --include="*.test.*" --include="*.spec.*" .`（`{Bug 標題}` = Notion 頁面標題，需與 `/bug-fix` 產出的 attribution 註解 `// Regression: {Bug 標題}` 用字完全一致；grep 需在專案根目錄執行） | WARN：建議用 /bug-fix 產出 |
 | C4 | 驗證項目至少一項勾選 | Notion 頁面 checkbox 狀態 | WARN：提醒驗證 |
 
 驗證結果顯示：
@@ -288,7 +288,7 @@ close 組 —— 本 skill 只結 bug 型任務；feature/.spec 任務結案用 
 - **難易度判斷閾值偏保守**：「≤3 檔案且 ≤50 行 → 普通」的規則在重構型修復（改很多檔但每個只改一行）時會誤判為困難。若 diff 中大部分是 import 變更或 rename，應降級為「普通」。
 - **Merge 引導是建議不是強制**：「Merge 引導」步驟可以跳過。有些場景使用者會在其他工具（如 GitLab MR）做 merge，不需要在 CLI 操作。
 - **dev_branch 跨 plugin 讀取**：Merge 引導需要讀取 feature-workflow 的設定檔取得 `dev_branch`，但 bug-close 是 bug-workflow 的 skill。讀取失敗時顯示簡化提示，不阻擋流程。
-- **Merge 衝突不自動解決**：衝突屬於需要人類判斷的操作，遇到衝突時暫停結案流程，等使用者解決後重新執行 `/bug-close`。
+- **Merge 衝突不自動解決**：衝突屬於需要人類判斷的操作，遇到衝突時顯示衝突檔案列表、暫停結案流程，等使用者解決後重新執行 `/bug-close`。
 - **不自動 push**：merge 完成後不自動執行 `git push`，因為 push 會影響遠端共享狀態，需使用者明確操作。
 
 參考 `examples/good-closure-report.md` 了解理想的結案報告結構和品質。
@@ -299,10 +299,10 @@ close 組 —— 本 skill 只結 bug 型任務；feature/.spec 任務結案用 
 
 - **設定檔不存在**：提示使用者先執行 `/bug-setup` 完成初始設定
 - **無 commit 可擷取**：提示使用者先 commit 修復程式碼
-- **Notion 頁面內容與模板不符**：使用 `replace_content` 而非 `update_content`，先保留原有內容再附加修復資訊
+- **Notion 頁面內容與模板不符**：處理方式見 Gotchas 的「update_content 找不到區塊標題」
 - **使用者想手動補充調查過程**：提示可直接在 Notion 頁面編輯「調查過程」區塊
 - **diff 過大（> 500 行）**：僅摘要檔案清單和關鍵變更，不貼完整 diff
-- **merge 衝突**：顯示衝突檔案列表，暫停結案流程，提示使用者解決衝突後重新執行 `/bug-close`
-- **feature-workflow 未安裝或未設定**：Merge 引導改為簡化提示，不阻擋結案
+- **merge 衝突**：處理方式見 Gotchas 的「Merge 衝突不自動解決」
+- **feature-workflow 未安裝或未設定**：原因與處理方式見 Gotchas 的「dev_branch 跨 plugin 讀取」
 - **DEV 分支在本地不存在**：嘗試 `git checkout {dev_branch}`（git 會自動從 remote tracking 建立本地分支），若失敗則 `git fetch && git checkout {dev_branch}`
 - **Feature branch 是否應刪除**：不自動刪除，僅在結案提示中建議。若 Feature 仍在開發中，刪除分支會造成問題

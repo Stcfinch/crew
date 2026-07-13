@@ -60,13 +60,13 @@ description: CREW bug 修復紀律 —— 根因確認才能改（鐵律）、�
 ```
 ⚠️ 分支不一致
 
-當前分支：MOM01P2401_DEV
-修復分支：feature/qa-log-user-id-statistics
+當前分支：{專案}_DEV
+修復分支：feature/{任務簡述}
 
 依 Git-flow 規定，修改應在 feature branch 提交，再 merge 回 DEV。
 
 要切換嗎？
-  1. 是，切換到 feature/qa-log-user-id-statistics
+  1. 是，切換到 feature/{任務簡述}
   2. 否，繼續在當前分支修復
 ```
 
@@ -218,10 +218,10 @@ Bug 修復驗證完成！
 
 ```
 🔀 分支引導：
-  目前在 feature/qa-log-user-id-statistics
+  目前在 feature/{任務簡述}
   修復已 commit，後續請 merge 回 DEV：
 
-  git checkout {dev_branch} && git merge feature/qa-log-user-id-statistics --no-ff
+  git checkout {dev_branch} && git merge feature/{任務簡述} --no-ff
 
   或使用 /bug-close 時自動引導 merge。
 ```

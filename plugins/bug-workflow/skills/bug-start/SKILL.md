@@ -1,6 +1,7 @@
 ---
 name: bug-start
 description: 在 Notion 任務追蹤工具建立 Bug 條目並填入標準化模板（僅建條目，不含 .spec/ 目錄與 Git branch）。當使用者提到 /bug-start、「建立 bug 條目」、「記錄 bug 到 Notion」、「bug 通報」時觸發此 Skill。
+argument-hint: "<問題簡述> [環境] [優先順序]"
 ---
 
 # Bug Start — 建立 Bug 條目與標準化文件
@@ -42,7 +43,7 @@ git remote get-url origin 2>/dev/null || echo ""
 **Git Repo 識別碼解析規則**：
 
 從 `git remote get-url origin` 取得遠端 URL 後，解析為識別碼：
-- Git host 含 `intumit`（公司 GitLab）→ 只取 `{group}/{repo}`，例如 `FUB03P2402/PushAPIService`
+- Git host 含 `intumit`（公司 GitLab）→ 只取 `{group}/{repo}`，例如 `ORG01P2401/PushAPIService`
 - 其他（GitHub 等）→ 加上 host：`{host}/{group}/{repo}`，例如 `github.com/mark22013333/crew`
 - 解析時去掉 `.git` 後綴，支援 HTTPS / SSH 格式
 
@@ -282,7 +283,7 @@ git remote get-url origin 2>/dev/null || echo ""
 #### 流程
 
 1. 使用 `notion-fetch` 讀取被關聯 Feature 的 Notion 頁面
-2. 取得 Feature 的「修復分支」欄位值（如 `feature/qa-log-user-id-statistics`）
+2. 取得 Feature 的「修復分支」欄位值（如 `feature/sample-fix`）
 3. 若「修復分支」欄位為空 → 跳過此步驟
 4. 驗證該分支是否存在：
    ```bash
@@ -291,13 +292,13 @@ git remote get-url origin 2>/dev/null || echo ""
 
 5. **分支存在**：
    ```
-   偵測到來源 Feature 的開發分支：feature/qa-log-user-id-statistics
+   偵測到來源 Feature 的開發分支：feature/sample-fix
    依 Git-flow 規定，Bug 修復應在此分支上進行。
 
    已將「修復分支」設定為此分支。
 
    要切換到此分支嗎？
-     1. 是，git checkout feature/qa-log-user-id-statistics
+     1. 是，git checkout feature/sample-fix
      2. 否，稍後手動切換
    ```
    - 更新 Bug Notion 條目的「修復分支」欄位為 feature branch 名稱
@@ -306,7 +307,7 @@ git remote get-url origin 2>/dev/null || echo ""
 
 6. **分支不存在**：
    ```
-   ⚠️ 來源 Feature 的分支 feature/qa-log-... 不存在（可能已被刪除或 merge 後清理）
+   ⚠️ 來源 Feature 的分支 feature/sample-fix 不存在（可能已被刪除或 merge 後清理）
 
    請選擇：
      1. 從目前分支建立新的 fix branch
@@ -358,7 +359,7 @@ start 組 —— 本 skill 只建 Notion bug 條目；需完整入口（Notion +
 - **專案資料庫 Relation 值是頁面 URL，不是名稱**：`notion-create-pages` 的 Relation 欄位需要填入「被關聯頁面的 URL」（如 `https://www.notion.so/xxx`），不是填專案名稱字串。填錯格式會靜默失敗，條目建立成功但 Relation 為空。
 - **任務類型是 Multi-select 不是 Select**：值必須用陣列格式 `["🐞 錯誤"]`，不是字串 `"🐞 錯誤"`。用字串格式不會報錯但會建立新的標籤。
 - **emoji 是欄位值的一部分**：「🐞 錯誤」、「💬 功能要求」、「💅 細調」中的 emoji 是必要的，不能省略，否則會建立一個新的 Select 選項。
-- **Git Repo 識別碼比對必須精確**：`FUB03P2402/LineBC` 和 `FUB03P2402/linebc` 是不同的識別碼。比對時使用原始大小寫，不做 case-insensitive matching。
+- **Git Repo 識別碼比對必須精確**：`ORG01P2401/sample-app` 和 `ORG01P2401/sample-App` 是不同的識別碼。比對時使用原始大小寫，不做 case-insensitive matching。
 - **相關任務是 self-relation，用 patch 不是 create**：「自動關聯來源 Feature」設定「相關任務」時，Bug 頁面已在「建立 Notion 條目」一節建立，必須用 `notion-update-page`（patch）而非 `notion-create-pages`。`notion-update-page` 的 Relation 欄位使用 `{"relation": [{"id": "..."}]}` 格式，id 是 page ID 不是 URL。
 - **同一個 Bug 可能關聯多個 Feature**：「相關任務」relation 是陣列，若標題比對匹配到多個 Feature，可以全部加入 relation 陣列。但建議限制最多 3 個，避免過度關聯。
 - **Feature Branch 可能已被刪除**：「偵測來源 Feature Branch」驗證分支存在性時，Feature 可能已 merge 且分支被清理。這是正常情境，不應視為錯誤。

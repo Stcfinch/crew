@@ -300,8 +300,8 @@ flowchart LR
 │   ├── _builtin.md        # 內建技術棧總表
 │   └── spring-mvc-jpa.md  # 自訂技術棧（/plan-stack 產生）
 ├── projects/              # 專案對應（/project-add 產生）
-│   ├── FUB02P2101--LineBC.md
-│   └── FUB03P2402--PushAPIService.md
+│   ├── ORG01P2401--sample-app.md
+│   └── ORG01P2401--PushAPIService.md
 └── report-config.md       # Word/Excel 報告封面設定（首次產出時建立）
 ```
 

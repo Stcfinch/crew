@@ -263,7 +263,7 @@ description: 專職安全掃描 —— CREW 三層架構（靜態規則/上下�
 - **Layer 1 的 grep pattern 需要持續維護**：新的危險模式（如新版 framework 的 API 變化）需要手動加入。考慮未來在 references/ 維護一份 security-patterns.md 供擴充。
 - **Layer 2 和 Layer 3 分開 subagent 避免角色混淆**：合併成一個 subagent 時，「安全工程師」和「滲透測試員」的視角會互相干擾。保持分離。
 - **--fix 的自動修復有限**：只處理機械性可修復的問題。涉及架構調整的問題（如缺少權限框架）只能建議，不能自動修。
-- **與 plan-review Reviewer 3 的分工**：plan-security 執行後，plan-review 的 Reviewer 3 **不再負責安全**，改為專職效能審查。需同步修改 plan-review 的 SKILL.md。
+- **與 plan-review Reviewer 3 的分工**：plan-security 專職安全掃描；plan-review 的 Reviewer 3 為專職效能審查，不負責安全。
 
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: crew-init
-description: CREW 一鍵首次設定 —— 依序執行 /bug-setup → /plan-setup 並提示 /init 與 /project-add，含跳過邏輯與斷點續跑。當使用者提到 /crew-init、「CREW 一鍵設定」、「初始化 CREW」時觸發此 Skill。
+description: CREW 一鍵首次設定 —— 把 bug-workflow 與 feature-workflow 的初次設定整合成單一指令。當使用者提到 /crew-init、「CREW 一鍵設定」、「初始化 CREW」時觸發此 Skill。
+argument-hint: "[--skip-bug] [--skip-plan] [--resume]"
 ---
 
 # crew-init — CREW 一鍵首次設定
@@ -29,10 +30,12 @@ description: CREW 一鍵首次設定 —— 依序執行 /bug-setup → /plan-se
 
 ```
 /crew-init                    # 完整跑首次設定流程
-/crew-init --skip-bug         # 已執行 /bug-setup，跳過該步
-/crew-init --skip-plan        # 已執行 /plan-setup，跳過該步
-/crew-init --resume           # 從中斷點續跑（自動判斷已完成步驟）
+/crew-init --skip-bug         # 強制跳過階段 1，不執行 1a 偵測
+/crew-init --skip-plan        # 強制跳過階段 2，不執行 2a 偵測
+/crew-init --resume           # 從中斷點續跑，跳過各階段提示直接執行
 ```
+
+三者關係：階段 1a/2a 本身就會自動偵測設定檔並跳過已完成的階段，因此單純重新執行 `/crew-init`（不加任何旗標）即等同於續跑。`--skip-bug`/`--skip-plan` 是使用者明確斷言「已完成」時的手動旗標，會跳過 1a/2a 的偵測直接進下一階段（用於偵測邏輯誤判或想省下檢查時間的情況）；`--resume` 不改變偵測邏輯，差異只在於不顯示「即將執行 X」的互動提示，直接執行未完成階段。
 
 ---
 
@@ -201,7 +204,6 @@ git remote get-url origin
   /bug-investigate              開始調查 Bug
   /plan-start <任務簡述>        建立功能任務
   /plan-next                    查看下一步建議
-  /crew-doctor                  健診環境
 
 進階：
   /crew-doctor                  18 項依賴完整檢查

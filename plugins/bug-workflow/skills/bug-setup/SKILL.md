@@ -232,7 +232,7 @@ pwd
 **Git Repo 識別碼解析規則**：
 1. 執行 `git remote get-url origin`
 2. 解析為 Git Repo 識別碼：
-   - host 含 `intumit`（公司 GitLab）→ `{group}/{repo}`（如 `FUB03P2402/PushAPIService`）
+   - host 含 `intumit`（公司 GitLab）→ `{group}/{repo}`（如 `ORG01P2401/PushAPIService`）
    - 其他（GitHub 等）→ `{host}/{group}/{repo}`（如 `github.com/org/repo`）
    - 自動去除 `.git` 後綴，支援 HTTPS / SSH 格式
 3. 在設定檔「專案對應」表中精確匹配「Git Repo」欄位
@@ -243,8 +243,8 @@ pwd
 **情境 A：專案資料庫中已有匹配的專案**（Git Repo 欄位精確匹配識別碼）
 
 ```
-偵測到 Git Repo：TPE01P2101/LineBC
-已匹配到 Notion 專案：北市府-TPE01P2101
+偵測到 Git Repo：ORG01P2401/sample-app
+已匹配到 Notion 專案：範例機關-ORG01P2401
 
 是否更新專案資訊？[Y/n]
 ```
@@ -254,12 +254,12 @@ pwd
 **情境 B：專案資料庫中有專案但未匹配**
 
 ```
-偵測到 Git Repo：TPE01P2101/LineBC
+偵測到 Git Repo：ORG01P2401/sample-app
 
 請選擇要對應的 Notion 專案（或輸入 0 建立新專案）：
 0. 建立新專案
 1. 專案 A（Git Repo：未設定）
-2. 專案 B（Git Repo：FUB03P2402/PushAPIService）
+2. 專案 B（Git Repo：ORG01P2401/PushAPIService）
 3. 專案 C（Git Repo：未設定）
 ```
 
@@ -274,7 +274,7 @@ pwd
 建立新專案，請填寫以下資訊：
 
   專案名稱：（必填）
-  Git Repo：TPE01P2101/LineBC（已自動偵測，Enter 確認或修改）
+  Git Repo：ORG01P2401/sample-app（已自動偵測，Enter 確認或修改）
   狀態：進行中（預設）
 ```
 
@@ -316,7 +316,7 @@ Bug Workflow 設定完成！
 🚀 CREW 工作區：https://www.notion.so/{workspace_page_id}
 
 已設定的專案對應：
-  • 北市府-TPE01P2101 → TPE01P2101/LineBC
+  • 範例機關-ORG01P2401 → ORG01P2401/sample-app
 
 設定檔位置：~/.claude-company/bug-workflow-config.md
 

@@ -14,8 +14,8 @@
 │   ├── spring-mvc-jpa.md               # 自訂技術棧（每個獨立檔案）
 │   └── ...
 └── projects/                           # 專案對應（每個專案一個檔案）
-    ├── FUB02P2101--LineBC.md
-    ├── FUB03P2402--PushAPIService.md
+    ├── ORG01P2401--sample-app.md
+    ├── ORG01P2401--PushAPIService.md
     └── ...
 ```
 
@@ -76,7 +76,7 @@ projects/{sanitized-repo-id}.md
 
 | Git Repo 識別碼 | 檔名 |
 |-----------------|------|
-| `FUB03P2402/PushAPIService` | `FUB03P2402--PushAPIService.md` |
+| `ORG01P2401/PushAPIService` | `ORG01P2401--PushAPIService.md` |
 | `ssh.dev.azure.com/v3/chte/fia/wcs` | `ssh.dev.azure.com--v3--chte--fia--wcs.md` |
 | `github.com/org/repo` | `github.com--org--repo.md` |
 
@@ -152,14 +152,14 @@ projects/{sanitized-repo-id}.md
 
 ```markdown
 ---
-notion_name: 北富銀Push API(微服務)-FUB03P2402
-git_repo: FUB03P2402/PushAPIService
+notion_name: 範例銀行Push API(微服務)-ORG01P2401
+git_repo: ORG01P2401/PushAPIService
 stack: spring-boot-jpa
 prod_branch: production
 uat_branch: uat
-dev_branch: FUB03P2402_DEV
+dev_branch: ORG01P2401_DEV
 ---
-富邦銀行 LINE 推播微服務
+範例銀行 LINE 推播微服務
 ```
 
 frontmatter 欄位：
@@ -245,6 +245,6 @@ scaffold: Entity + Repository + DB Service + Domain Service + Controller + DTO
 
 所有 Skill 共用此規則（與舊版一致）：
 
-- 公司 GitLab（host 含 `intumit`）：`{group}/{repo}`（如 `FUB03P2402/PushAPIService`）
+- 公司 GitLab（host 含 `intumit`）：`{group}/{repo}`（如 `ORG01P2401/PushAPIService`）
 - 外部（GitHub、Azure DevOps 等）：`{host}/{path}`（如 `ssh.dev.azure.com/v3/chte/fia/wcs`）
 - 自動去除 `.git` 後綴，支援 HTTPS / SSH 格式
