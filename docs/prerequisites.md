@@ -63,10 +63,10 @@
 
 ```bash
 claude mcp add playwright --scope user -- \
-  npx @anthropic-ai/mcp-server-playwright@latest
+  npx @playwright/mcp@latest
 ```
 
-Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航等。安裝後重啟 Claude Code。
+Microsoft 維護，支援截圖、元素互動、表單填寫、頁面導航等。安裝後重啟 Claude Code。
 
 ### 方式 B：chrome-devtools-mcp
 

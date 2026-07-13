@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.24.1`
+# Feature Workflow Plugin `v4.24.2`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
@@ -180,10 +180,10 @@ flowchart TD
 
 ```bash
 claude mcp add playwright --scope user -- \
-  npx @anthropic-ai/mcp-server-playwright@latest
+  npx @playwright/mcp@latest
 ```
 
-Anthropic 官方維護，支援截圖、元素互動、表單填寫、頁面導航。
+Microsoft 維護，支援截圖、元素互動、表單填寫、頁面導航。
 
 **chrome-devtools-mcp（選配，--deep 模式除錯用）**
 
