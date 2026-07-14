@@ -7,6 +7,16 @@
 
 ---
 
+## [feature-workflow@4.24.4] - 2026-07-14
+
+> reconciliation Token 下放（補齊）——處理稽核報告 token 維度剩餘 3 條 feature 側發現。
+
+### 改善
+- **plan-verify 瘦身** — 移除與 `examples/verify-report-sample.md` 重複的 inline 驗證報告範例，改為保留引用（555→489 行，降至官方建議 500 行內）
+- **plan-build 去重** — 步驟 10「回傳結果」原有「含測試/跳過測試」兩份近乎重複模板，合併為一份、測試差異行內標示（364→335 行）
+- **plan-browse 讀取優化** — 模式 1 總覽階段改只讀 README frontmatter/首段摘要，不再逐一讀取全部設計文件全文（任務多時省 token），全文延到深度閱讀
+- 語意零損失（fresh agent read-back 逐條驗證、引用 0 斷鏈、本地 CI 全綠）
+
 ## [feature-workflow@4.24.3] - 2026-07-14
 
 > reconciliation Token 下放——長內容搬 references/ 降 skill 觸發載入成本。
@@ -15,6 +25,23 @@
 - **SKILL.md 大幅瘦身** — plan-browse 六模式 ASCII 範本（314→121）、plan-review 派工 prompt（292→231）、plan-build deploy SQL 表/模板（408→364）、plan-explore 情境範例下放到 references/；plan-setup 欄位表/建庫步驟引用 db-templates 去重；plan-sync 對照表精簡；plan-verify 報告 Gotchas 移 phases/word-report、補範例引用
 - **新增 references**：browse-examples / deploy-sql-guide / explore-examples / review-prompts
 - 語意零損失（fresh agent git diff 逐項比對）；skill 觸發時只讀精簡後 SKILL，範本按需載入
+
+## [bug-workflow@3.11.4] - 2026-07-14
+
+> reconciliation Token 下放（補齊）——處理稽核報告 token 維度剩餘 project-add 發現。
+
+### 改善
+- **project-add 去重** — 「專案類型判斷」表原與 `references/project-page-templates.md` 雙源重複易漂移，改為引用單一權威來源（較詳細的判定條件先合併進權威源，不遺失細節）（423→410 行）
+- 語意零損失（fresh agent read-back 逐條驗證、引用 0 斷鏈、本地 CI 全綠）
+
+## [bug-workflow@3.11.3] - 2026-07-14
+
+> 與 feature-workflow@4.24.3 同批 Token 下放。
+
+### 改善
+- **SKILL.md 瘦身** — bug-close Merge 引導（308→259）、bug-start Feature 關聯+分支偵測（380→257）、project-add Git Flow 偵測（488→423）下放到 references/；bug-setup 欄位表引用 db-templates 去重；bug-fix Gotchas 除重複；bug-update 補範例引用
+- **新增 references**：merge-guide / feature-linking / git-flow-detection
+- 語意零損失（fresh agent git diff 逐項比對）
 
 ## [feature-workflow@4.24.2] - 2026-07-13
 
@@ -63,15 +90,6 @@
 - **步驟編號整數連續化、跨檔指涉改用段落名稱**（抗編號腐化）
 - **跨 skill 重複內容抽共用** — 「本地檔案↔Notion 區塊對應表」「MCP 安裝指令」等抽到 references/ 單一來源
 - **獨立 marketplace.json 修正** — 補齊過期的 skills 清單（plan-security/plan-verify/plan-next/plan-demo/plan-deploy-confirm）與版本號
-
-## [bug-workflow@3.11.3] - 2026-07-14
-
-> 與 feature-workflow@4.24.3 同批 Token 下放。
-
-### 改善
-- **SKILL.md 瘦身** — bug-close Merge 引導（308→259）、bug-start Feature 關聯+分支偵測（380→257）、project-add Git Flow 偵測（488→423）下放到 references/；bug-setup 欄位表引用 db-templates 去重；bug-fix Gotchas 除重複；bug-update 補範例引用
-- **新增 references**：merge-guide / feature-linking / git-flow-detection
-- 語意零損失（fresh agent git diff 逐項比對）
 
 ## [bug-workflow@3.11.2] - 2026-07-13
 

@@ -38,9 +38,9 @@ description: 瀏覽與探索已有的 .spec/ 規劃文件 —— 深度閱讀、
 
 ### 模式 1：互動式瀏覽（無參數）
 
-1. 掃描 `.spec/` 目錄，讀取每個任務的 README.md 和所有設計文件
-2. 呈現豐富的總覽（不只是名稱和狀態）：每個任務附一句話摘要與 API/DB/架構重點
-3. 輸入編號深入閱讀，或使用 `--compare 1 2` 比較兩個規劃、`--search <關鍵字>` 搜尋設計內容；選擇後進入深度閱讀模式
+1. 掃描 `.spec/` 目錄，**只讀每個任務 README.md 的 frontmatter 與首段摘要**（不逐一讀取 spec/db/arch 等設計文件全文，避免任務數多時 token 成本過高）
+2. 呈現豐富的總覽（不只是名稱和狀態）：每個任務附一句話摘要與 README frontmatter 揭示的 API/DB/架構重點；frontmatter 未涵蓋的細節留待深度閱讀時再讀
+3. 輸入編號深入閱讀（進入模式 2 才讀取該任務所有設計文件全文），或使用 `--compare 1 2` 比較兩個規劃、`--search <關鍵字>` 搜尋設計內容
 
 輸出範本見 `references/browse-examples.md`（相對 SKILL.md 為 `../../references/`）。
 

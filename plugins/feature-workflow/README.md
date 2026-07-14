@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.24.3`
+# Feature Workflow Plugin `v4.24.4`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
