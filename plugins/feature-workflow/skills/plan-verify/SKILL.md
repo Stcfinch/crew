@@ -329,74 +329,8 @@ Evidence 命名規則：`verify-{序號}-request.txt`、`verify-{序號}-respons
 
 寫入 `.spec/{slug}/verify.md`：
 
-> 完整範例（涵蓋 PASS / FAIL / SKIP / MANUAL 四種狀態的理想產出格式）：見 [`examples/verify-report-sample.md`](./examples/verify-report-sample.md)。
-
-```markdown
-# 驗證報告
-
-## 摘要
-
-| 項目 | 值 |
-|------|-----|
-| 驗證日期 | {YYYY-MM-DD} |
-| 環境 | {localhost:8080 或使用者指定} |
-| 模式 | {完整 / api-only / manual / recheck} |
-| 驗證工具 | {Playwright MCP / cdp.mjs} |
-
-## 統計
-
-| 狀態 | 數量 |
-|------|------|
-| ✅ PASS | {N} |
-| ⚠️ WARN | {N} |
-| ❌ FAIL | {N} |
-| ⏭️ SKIP | {N} |
-| 👤 MANUAL | {N} |
-
-WARN 用途：環境差異導致的預期外行為，功能正常但 Selector 不穩定。
-
-## 驗證結果
-
-### [1] ✅ 可依日期範圍查詢
-- **類型**：API
-- **驗證**：`GET /api/xxx?startDate=2026-01-01&endDate=2026-03-16` → HTTP 200, 15 筆
-- **截圖**：screenshots/verify-1-query-result.png
-- **Evidence**：evidence/verify-1-request.txt, evidence/verify-1-response.json
-<!-- human_steps
-- 操作：透過系統 API 查詢推播統計（日期範圍：2026-01-01 至 2026-03-16）
-- 預期：系統回傳查詢結果，資料筆數大於 0
-- 實際：系統成功回傳 15 筆資料，格式正確
--->
-<!-- evidence
-request: |
-  GET http://localhost:8080/ap/pushTagQuery/list?startDate=2026-01-01&endDate=2026-03-16&pageNum=1&pageSize=20
-  Cookie: JSESSIONID=abc123def456
-response_status: 200
-response_file: evidence/verify-1-response.json
-response_lines: 42
--->
-
-### [2] ❌ 支援匯出 Excel
-- **類型**：UI
-- **驗證**：點擊匯出按鈕 `#exportBtn`
-- **失敗原因**：按鈕不存在（snap 中未找到匹配元素）
-- **截圖**：screenshots/verify-2-export.png
-<!-- human_steps
-- 操作：在推播統計頁面尋找「匯出 Excel」按鈕
-- 預期：頁面應有「匯出 Excel」按鈕，點擊後下載 .xlsx 檔案
-- 實際：頁面上未找到「匯出」相關按鈕，功能尚未實作
--->
-<!-- evidence 不適用（UI 驗證，無 API 呼叫） -->
-
-### [3] ⏭️ 支援分頁顯示
-- **類型**：UI
-- **跳過原因**：--api-only 模式
-
-### [4] 👤 報表視覺呈現正確
-- **類型**：UI 檢查
-- **說明**：需人工確認圖表渲染效果
-- **截圖**：screenshots/verify-4-chart.png
-```
+> **格式與完整範例見 [`examples/verify-report-sample.md`](./examples/verify-report-sample.md)**：涵蓋 PASS / FAIL / SKIP / MANUAL 四種狀態的理想產出格式，含摘要表、統計表（PASS/WARN/FAIL/SKIP/MANUAL）與每項的 `human_steps` / `evidence` 註解區塊。產出時照該範本結構撰寫。
+> WARN 用途：環境差異導致的預期外行為，功能正常但 Selector 不穩定。
 
 ### 8. 更新 .spec/
 

@@ -130,20 +130,7 @@ Notion 專案資料庫中有以下專案：
 
 #### 4-2. 專案類型判斷
 
-掃描專案結構，依據以下條件判定：
-
-| 條件 | 判定 |
-|------|------|
-| 存在 `kernel/` 或類似外部資源目錄（含 `etc/`、`cores*/`、`db/`） | 產品型 |
-| Gradle 多模組（根 `build.gradle` + 子目錄 `build.gradle`） | 產品型 |
-| 偵測到中介軟體設定（Solr、Hazelcast、Elasticsearch 等） | 產品型 |
-| VM Options 或 properties 中有 5+ 自訂 `-D` 參數 | 產品型 |
-| 以上皆無 | 簡單型 |
-
-```
-偵測到專案類型：{簡單型 / 產品型}
-確認？[Y/n]（輸入 n 可手動切換）
-```
+掃描專案結構，依判定表分為「產品型 / 簡單型」，偵測後詢問使用者確認。判定條件表與確認框範本，參照 plugin 根目錄 `references/project-page-templates.md`（相對 SKILL.md 為 `../../references/`）「專案類型判斷」一節。
 
 #### 4-3. DB 類型偵測
 

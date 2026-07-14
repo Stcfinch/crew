@@ -259,49 +259,20 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
 
 ### 10. 回傳結果
 
-**包含測試時（使用者選是）**：
+測試相關兩處依使用者選擇填寫：**選是（含測試）** 用斜線前變體，**預設（跳過測試）** 用斜線後變體，已於行內以 `／` 標出。
 
 ```
 程式碼產生完成！
 
 📁 產出清單：.spec/{slug}/files.md
-📊 統計：N 個後端 + M 個前端 + K 個測試
+📊 統計：N 個後端 + M 個前端{ + K 個測試 ／ 跳過測試時改為「（測試已跳過）」}
 
 已完成：
   {✅ db-engineer       — Migration SQL + 索引建議 + 效能報告}
   ✅ backend-engineer  — N 個檔案（POJO/Mapper/Service）
   ✅ api-engineer      — N 個檔案（Controller/DTO）
   {✅ frontend-engineer — M 個檔案（JSP/JS/CSS）}
-  ✅ test-engineer     — K 個檔案（測試）
-  {✅ API 契約確認 — 一致}
-
-{📋 設定檔變更：偵測到 {N} 個設定檔（已寫入 deploy-checklist.md）}
-{🗄️ 部署 SQL：deploy.sql 已產出（N 筆 SQL）}
-{💡 提示：可用 /plan-sync 同步到 Notion，或等 /plan-close 結案時統一同步}
-
-⚡ 建議執行 /clear 再進行後續步驟（review / verify / close）
-   原因：build 已消耗大量 context，後續步驟全部從 .spec/ 磁碟讀取，不需要本次對話歷史
-
-後續可使用：
-  • /plan-verify  — 驗收驗證
-  • /plan-review  — Agent Teams 3 人審查
-  • /plan-close   — 結案並同步 Notion
-```
-
-**跳過測試時（預設）**：
-
-```
-程式碼產生完成！
-
-📁 產出清單：.spec/{slug}/files.md
-📊 統計：N 個後端 + M 個前端（測試已跳過）
-
-已完成：
-  {✅ db-engineer       — Migration SQL + 索引建議 + 效能報告}
-  ✅ backend-engineer  — N 個檔案（POJO/Mapper/Service）
-  ✅ api-engineer      — N 個檔案（Controller/DTO）
-  {✅ frontend-engineer — M 個檔案（JSP/JS/CSS）}
-  ⏭️ test-engineer    — 已跳過
+  ✅ test-engineer     — K 個檔案（測試） ／ 跳過測試時改為「⏭️ test-engineer    — 已跳過」
   {✅ API 契約確認 — 一致}
 
 {📋 設定檔變更：偵測到 {N} 個設定檔（已寫入 deploy-checklist.md）}
