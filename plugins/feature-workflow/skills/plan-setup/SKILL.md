@@ -88,18 +88,8 @@ description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資�
    - 若找到工作區頁面 → **parent 設為工作區頁面**（不再詢問位置），記錄 `workspace_page_id`
    - 若找不到工作區頁面 → **退回原流程**（詢問要建立在哪個 Notion 頁面下）
 
-2. 參照本 plugin 的共用模版：
-   plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「D. 功能設計庫」
-3. 使用 `notion-create-database` 建立（**不含 Relation 欄位**）
-4. **立即使用 `notion-update-data-source` 設定 `is_inline: true`**（否則資料庫會以子頁面模式顯示）
-5. 使用 `notion-update-data-source` 補上「專案資料庫」Relation：
-   ```
-   ADD COLUMN "專案資料庫" RELATION({專案DS_ID})
-   ```
-6. 使用 `notion-create-view` 建立 2 個 Views：
-   - 預設 Table View（日期降序，顯示 Name, Tags, 設計類型, 技術棧, 日期）
-   - 按專案看板（board，Group by 專案資料庫）
-7. 記錄 Data Source ID
+2. 用 `notion-create-database` 建立（不含 Relation 欄位），再補上 `is_inline: true`、「專案資料庫」Relation、2 個 Views（Table + 按專案看板）。完整 Schema、`is_inline` 設定時機、Relation `ADD COLUMN` 語法、Views 定義皆見 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「建立順序」與「D. 功能設計庫」段
+3. 記錄 Data Source ID
 
 #### 3-3. 偵測或建立「專案資料庫」
 
@@ -120,17 +110,7 @@ description: feature-workflow 首次設定引導 —— 自動偵測 Notion 資�
 
 若「搜尋『功能設計庫』」一節有建立或偵測到功能設計庫，且工作區頁面存在（`workspace_page_id` 有值）：
 
-使用 `notion-update-page` 的 `update_content`，在工作區頁面中 Bug 知識庫（`🐛`）的 linked view **前面**插入功能設計庫的 linked view：
-
-```markdown
-<database data-source-url="collection://{功能設計庫DS_ID}" inline="true" icon="📐">功能設計庫</database>
-```
-
-最終頁面排版順序：
-1. ✅ 任務追蹤工具
-2. 📐 功能設計庫
-3. 🐛 Bug 知識庫
-4. 📂 專案資料庫
+更新步驟（`notion-update-page` 的 `update_content`，插入位置）與最終排版順序見 plugin 根目錄 `references/db-templates.md`（相對 SKILL.md 為 `../../references/`）「E. CREW 工作區頁面」的「更新步驟（plan-setup 追加功能設計庫時）」與「排版順序」段。
 
 > **注意**：若工作區頁面中已有功能設計庫的 linked view（重複執行 setup），則跳過此步驟。
 > 若工作區頁面不存在（`workspace_page_id` 為空），跳過此步驟。

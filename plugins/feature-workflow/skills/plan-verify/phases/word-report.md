@@ -460,3 +460,29 @@ Excel 報告規格見 `references/verify-excel-template.md`。
 2. 不阻斷報告產出，其餘段落正常生成
 
 ---
+
+## Gotchas（報告相關）
+
+> 本節由 [`../SKILL.md`](../SKILL.md)「Gotchas」段引用（下放自 SKILL.md，避免本體過長）。
+
+- **Word 報告雙引擎**：優先使用 minimax-docx（需 .NET SDK ≥ 8.0），fallback 為 python-docx（需 Python 3）。前置檢查時偵測可用引擎，step 10 時讓使用者選擇。兩種引擎共用同一份 Markdown 報告內容。
+- **python-docx 臨時安裝**：使用 `pip install --target /tmp/crew-docx-env` 安裝到隔離目錄，不污染使用者的 Python 環境。`PYTHONPATH` 在呼叫時臨時注入。
+- **截圖嵌入 Word**：minimax-docx 接受 Markdown 格式的圖片引用（`![](path)`）；python-docx generator 接受 `--screenshots` 目錄參數，自動嵌入。兩者皆使用相對於 `.spec/{slug}/` 的相對路徑。
+- **封面資訊快取**：`report-config.md` 儲存於 `~/.claude/feature-workflow/` 下，跨專案共用（公司名稱、作者）。首次產出報告時建立。
+- **Evidence 檔案是原始內容**：`evidence/` 目錄下的檔案包含未遮蔽的 Cookie、Token 等敏感資訊，僅供內部技術驗證。Word 報告中的「測試紀錄」段落會自動遮蔽。若報告需交付客戶，不要連同 `evidence/` 目錄一起交付。
+- **回應截斷以行數判斷**：使用 `wc -l` 計算回應行數。JSON 先經過 `python3 -m json.tool` pretty-print 後再計算行數，避免單行 JSON 永遠不觸發截斷。
+- **多次 API 呼叫的 evidence**：若單條驗收項目涉及多次 curl（如 POST 建立 + GET 查詢驗證），每次呼叫各自產出 evidence 檔案，子序號用 a/b/c 區分。
+- **Excel 報告需 Node.js 環境**：`verify-excel-generator.js` 需要 Node.js runtime。若環境無 Node.js，Excel 報告無法產出但不影響其他功能。
+
+## 邊界情況（報告相關）
+
+> 本節由 [`../SKILL.md`](../SKILL.md)「邊界情況」段引用（下放自 SKILL.md，避免本體過長）。verify.md 無 `human_steps`／無 `evidence` 區塊的相容規則見上方「向下相容：舊版 verify.md」段，不重複列出。
+
+- **minimax-docx 和 python-docx 皆不可用**：step 10 提供三選一（安裝 python-docx / 安裝 .NET / 跳過報告），不直接中斷流程
+- **python-docx 安裝失敗**（如無 pip、磁碟滿）：顯示錯誤訊息，提示使用者手動安裝 `python3 -m pip install python-docx`，或改選安裝 .NET
+- **`report-config.md` 不存在**：首次詢問所有封面欄位，產出後自動建立
+- **截圖路徑無效**：報告中標註「（截圖不可用）」，不阻斷報告產出
+- **回應非 UTF-8**（如二進位下載）：evidence 檔案存為 `.bin`，Word 報告測試紀錄顯示「（二進位回應，{N} bytes，請見 evidence 檔案）」
+- **ExcelJS 安裝失敗**：跳過 Excel 報告產出，顯示安裝指引
+
+---

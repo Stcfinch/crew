@@ -73,16 +73,7 @@ description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy
 
 **4-3. 更新 Properties**（1 次 `notion-update-page` properties）
 
-根據 README.md 的 `status` 更新：
-
-| status | 開發階段 |
-|--------|---------|
-| 需求分析 | 需求分析 |
-| 規格設計 | 規格設計 |
-| DB 設計 | DB 設計 |
-| 架構設計 | 架構設計 |
-| 開發中 | 開發中 |
-| 程式碼審查 | 程式碼審查 |
+根據 README.md 的 `status` 更新「開發階段」屬性：status 值即開發階段值，一對一對應（例：`status: 開發中` → 開發階段設為「開發中」）。
 
 ### 5. 回傳結果
 

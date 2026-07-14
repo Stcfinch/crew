@@ -7,6 +7,15 @@
 
 ---
 
+## [feature-workflow@4.24.3] - 2026-07-14
+
+> reconciliation Token 下放——長內容搬 references/ 降 skill 觸發載入成本。
+
+### 改善
+- **SKILL.md 大幅瘦身** — plan-browse 六模式 ASCII 範本（314→121）、plan-review 派工 prompt（292→231）、plan-build deploy SQL 表/模板（408→364）、plan-explore 情境範例下放到 references/；plan-setup 欄位表/建庫步驟引用 db-templates 去重；plan-sync 對照表精簡；plan-verify 報告 Gotchas 移 phases/word-report、補範例引用
+- **新增 references**：browse-examples / deploy-sql-guide / explore-examples / review-prompts
+- 語意零損失（fresh agent git diff 逐項比對）；skill 觸發時只讀精簡後 SKILL，範本按需載入
+
 ## [feature-workflow@4.24.2] - 2026-07-13
 
 > reconciliation 一致性補全 + 文件套件名修正。
@@ -54,6 +63,15 @@
 - **步驟編號整數連續化、跨檔指涉改用段落名稱**（抗編號腐化）
 - **跨 skill 重複內容抽共用** — 「本地檔案↔Notion 區塊對應表」「MCP 安裝指令」等抽到 references/ 單一來源
 - **獨立 marketplace.json 修正** — 補齊過期的 skills 清單（plan-security/plan-verify/plan-next/plan-demo/plan-deploy-confirm）與版本號
+
+## [bug-workflow@3.11.3] - 2026-07-14
+
+> 與 feature-workflow@4.24.3 同批 Token 下放。
+
+### 改善
+- **SKILL.md 瘦身** — bug-close Merge 引導（308→259）、bug-start Feature 關聯+分支偵測（380→257）、project-add Git Flow 偵測（488→423）下放到 references/；bug-setup 欄位表引用 db-templates 去重；bug-fix Gotchas 除重複；bug-update 補範例引用
+- **新增 references**：merge-guide / feature-linking / git-flow-detection
+- 語意零損失（fresh agent git diff 逐項比對）
 
 ## [bug-workflow@3.11.2] - 2026-07-13
 
