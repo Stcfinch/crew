@@ -40,6 +40,8 @@ Bug 類型還需 bug-workflow 設定檔（`~/.claude-company/bug-workflow-config
 
 掃描 `.spec/{slug}/` 目錄，依 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）「本地檔案 ↔ Notion 區塊對應表」逐一檢查每個檔案是否存在（✅/❌）。deploy.sql 額外對應「🚀 部署狀態」區塊（初始化，每筆預設「待執行」，見下方 5-2a）。
 
+> **明確排除**：`handoff.md`（斷點交接檔，見 `../../references/handoff-discipline.md`）是純本地過程性檔案，**不同步 Notion**，掃描時跳過；結案時刪除（見『提交 .spec/ 設計文件到 Git』一節）。
+
 ### 3. 從 Git 擷取變更摘要
 
 從專案設定檔讀取 `prod_branch`（PROD 分支），用作 merge-base 計算 diff：
@@ -130,6 +132,8 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 
 若 verify.md 存在，在「📋 程式碼審查」後（或「📝 開發日誌」前）插入：
 🧪 驗證報告 區塊 ← verify.md 內容
+
+（handoff.md 不在上述映射中 —— 不同步 Notion，結案時刪除）
 ```
 
 **5-2a. 建立「🚀 部署狀態」區塊**（僅 Feature 且 deploy.sql 存在）
@@ -232,6 +236,10 @@ git diff $(git merge-base HEAD {prod_branch})..HEAD
 4. `notion-update-page` 更新 Feature 頁面（1 次）
 
 ### 9. 提交 .spec/ 設計文件到 Git
+
+**提交前先刪除 `.spec/{slug}/handoff.md`（若存在）**：斷點交接檔的生命週期到結案為止
+（見 `../../references/handoff-discipline.md`「生命週期」段），不入版控、不同步 Notion，
+在 `git add -f` 之前刪除，避免被一併提交。
 
 將最終版本的設計文件提交。`plan-start` 在 `.gitignore` 寫入的是整個 `.spec/`（排除目錄），此時用 `!.spec/{slug}/` 反向取消忽略**無效**（Git 不會遞迴進入已被排除的目錄），因此改用 `git add -f` 強制加入：
 

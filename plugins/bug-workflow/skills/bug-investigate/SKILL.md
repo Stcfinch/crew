@@ -18,7 +18,7 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 
 ## 紀律護欄
 
-> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「bug-investigate 專用」＋ `../../references/boundaries.md`「bug-investigate」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「bug-investigate 專用」＋ `../../references/boundaries.md`「bug-investigate」段＋ `../../references/handoff-discipline.md`「bug-investigate」段（斷點保險，進度即寫）；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 

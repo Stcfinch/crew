@@ -7,6 +7,26 @@
 
 ---
 
+## [feature-workflow@4.25.0] - 2026-07-24
+
+> handoff.md 斷點保險——長任務進度即寫，任何時點中斷（crash、關機、隔天重開）都能被新 session 精確接手。
+
+### 新增
+- **共用 reference `handoff-discipline.md`** — 進度即寫紀律（每完成一個工作單元立即更新 `.spec/{slug}/handoff.md`，不做 ctx 偵測、不對抗 auto-compact）、六段交接模板（目標、歧義點置頂、已完成附證據、進行中/未完成、接手前要準備、決策紀錄）、各 skill 工作單元定義
+- **四個長任務 skill 掛紀律** — plan-build（Agent Teams leader 負責寫入）、plan-review、plan-security、plan-verify 護欄行引用 handoff-discipline
+- **plan-next 升級為接手入口** — 掃描表納入 handoff.md、新增「讀取 handoff.md」節產生接手簡報＋新鮮度交叉驗證（handoff 宣稱與檔案實況不一致時以實況為準並標注過期）；Gotchas 加 handoff 例外（bug 型輕量目錄無 README 也能接手）
+- **plan-close 生命週期** — handoff.md 排除於 Notion 同步（plan-common 對應表明列）、結案時於 git add 前刪除
+
+## [bug-workflow@3.12.0] - 2026-07-24
+
+> 與 feature-workflow@4.25.0 同批 handoff.md 斷點保險。
+
+### 新增
+- **共用 reference `handoff-discipline.md`（權威版）** — 內容同 feature 側；bug 型任務無 `.spec/` 目錄時建輕量目錄只放 handoff.md（slug 沿用 Git branch 名去前綴）
+- **bug-investigate / bug-fix 掛紀律** — 護欄行引用 handoff-discipline（工作單元：一個假說的驗證結果／一個修復步驟）
+- **bug-close 清理** — 結案時刪除 handoff.md（連同空目錄）
+- **共用白名單登記** — check-shared-refs.py、sync-shared-refs.sh、CONTRIBUTING.md 清單納入 handoff-discipline.md（4→5 檔）
+
 ## [feature-workflow@4.24.4] - 2026-07-14
 
 > reconciliation Token 下放（補齊）——處理稽核報告 token 維度剩餘 3 條 feature 側發現。

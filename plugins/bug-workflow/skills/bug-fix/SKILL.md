@@ -18,7 +18,7 @@ description: CREW bug 修復紀律 —— 根因確認才能改（鐵律）、�
 
 ## 紀律護欄
 
-> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「bug-fix 專用」＋ `../../references/boundaries.md`「bug-fix」段；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「bug-fix 專用」＋ `../../references/boundaries.md`「bug-fix」段＋ `../../references/handoff-discipline.md`「bug-fix」段（斷點保險，進度即寫）；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
