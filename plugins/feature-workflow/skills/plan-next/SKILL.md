@@ -55,6 +55,7 @@ argument-hint: "[<slug>] [--all]"
 | `verify.md` | plan-verify 完成（解析狀態） |
 | `review.md` | plan-review 完成 |
 | `security.md` | plan-security 完成 |
+| `handoff.md` | 存在進行中的斷點交接（**優先讀取**，見下方『讀取 handoff.md』一節） |
 
 ### 3. 解析 verify.md 狀態（若存在）
 
@@ -64,7 +65,24 @@ argument-hint: "[<slug>] [--all]"
 - 含 `❌ FAIL` 項目 → 視為 FAIL
 - 含 `⚠️ WARN` 項目（無 FAIL）→ 視為 WARN
 
-### 4. 推薦邏輯
+### 4. 讀取 handoff.md（若存在）
+
+`handoff.md` 是斷點交接檔（格式與紀律見 `../../references/handoff-discipline.md`），
+存在代表上一個 session 在某個 skill 執行中途中斷。讀取後：
+
+1. **產生接手簡報**（置於推薦輸出之前）：
+   - 目標：任務在做什麼（取自 handoff 頁首與 README.md）
+   - 階段進度：中斷在哪個 skill、第幾個工作單元（如 `plan-build（3/7 檔案）`）
+   - 歧義點：照抄 handoff「⚠ 歧義點與風險」段
+   - 下一步：續跑中斷的 skill（含未完成單元清單）
+2. **新鮮度交叉驗證**：handoff 宣稱的完成項要與檔案實況逐一比對
+   （例：handoff 說 plan-build 完成 7 檔 → 實際檢查那些檔案是否存在、與 files.md 是否一致）。
+   不一致時**以檔案實況為準**，並在簡報中標注「handoff 已過期，以下為實況修正」。
+
+驗證通過的 handoff 進度可作為『推薦邏輯』的補充輸入（優先建議續跑中斷的 skill）；
+handoff 不存在時跳過本節，照原決策表推薦。
+
+### 5. 推薦邏輯
 
 按以下決策表推薦下一步（**第一個匹配的規則勝出**）：
 
@@ -85,7 +103,7 @@ argument-hint: "[<slug>] [--all]"
 | review.md 通過 | `/plan-close` | 全部完成可結案 |
 | 已 `/plan-close` 完成 | 無建議（任務結束） | — |
 
-### 5. 額外檢查（補強建議）
+### 6. 額外檢查（補強建議）
 
 獨立於主決策，這些情況附加為「順帶建議」：
 
@@ -96,7 +114,7 @@ argument-hint: "[<slug>] [--all]"
 | 專案未在 `projects/` 註冊 | 提示 `/project-add` |
 | `.spec/{slug}/deploy-checklist.md` 存在且有未勾選項目 | 提示「上線前確認部署清單」 |
 
-### 6. 輸出格式
+### 7. 輸出格式
 
 ```
 📋 任務：{slug}（{name}）
@@ -129,10 +147,10 @@ argument-hint: "[<slug>] [--all]"
 
 ## Gotchas
 
-- **`.spec/{slug}/README.md` 缺失**：若任務目錄存在但 README 缺 → 視為 plan-start 未完成；`/plan-start` 無 `--resume` 旗標，應提示使用者確認該目錄狀態後，重新執行 `/plan-start <同任務簡述>`（若 slug 衝突，plan-start 會加數字後綴或詢問，需留意可能產生重複目錄）
+- **`.spec/{slug}/README.md` 缺失**：若 `.spec/{slug}/handoff.md` 存在 → 優先走『讀取 handoff.md』節接手，不適用本條（bug 型輕量交接目錄本來就只有 handoff.md）。否則視為 plan-start 未完成；`/plan-start` 無 `--resume` 旗標，應提示使用者確認該目錄狀態後，重新執行 `/plan-start <同任務簡述>`（若 slug 衝突，plan-start 會加數字後綴或詢問，需留意可能產生重複目錄）
 - **verify.md 解析失敗**：若摘要段落格式變動 → 退回「verify.md 存在但狀態不明」處理，推薦 `/plan-review`
 - **多階段並進**：使用者可能跳過某步（如 DB_REQUIRED=false 跳 plan-db），按決策表第一匹配規則處理即可，不視為缺失
-- **bug 類型任務**：本 skill 主要服務 feature 任務；bug 流程的下一步建議由 `/bug-investigate` / `/bug-fix` 內建邏輯處理，不在本 skill 範圍
+- **bug 類型任務**：本 skill 主要服務 feature 任務；bug 流程的下一步建議由 `/bug-investigate` / `/bug-fix` 內建邏輯處理，不在本 skill 範圍。例外：若 `.spec/{slug}/handoff.md` 存在（bug skill 中斷留下的斷點交接）→ 優先走『讀取 handoff.md』節接手，不適用本條
 - **任務已 close**：若 `_index.md` 中該任務列於「已完成」區段（`/plan-close` 的『更新 _index.md 與 README.md status』一節會將任務從「進行中」移至此區段）→ 不推薦任何指令，提示「任務已結案，可用 /plan-start 開新任務」
 
 ---

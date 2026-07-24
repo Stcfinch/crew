@@ -201,7 +201,20 @@ mkdir -p ~/.claude-company/bug-workflow/learnings
 
 若目錄不存在，首次使用時自動建立。
 
-### 10. 回傳結果
+### 10. 斷點交接檔清理
+
+若 `.spec/{slug}/handoff.md` 存在 → 刪除；若刪除後 `.spec/{slug}/` 目錄為空
+（bug 型任務的輕量交接目錄，見 `../../references/handoff-discipline.md`）→ 連同目錄一併刪除。
+
+```bash
+rm -f .spec/{slug}/handoff.md
+rmdir .spec/{slug} 2>/dev/null || true   # 只刪得掉空目錄，非空目錄保留
+```
+
+handoff.md 是純本地過程性檔案，不同步 Notion、不進知識庫；結案後保留只會讓
+下次 `/plan-next` 誤判有進行中的斷點。與下方回傳結果的 Git 分支清理提示同屬結案收尾動作。
+
+### 11. 回傳結果
 
 向使用者回傳：
 - 更新後的 Notion 頁面連結

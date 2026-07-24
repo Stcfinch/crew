@@ -2,13 +2,13 @@
 # sync-shared-refs.sh — 共用 reference 單一來源同步（C9）
 #
 # 背景（見 docs/adr/004-shared-ref-duplication.md）：
-#   為維持「plugin 可獨立安裝」核心契約，3 個共用 reference 在兩個 plugin
+#   為維持「plugin 可獨立安裝」核心契約，5 個共用 reference 在兩個 plugin
 #   各存一份實體副本。ADR 004 選擇「雙份 + CI sha256 防漂移」，唯一負面是
 #   「更新時要手動 cp 一次」。本腳本確立 bug-workflow/references/ 為單一
 #   權威來源，單向同步到 feature-workflow，把手動 cp 升級為一鍵/可檢查機制。
 #
 # 為何 bug-workflow 為權威：
-#   3 個共用檔中 prerequisites.md、db-templates.md 原生於 bug-workflow，
+#   5 個共用檔中 prerequisites.md、db-templates.md 原生於 bug-workflow，
 #   且 bug-workflow 是較基礎的 plugin（crew-init 由其提供）。統一以它為準，
 #   feature-workflow 那份一律視為同步產物，開發者只改 bug-workflow 那份。
 #
@@ -27,6 +27,7 @@ SHARED_FILES=(
   db-templates.md
   discipline-preamble.md
   notion-backend.md
+  handoff-discipline.md
 )
 SRC_DIR="$REPO_ROOT/plugins/bug-workflow/references"
 DST_DIR="$REPO_ROOT/plugins/feature-workflow/references"
@@ -34,13 +35,13 @@ DST_DIR="$REPO_ROOT/plugins/feature-workflow/references"
 usage() {
   cat <<'EOF'
 用法：
-  sync-shared-refs.sh            # 以 bug-workflow 為權威，同步 4 個共用 reference 到 feature-workflow
+  sync-shared-refs.sh            # 以 bug-workflow 為權威，同步 5 個共用 reference 到 feature-workflow
   sync-shared-refs.sh --check    # 僅檢查兩份是否一致（不修改；不一致 exit 1，CI / push 前用）
   sync-shared-refs.sh -h | --help
 
 權威來源：plugins/bug-workflow/references/（只改這份，改完跑本腳本同步）
 同步目標：plugins/feature-workflow/references/
-共用檔：prerequisites.md、db-templates.md、discipline-preamble.md、notion-backend.md
+共用檔：prerequisites.md、db-templates.md、discipline-preamble.md、notion-backend.md、handoff-discipline.md
 EOF
 }
 
