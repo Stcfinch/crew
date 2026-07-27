@@ -51,6 +51,50 @@ git commit -m "chore({plugin}): 升版至 v{X.Y.Z}"
 
 升版 commit 應包含：版號修改 + CHANGELOG 更新 + README 同步。
 
+### 5. 發佈（push + tag + GitHub Release）
+
+**驗證通過就要發佈**——同事是靠 `claude plugin update` 抓 repo 的 `plugin.json`，
+沒 push 就等於沒發版；沒 tag／Release 就無法回頭指認「某版到底是哪個 commit」。
+
+```bash
+# 5-1 本地先跑完等效 CI（見下方「本地 CI」），全綠才 push
+git push origin {正式分支}
+
+# 5-2 確認 GitHub Actions 全綠
+gh run list --limit 1
+
+# 5-3 打 annotated tag（命名：{plugin}-v{X.Y.Z}），指向已驗證的 release commit
+git tag -a {plugin}-v{X.Y.Z} -m "{plugin} v{X.Y.Z} — {一句話}" {commit}
+git push origin {plugin}-v{X.Y.Z}
+
+# 5-4 建 GitHub Release，release notes 用 CHANGELOG 的該版區塊
+gh release create {plugin}-v{X.Y.Z} --title "{plugin} v{X.Y.Z} — {一句話}" --notes-file {notes}
+```
+
+- 兩個 plugin **各自一個 tag／Release**（版號獨立遞增），即使同一批 commit 也要各打一個。
+- 發佈後用**獨立於建立工具的命令**回驗，不要只信剛才的指令輸出：
+  `git ls-remote --tags origin`（遠端真的有 tag）、`git rev-list -n1 {tag}`（指向正確 commit）、
+  `gh release view {tag}`（`draft=false`）。
+- 同事更新方式：`claude plugin update {plugin}@company-marketplace`，更新後**重啟 Claude Code**。
+
+### 本地 CI（push 前必跑，用 CI 指定的 Python 版本）
+
+`.github/workflows/lint.yml` 用 `python-version: '3.11'`，本機請用對應版本（例 `/opt/homebrew/bin/python3.11`）：
+
+```bash
+bash scripts/bump-version.sh --check      # 版本一致性（plugin.json / marketplace.json / README 三處）
+python3.11 scripts/lint-skills.py         # SKILL.md frontmatter 與行數
+python3.11 scripts/check-shared-refs.py   # 共用 reference sha256 防漂移
+python3.11 scripts/lint-changelog.py      # CHANGELOG 版本／日期排序
+python3.11 scripts/lint-agent-model.py --strict   # 模型分工政策（違規阻擋）
+python3.11 scripts/lint-skill-contract.py # 觸發詞與內部連結
+python3.11 scripts/lint-readme-sync.py    # README 指令表同步
+```
+
+> **易錯點**：本地 lint 讀工作區、CI 讀 commit。commit 後 push 前先跑 `git status`
+> 確認沒有漏 `git add` 的版本檔（版本檔散在 repo 根與子目錄），必要時用
+> `git show HEAD:{檔案}` 抽驗 commit 內容。
+
 ---
 
 ## 版號規則
