@@ -90,7 +90,8 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 即將啟動 Agent Teams 產生程式碼：
 
 📄 設計來源：.spec/{slug}/
-📊 Teammate 配置：
+🔍 探索官：scout（model: sonnet）— 專案結構/相似功能/風格範本/交叉引用（唯讀）
+📊 Teammate 配置（全部 model: opus）：
   {• db-engineer       — DB 遷移/索引/效能優化（需 DB MCP）}
   • backend-engineer  — 後端核心（POJO/Mapper/Service）
   • api-engineer      — API 層（Controller/DTO/驗證）
@@ -114,9 +115,14 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 - 使用者選「否」或直接 Enter（預設）時，不含 test-engineer
 - test-engineer 的加入/移除在 plugin 根目錄 `references/team-composition.md`（相對 SKILL.md 為 `../../references/`）判斷**之後**操作，不修改判斷表本身
 
-### 5. 準備分層脈絡
+### 5. 準備分層脈絡（派唯讀探索官，model: sonnet）
 
 依據 plugin 根目錄 `references/build-context-layers.md`（相對 SKILL.md 為 `../../references/`）的四層策略，為每個 Teammate 準備定制化的脈絡。
+
+> **模型與邊界（硬性規則）**——完整政策見 plugin 根目錄 `references/model-policy.md`（相對 SKILL.md 為 `../../references/`）：
+> - 5a–5d 的掃描與讀取工作，由 Leader 用 **Agent tool 啟動唯讀探索官**完成，呼叫時**必須實際傳入** `{"model": "sonnet"}`（探索官 prompt 模板見 `references/build-prompts.md`「探索官模式」）。
+> - 探索官只用唯讀工具，🔴 不得修改任何程式碼；產出「實作交接」（模板見 `model-policy.md`）交給步驟 6 的實作者。
+> - 這一步的目的就是**讓 Opus 實作者不必再掃 repository**。探索範圍只有 1–2 個已知路徑的檔案時，Leader 可自行讀取，不必派探索官。
 
 #### 5a. 擷取共用核心（Layer 0）
 從 CLAUDE.md 擷取技術棧、命名慣例、禁止事項，格式化為 5 行以內。
@@ -133,7 +139,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 #### 5d. 預備交叉引用清單（Layer 3）
 從設計文件中提取跨角色約束（NOT NULL、UNIQUE、必填參數、外鍵、分頁限制）。
 
-### 6. 啟動 Agent Teams
+### 6. 啟動實作 Agent（逐一具名 spawn，model: opus）
 
 讀取 plugin 根目錄 `references/build-prompts.md`（相對 SKILL.md 為 `../../references/`）取得 Teammate prompt 模板。
 
@@ -145,11 +151,22 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 每個 Teammate 的最終 prompt = Layer 0 共用核心 + Layer 1 角色脈絡 + Layer 2 範本片段 + Layer 3 交叉引用 + build-prompts.md 的角色模板
 
+> Layer 2／Layer 3 來自『準備分層脈絡』一節探索官（`model: sonnet`）產出的「實作交接」，四層都要嵌入，不可省略 Layer 3（跨角色約束：NOT NULL／UNIQUE／必填參數／外鍵／分頁限制）。
+
+#### 模型與 spawn 規則（硬性）
+
+完整政策見 plugin 根目錄 `references/model-policy.md`（相對 SKILL.md 為 `../../references/`）。
+
+- 每個實作角色都用 **Agent tool 獨立具名 spawn**（`name` 給角色名，例如 `backend-engineer`），呼叫時**必須實際傳入** `{"model": "opus"}`。
+- 🔴 **不可**用「建立一個 Agent Team……使用 Opus 模型」這種自然語言指定模型 —— 那只是敘述，不保證生效。
+- 同一個 agent 的模型在 spawn 時就固定、中途不能換：角色的探索工作已在步驟 5 由 sonnet 探索官完成，實作者**只用交接內容**，🔴 不得重新全域掃描 repository。
+- Leader（本 skill）只協調、不寫正式程式碼（見 anti-rationalizations.md B2）。
+
 #### Subagent vs Agent Teams 選擇
 
 根據『判斷團隊組成』一節的判斷結果（見 plugin 根目錄 `references/team-composition.md`，相對 SKILL.md 為 `../../references/`）：
-- 1 人 → Subagent 模式
-- 2+ 人 → Agent Teams 模式（或多個 Subagent）
+- 1 人 → 單一具名 subagent（`{"model": "opus"}`）
+- 2+ 人 → 多個具名 agent 並行（Agent Teams 協作模式，teammate 間以 SendMessage 互相通報 API 契約；仍需 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`）
 
 ### 7. 更新 .spec/ 檔案
 
@@ -297,7 +314,7 @@ Leader 在回傳結果前，逐項檢查以下退出條件：
 > 完整的 DB MCP 提示詞模板見 plugin 根目錄 `references/build-prompts.md`（相對 SKILL.md 為 `../../references/`）的「DB MCP 提示詞模版」段落。
 
 『判斷團隊組成』一節檢查 DB MCP 可用性（`claude mcp list` 是否有 `dbhub`）後，根據結果決定是否加入 DB 工程師：
-- **已安裝**：Agent Teams 加入「成員 0：DB 工程師」；Subagent 模式嵌入 `{db_mcp_instruction}`
+- **已安裝**：加入「成員 0：DB 工程師」（`{"model": "opus"}`）；Subagent 模式（同樣 `model: opus`）嵌入 `{db_mcp_instruction}`
 - **未安裝**：不加入 DB 工程師；`{db_mcp_instruction}` 替換為空字串
 
 ---

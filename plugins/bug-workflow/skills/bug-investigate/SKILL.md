@@ -49,9 +49,17 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 
 若使用 `--resume`：讀取已有的「調查過程」區塊，從中斷點繼續。
 
-### 2. Phase 1：證據收集（自動）
+### 2. Phase 1：證據收集（自動，派唯讀 subagent，model: sonnet）
 
 AI 根據 bug 描述自動收集初始證據，不需使用者介入。
+
+> **模型與邊界（硬性規則）**——完整政策見 plugin 根目錄 `references/model-policy.md`（相對 SKILL.md 為 `../../references/`）：
+> - 2.1–2.5 的證據收集用 **Agent tool 啟動唯讀 subagent**，呼叫時**必須實際傳入** `{"model": "sonnet"}`；只在 prompt 寫「請使用 Sonnet」不算。
+> - 互不依賴的收集項（log／Git 歷史／環境狀態／知識庫與學習搜尋）可在同一則訊息並行派出，回報只給結論與 `檔案:行號`，不貼大段原文。
+> - 🔴 `/bug-investigate` **全程不修改正式程式碼**；只寫 Notion 調查紀錄、`.spec/` 與 handoff。
+> - 🔴 沒有根因確認，不得進入修正（不自動觸發 `/bug-fix`）。
+> - 🔴 不得因第一次假說失敗就升級 Opus（升級條件見 4.4）。
+> - 🔴 不自動啟動 Dynamic Workflow、不依賴 `/effort ultracode`；沒有它本 skill 也要能跑完。
 
 #### 2.1 錯誤 Log 搜集
 
@@ -117,9 +125,11 @@ git diff HEAD~5..HEAD -- <affected-file>
 （接續共用區塊：環境狀態／歷史參考／歷史學習，見 references/evidence-collection.md）
 ```
 
-### 3. Phase 2：模式比對
+### 3. Phase 2：模式比對（model: sonnet）
 
 AI 根據收集到的證據，比對已知 bug 模式表（plugin 根目錄 `references/bug-patterns.md`，相對 SKILL.md 為 `../../references/`）。
+
+> 模式比對、相關程式碼搜尋與關鍵方法閱讀屬唯讀工作：由主對話直接做，或派 subagent 時實際傳入 `{"model": "sonnet"}`。
 
 讀取 plugin 根目錄 `references/bug-patterns.md`（相對 SKILL.md 為 `../../references/`）的 7 種模式定義，將證據中的症狀逐一比對：
 
@@ -218,11 +228,48 @@ curl -s "http://localhost:8080/api/xxx" -H "Authorization: Bearer <token>"
   • 可能需要在測試環境重現
   • 或請熟悉此模組的同事協助
 
-要繼續調查還是暫停？
+要繼續調查（Sonnet）、升級深度根因推理（Opus）、還是暫停？
 ```
 
-若使用者選擇繼續 → 重置計數器，繼續調查。
-若使用者選擇暫停 → 記錄當前進度到 Notion，結束。
+- 使用者選擇**繼續** → 重置計數器，維持 `model: "sonnet"` 繼續調查。
+- 使用者選擇**暫停** → 記錄當前進度到 Notion，結束。
+- 使用者選擇**升級** → 依下方「升級 Opus 深度推理」執行。
+
+#### 4.5 升級 Opus 深度推理（條件式）
+
+完整政策見 plugin 根目錄 `references/model-policy.md`（相對 SKILL.md 為 `../../references/`）。
+預設一律 `model: "sonnet"`，🔴 **不得因第一次假說被否定就升級**。只有符合下列任一條件才允許升級：
+
+- 連續三個可驗證假說都被證據否定（即 4.4 的 3-Strike）
+- 問題跨越三個以上模組
+- 涉及複雜並行、交易一致性、記憶體或分散式狀態
+- 多份證據互相矛盾
+- 一般 Sonnet 調查無法收斂
+- 使用者明確要求深度分析
+
+升級前，Sonnet 必須先整理下列交接（寫入 Notion「調查過程」並附在派工 prompt 內）：
+
+```markdown
+## 深度調查交接
+
+### 已確認事實
+- ...
+
+### 已排除假說
+- ...
+
+### 相關檔案與方法
+- ...
+
+### 關鍵證據
+- ...
+
+### 尚未解答的問題
+- ...
+```
+
+派工規則：用 **Agent tool** 啟動 subagent 並實際傳入 `{"model": "opus"}`；Opus **只針對「尚未解答的問題」推理**，
+🔴 不得重做全部證據收集，🔴 不得修改正式程式碼（本 skill 仍是唯讀調查）。
 
 ### 5. Phase 4：根因確認
 

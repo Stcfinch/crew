@@ -111,8 +111,8 @@ flowchart TD
 | 指令 | 說明 |
 |------|------|
 | `/bug-setup` | 首次設定引導 |
-| `/bug-investigate` | **主入口** — 自動建立條目 + 假說驅動根因調查（五階段 + 3-Strike + 釐清問題） |
-| `/bug-fix` | 修復紀律（分支檢查 + 鐵律 + 迴歸測試 + merge 引導） |
+| `/bug-investigate` | **主入口** — 自動建立條目 + 假說驅動根因調查（五階段 + 3-Strike + 釐清問題），唯讀 Sonnet |
+| `/bug-fix` | 修復紀律（分支檢查 + 鐵律 + 迴歸測試 + merge 引導），定位 Sonnet／修復實作 Opus |
 | `/bug-close` | merge 引導 + 結案 + 同步知識庫 |
 | `/bug-start <問題簡述>` | 僅建立條目（可選，investigate 會自動處理） |
 | `/bug-update <內容>` | 更新調查資訊（Log、SQL、判斷） |
@@ -169,10 +169,10 @@ flowchart TD
 | `/plan-spec` | 技術規格書 | **0 次** |
 | `/plan-db` | 資料庫設計 | **0 次** |
 | `/plan-arch` | 架構設計 | **0 次** |
-| `/plan-build [--dry-run]` | Agent Teams 最多 5 人產生程式碼（含 DB Engineer） | **0 次** |
+| `/plan-build [--dry-run]` | 探索官（Sonnet）+ Agent Teams 最多 5 人產生程式碼（Opus，含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描 | **0 次** |
 | `/plan-verify [--excel/--e2e]` | 瀏覽器驗收驗證 + 驗證記憶 + Word 多風格報告（3 種風格可選）+ Excel 報告 + E2E Runner（含截圖穩定化、i18n 4 語系） | **0 次** |
-| `/plan-review [--quick]` | Agent Teams 3 人審查（邏輯/品質/效能） | **0 次** |
+| `/plan-review [--quick]` | Agent Teams 3 人審查（邏輯 Sonnet／品質 Sonnet／效能 Opus） | **0 次** |
 | `/plan-close` | 一次性批次同步到 Notion + 知識庫 + Git 提交 | **3-5 次** |
 | `/plan-sync` | 手動中途同步（按需） | **2-3 次** |
 | `/plan-deploy-confirm [slug]` | SQL 執行回報 — DBA 逐 Step 確認 deploy.sql 寫回 Notion「🚀 部署狀態」（含 --env / --all-done / --list） | **3-5 次** |

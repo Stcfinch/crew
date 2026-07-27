@@ -11,7 +11,7 @@
 - 在 log.md 記錄執行結果
 
 ### 🟡 ASK FIRST（顯示計畫，等使用者確認）
-- 啟動 Agent Teams（步驟 4 的確認提示）
+- 啟動 Agent Teams（步驟 4 的確認提示；探索官 `model: sonnet`、實作者 `model: opus`）
 - Teammate 失敗時的處理策略（重試 / 跳過 / 終止）
 - API 契約不一致時的調整方向
 - 退出驗證中 WARN 項目的處理

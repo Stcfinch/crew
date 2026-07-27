@@ -7,6 +7,41 @@
 
 ---
 
+## [feature-workflow@4.26.0] - 2026-07-27
+
+> 模型分工政策落地——探索與文件用 Sonnet、正式實作與高風險判斷用 Opus，且模型一律以結構化 `model` 參數傳入（不再靠自然語言「使用 Opus 模型」）。流程、Agent Teams、`.spec/`、Notion 整合與退出驗證全部不變。
+
+### 新增
+- **共用 reference `model-policy.md`（第 6 個共用檔）** — Sonnet／Opus 工作清單、角色→模型對照表、「只有 `/plan-build` 與 `/bug-fix` 可改正式程式碼」邊界、探索→實作交接模板、深度調查交接模板、Dynamic Workflow／Ultracode 相容性說明；納入 `check-shared-refs.py`、`sync-shared-refs.sh`、CONTRIBUTING.md 清單（5→6 檔）
+- **plan-build 探索官（scout）** — 步驟 5 分層脈絡改由 Leader 派唯讀 subagent（`model: sonnet`）完成並產出「實作交接」；`build-prompts.md` 新增「探索官模式」prompt 模板與 `{scout_handoff}` 變數
+- **team-composition.md 模型配置段** — 角色性質→模型對照（唯讀探索 sonnet／正式實作 opus），明示團隊人數不影響模型選擇
+
+### 改善
+- **feature-spec-analyst 改 `model: sonnet`** — 規格分析屬唯讀文件工作；新增責任邊界（可寫 `.spec/`、不改正式程式碼、不啟 Agent Teams／Dynamic Workflow、不自行升級 Opus、不自動往下觸發）
+- **plan-spec 改派 `model: sonnet`** — 加硬性規則：必須實際傳入結構化參數、禁止改正式程式碼、禁止自動啟 `/plan-build`、禁止建 Agent Team；規格確認迴圈與 `.spec/{slug}/spec.md` 格式不變
+- **plan-review 模型重配** — Logic Reviewer Opus→Sonnet、Quality 維持 Sonnet、Performance 維持 Opus；`--quick` Opus→Sonnet；新增「小變更可三人全 Sonnet 或改跑 `--quick`」判準。Reviewer 3 不改名，安全審查仍歸 `/plan-security`
+- **plan-build / build-prompts 改為逐一具名 spawn** — 每個實作角色一次 Agent tool 呼叫並帶 `model: opus`（補上原本連模型行都沒有的前端與測試工程師）；各角色 prompt 的「自行掃描專案學風格」改為「只用探索官交接片段，不得再全域掃描」
+- **feature-code-generator 責任邊界** — 維持 `model: opus`，補上「只在明確進入功能開發時使用、依已確認規格與探索官交接實作、最小必要變更、不重新無限制探索」
+- **db-designer / backend-designer 維持 `model: opus`** — 補上理由註記，防後續維護者因「只產文件」誤降為 Sonnet
+- **plan-common.md** — 既有 model 參數 gotcha 加指標到 `model-policy.md`（不複製政策內容）
+
+## [bug-workflow@3.13.0] - 2026-07-27
+
+> 與 feature-workflow@4.26.0 同批模型分工政策。bug-investigate 全程唯讀 Sonnet、bug-fix 的正式修改交給 Opus 實作者；鐵律、最小 diff 與驗證流程不變。
+
+### 新增
+- **共用 reference `model-policy.md`（權威版）** — 內容同 feature 側；共用白名單登記（`check-shared-refs.py`、`sync-shared-refs.sh`、CONTRIBUTING.md）5→6 檔
+- **bug-investigate 條件式 Opus 升級（4.5）** — 3-Strike 選項從「繼續／暫停」擴充為「繼續（Sonnet）／升級深度推理（Opus）／暫停」；升級需符合六條件之一（連三假說被否定、跨三模組以上、複雜並行／交易一致性／記憶體／分散式、證據互相矛盾、Sonnet 無法收斂、使用者明確要求），且必須先產出「深度調查交接」，Opus 只回答尚未解答的問題
+
+### 改善
+- **bug-investigate Phase 1–2 派唯讀 subagent（`model: sonnet`）** — 加硬性規則：不改正式程式碼、無根因不得進修正、不得因首次假說失敗就升級 Opus、不自動啟 Dynamic Workflow、不依賴 `/effort ultracode`
+- **bug-fix 模型分工** — 4a 定位／相似修正搜尋／測試範本（`model: sonnet`）與 4b 正式修改／迴歸測試（`model: opus`）明確拆成兩個 agent（同一 agent 無法中途換模型）；`--verify-only` 不改程式碼故預設 Sonnet，僅在驗證失敗且使用者同意時才啟 Opus 實作者
+- **boundaries.md** — bug-investigate／bug-fix 的 🟢🟡🔴 條目補上模型規定（禁止 Sonnet 直接改正式程式碼、禁止 Opus 重做探索、禁止只在 prompt 寫模型）
+
+### 修正
+- **`scripts/lint-agent-model.py` 由 advisory 轉 strict 並擴充為 7 條規則** — 結構化 model 標示（含 JSON 形式 `{"model": "opus"}`）、`agents/*.md` frontmatter 政策（規格分析不得 Opus／正式實作不得 Sonnet）、各 skill 角色對照（plan-spec 只准 Sonnet、bug-investigate 的 Opus 只能在升級段、bug-fix 需有 Opus 實作者、`plan-review --quick` 需 Sonnet）、禁止自然語言指定模型、禁止「視情況使用模型」含糊措辭；掃描範圍從 SKILL.md 擴大到 `references/` 與 `agents/`；CI job 改名 `agent-model` 並以 `--strict` 執行（違規阻擋）
+- **`docs/prerequisites.md`** — 「Agent Teams 環境變數」段新增 `CLAUDE_CODE_SUBAGENT_MODEL` 防護說明（設 sonnet／opus 會覆寫所有 agent 的模型選擇，需混用請移除或設 `inherit`）
+
 ## [feature-workflow@4.25.0] - 2026-07-24
 
 > handoff.md 斷點保險——長任務進度即寫，任何時點中斷（crash、關機、隔天重開）都能被新 session 精確接手。

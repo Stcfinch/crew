@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.25.0`
+# Feature Workflow Plugin `v4.26.0`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
@@ -89,10 +89,10 @@ flowchart TD
 | `/plan-spec` | 技術規格書 | **0 次** |
 | `/plan-db` | 資料庫設計 | **0 次** |
 | `/plan-arch` | 架構設計 | **0 次** |
-| `/plan-build` | Agent Teams 最多 5 人產生程式碼（含 DB Engineer） | **0 次** |
+| `/plan-build` | 探索官（Sonnet）+ Agent Teams 最多 5 人產生程式碼（Opus，含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描（靜態規則/上下文感知/對抗性思維） | **0 次** |
 | `/plan-verify` | 瀏覽器驗收驗證 + Health Score + 驗證記憶（--excel Excel / --word Word 多風格報告 / --e2e E2E Runner） | **0 次** |
-| `/plan-review` | Agent Teams 3 人審查（邏輯/品質/效能） | **0 次** |
+| `/plan-review` | Agent Teams 3 人審查（邏輯 Sonnet／品質 Sonnet／效能 Opus） | **0 次** |
 | `/plan-close` | 批次同步 Notion + Git 提交 | **3-5 次** |
 | `/plan-sync` | 手動中途同步 .spec/ 到 Notion | **2-3 次** |
 | `/plan-deploy-confirm` | SQL 執行回報 — DBA 逐 Step 確認 deploy.sql 執行狀態並寫回 Notion「🚀 部署狀態」 | **3-5 次** |
@@ -211,33 +211,39 @@ Google 官方維護，提供 console log、network 分析、performance trace。
 
 ## Agent Teams 組成
 
-### plan-build（最多 5 人開發團隊）
+### plan-build（1 位探索官 + 最多 5 人開發團隊）
 
 ```mermaid
 flowchart LR
-    DB["🗄️ DB Engineer<br/>Migration / 索引 / 效能<br/><i>需 DB MCP</i>"]
-    BE["🔧 Backend Engineer<br/>POJO / Mapper / Service"]
-    API["🌐 API Engineer<br/>Controller / DTO / 驗證"]
-    FE["🎨 Frontend Engineer<br/>前端頁面"]
-    TE["🧪 Test Engineer<br/>單元測試 / 整合測試"]
+    SC["🔍 Scout<br/>結構 / 相似功能 / 風格範本<br/><i>model: sonnet・唯讀</i>"]
+    DB["🗄️ DB Engineer<br/>Migration / 索引 / 效能<br/><i>需 DB MCP・model: opus</i>"]
+    BE["🔧 Backend Engineer<br/>POJO / Mapper / Service<br/><i>model: opus</i>"]
+    API["🌐 API Engineer<br/>Controller / DTO / 驗證<br/><i>model: opus</i>"]
+    FE["🎨 Frontend Engineer<br/>前端頁面<br/><i>model: opus</i>"]
+    TE["🧪 Test Engineer<br/>單元測試 / 整合測試<br/><i>model: opus</i>"]
 
+    SC --> DB
+    SC --> BE
     DB --> BE
     BE --> API
     BE --> TE
     BE -.->|同時開始| FE
 
+    style SC fill:#e8f5e9,stroke:#4caf50
     style DB fill:#fff3e0,stroke:#ff9800
 ```
 
 > DB Engineer 僅在專案安裝了 DB MCP（DBHub）時加入，透過 `execute_sql` 和 `search_objects` 直接查詢真實資料庫。
+>
+> Scout（探索官）先做完唯讀探索並產出「實作交接」，後面的 Opus 實作者只讀交接、不再重掃 repository。
 
 ### plan-review（3 人審查團隊）
 
 ```mermaid
 flowchart LR
-    L["🔍 Logic Reviewer<br/>邏輯正確性"]
-    Q["✨ Quality Reviewer<br/>程式碼品質"]
-    S["🛡️ Security Reviewer<br/>安全與效能"]
+    L["🔍 Logic Reviewer<br/>邏輯正確性<br/><i>model: sonnet</i>"]
+    Q["✨ Quality Reviewer<br/>程式碼品質<br/><i>model: sonnet</i>"]
+    S["⚡ Performance Reviewer<br/>效能 / 交易 / 並行<br/><i>model: opus</i>"]
     X["🔄 交叉審查"]
     R["📋 Leader 彙整報告"]
 
@@ -248,6 +254,22 @@ flowchart LR
 ```
 
 三位 Reviewer 完成後互相分享發現，交叉審查後由 Leader 彙整報告。
+安全審查由獨立的 `/plan-security` 負責（`model: opus`），不與本審查重疊。
+
+小變更且不涉及安全／交易／並行／效能敏感區域時，三位可全部用 `model: sonnet`，或直接改跑 `/plan-review --quick`（單一 subagent，`model: sonnet`）。
+
+### 模型分工
+
+各角色的模型（含唯讀 vs 可改正式程式碼的邊界）一律以共用 reference
+[`references/model-policy.md`](references/model-policy.md) 為準：
+
+| 工作性質 | model |
+|---------|-------|
+| 讀需求／規格／`.spec/`、探索程式碼、找範本、分析日誌與測試輸出、一般品質檢查 | `sonnet` |
+| 已確認規格後的實作、已確認根因後的修正、複雜架構決策、安全敏感、跨模組正式程式碼 | `opus` |
+
+模型必須以 Agent tool 的結構化 `model` 參數傳入；只在 prompt 寫「使用 Opus 模型」不算（CI 的
+`agent-model` job 會 block）。
 
 ---
 
@@ -285,7 +307,7 @@ flowchart LR
 | **SKILL.md 內嵌**（預設） | 安裝 Plugin 即可用 |
 | **獨立 Agent 檔案** | `/plan-setup` 時可選安裝，可獨立使用 |
 
-獨立 Agent：`spec-analyst`、`db-designer`、`backend-designer`、`code-generator`。
+獨立 Agent：`spec-analyst`（`model: sonnet`，唯讀）、`db-designer`、`backend-designer`、`code-generator`（三者 `model: opus`）。
 
 ---
 

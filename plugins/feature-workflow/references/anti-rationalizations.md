@@ -13,7 +13,7 @@
 | # | AI 的內心獨白 | 為什麼不行 |
 |---|-------------|-----------|
 | B1 | 「arch.md 不存在，我先快速產一個再繼續 build」 | arch.md 是 hard block。自動補產的架構沒有經過使用者審閱，錯誤的類別清單和介面定義會傳遞給所有 Teammate，錯誤被放大 5 倍。 |
-| B2 | 「只有 3 個檔案要改，開 Agent Teams 太重了，我自己寫比較快」 | Leader 自己寫 code 會跟 Teammate 產出衝突（寫同一個檔案）。即使只有 3 個檔案，Subagent 模式仍然是正確的選擇。 |
+| B2 | 「只有 3 個檔案要改，開 Agent Teams 太重了，我自己寫比較快」 | Leader 自己寫 code 會跟 Teammate 產出衝突（寫同一個檔案）。即使只有 3 個檔案，Subagent 模式（單一具名 subagent，`model: opus`）仍然是正確的選擇。 |
 | B3 | 「spec.md 太長了，我只讀 arch.md 就好」 | arch.md 定義「怎麼做」，spec.md 定義「做什麼」。跳過 spec.md 意味著 Teammate 不知道業務規則、驗證邏輯、錯誤處理策略。產出的 Service Impl 會全是空 TODO。 |
 | B4 | 「掃描現有範本太慢，我直接根據技術棧定義產生」 | 技術棧定義只有框架和 ORM 類型，沒有 package 結構、import 順序、annotation 風格、命名慣例。跳過範本掃描的產出需要大量手動修正。 |
 | B5 | 「Teammate prompt 已經夠長了，不需要再塞技術棧定義」 | 沒有技術棧定義的 Teammate 會用 Spring Boot 的預設風格，對 Spring MVC 4.x 專案會產出完全錯誤的程式碼（annotation 不同、配置方式不同）。 |
