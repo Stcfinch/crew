@@ -14,12 +14,67 @@
 | {檔案清單} | files.md 或收集 | 審查範圍 |
 | {db_mcp_instruction} | 步驟 5 檢查 | DB MCP 可用時的指示 |
 | {dry_run_instruction} | 使用者參數 | --dry-run 指示 |
+| {scout_handoff} | 步驟 5 探索官產出 | 「實作交接」內容（相關檔案、呼叫關係、風格範本片段、限制） |
 
 ---
 
-## Subagent 模式（僅後端）
+## 模型配置（硬性）
 
-若 `FRONTEND_REQUIRED = false` 或 `--backend-only`，使用 **Agent tool** 啟動 subagent：
+完整政策見共用 reference `model-policy.md`。本檔所有角色的模型都必須以 **Agent tool 的結構化 `model` 參數**傳入，
+不可只寫在 prompt 文字裡：
+
+| 角色 | model | 可改正式程式碼 |
+|------|-------|----------------|
+| 探索官（scout） | `sonnet` | ✗ |
+| DB／後端／API／前端／測試工程師 | `opus` | ✓ |
+
+同一個 agent 的模型 spawn 後不能更換 —— 探索與實作**必須是兩個 agent**。
+
+---
+
+## 探索官模式（唯讀，model: sonnet）
+
+步驟 5 由 Leader 用 **Agent tool** 啟動，呼叫時實際傳入 `{"model": "sonnet"}`：
+
+```
+你是唯讀探索官，負責為後續的實作者準備精簡脈絡。你不寫任何程式碼。
+
+## 任務背景
+即將實作功能：{功能名稱}
+設計文件位置：.spec/{slug}/（spec.md、db.md、arch.md）
+本次要產出的角色：{角色清單}
+
+## 任務
+1. 掃描專案結構，確認各層級（POJO / Mapper / Service / Controller / 前端 / 測試）的實際存放路徑
+2. 搜尋與本功能最相似的既有功能，作為風格與作法的對照
+3. 每個層級挑一個**最簡單、最標準**的既有檔案作為風格範本，擷取關鍵片段
+   （class 宣告 + 1 個代表方法 + import 區塊；整檔不要貼）
+4. 追蹤相關呼叫關係與影響範圍（誰會呼叫這些新類別、有無既有介面要遵守）
+5. 從設計文件提取跨角色約束（NOT NULL、UNIQUE、必填參數、外鍵、分頁限制）
+
+## 邊界
+- 只用唯讀工具（Read / Glob / Grep）
+- 不修改任何檔案，不建立任何程式碼
+- 不做架構決策，只回報現況
+
+## 產出格式（每個角色一份，供實作者直接使用）
+## 實作交接
+### 相關檔案與方法
+### 呼叫關係／影響範圍
+### 既有程式風格範本（片段）
+### 規格與驗收條件
+### 已確認限制
+### 測試方式
+
+使用繁體中文。總長控制在 400 行以內，片段只留必要行數。
+```
+
+---
+
+## Subagent 模式（僅後端，model: opus）
+
+若 `FRONTEND_REQUIRED = false` 或 `--backend-only`，使用 **Agent tool** 啟動 subagent，
+呼叫時實際傳入 `{"model": "opus"}`：
 
 ```
 你是後端程式碼產生器。
@@ -36,8 +91,11 @@
 ## 技術棧
 {技術棧 ID 和定義}
 
+## 探索官交接
+{scout_handoff}
+
 ## 現有程式碼範本
-請讀取以下檔案作為風格參考：
+直接使用交接內的範本片段；片段不足時只讀取下列指定檔案，不要全域掃描：
 {範本檔案路徑清單}
 
 ## DB MCP（若可用）
@@ -60,12 +118,17 @@
 
 ---
 
-## Agent Teams 模式
+## Agent Teams 模式（多角色，每個 model: opus）
 
-使用自然語言要求 Claude 建立 Agent Team（根據步驟 3 判斷結果決定成員數）：
+用 **Agent tool 逐一具名 spawn**：一個角色一次呼叫，`name` 給角色名，每次都實際傳入
+`{"model": "opus"}`；teammate 之間用 SendMessage 通報進度與 API 契約。
+
+> 🔴 **不要**把下面整段當成一句自然語言丟出去要求「建立一個 Agent Team……使用 Opus 模型」——
+> 那樣模型只是敘述、不是參數，不保證生效（見 `model-policy.md`）。
 
 ```
-建立一個 Agent Team 來開發 {功能名稱} 功能，生成 {N} 個 Teammate：
+依步驟 3 判斷結果 spawn {N} 個角色，開發 {功能名稱} 功能。
+每個角色 = 一次 Agent tool 呼叫，帶 name 與 {"model": "opus"}：
 
 {若 DB_MCP_AVAILABLE = true，包含以下成員：}
 【成員 0：DB 工程師】DB Engineer
@@ -86,7 +149,7 @@
   * 確認後的表結構（欄位名、型別、約束）
   * 索引建議清單
   * 效能風險提醒（若有）
-- 使用 Opus 模型
+- spawn 參數：name=db-engineer、model: opus
 - 使用繁體中文
 
 【成員 1：後端工程師】Backend Engineer
@@ -94,7 +157,7 @@
 - 讀取設計文件：
   * .spec/{slug}/arch.md（架構設計 — 類別清單、介面定義）
   * .spec/{slug}/db.md（DB 設計 — 表結構）
-- 掃描專案現有程式碼學習風格（POJO、Mapper、Service 各一個範本）
+- 風格範本直接用探索官交接（{scout_handoff}）的片段，不要自行全域掃描 repository
 {若有 DB 工程師：等待 DB 工程師完成，取得確認後的表結構和索引建議}
 - 任務：
   * 產生 POJO/Entity（含 Lombok、表註解）
@@ -104,7 +167,7 @@
   * Service 方法含 TODO 標記待實作邏輯
 - 風格必須與專案完全一致（package、import 順序、註解、縮排）
 - 完成後通知 Lead，並向其他成員分享產出的類別清單和介面定義
-- 使用 Opus 模型
+- spawn 參數：name=backend-engineer、model: opus
 - 使用繁體中文
 
 【成員 2：API 工程師】API Engineer
@@ -119,14 +182,14 @@
   * 實作例外處理（BizException、ApiResult）
   * 確保 API 回應格式與專案現有風格一致
 - 完成後通知 Lead，並向前端工程師分享 API 端點清單（URL + Method + 請求/回應格式）
-- 使用 Opus 模型
+- spawn 參數：name=api-engineer、model: opus
 - 使用繁體中文
 
 【成員 3：前端工程師】Frontend Engineer
 - 前端技術棧：{FRONTEND_TECH}
 - 讀取設計文件：
   * .spec/{slug}/spec.md（技術規格 — 畫面需求、操作流程）
-- 掃描專案前端目錄，讀取 2-3 個現有頁面作為風格範本
+- 頁面風格範本用探索官交接（{scout_handoff}）的片段，不要自行掃描整個前端目錄
 - 可與後端工程師同時開始（前端不依賴後端實作）
 - 任務：
   * 產生前端頁面（HTML/JSP/Vue）
@@ -134,10 +197,11 @@
   * 產生表單驗證、表格展示、分頁元件
 - 風格必須與專案完全一致
 - 完成後通知 Lead
+- spawn 參數：name=frontend-engineer、model: opus
 - 使用繁體中文
 
 【成員 4：測試工程師】Test Engineer
-- 讀取專案的測試慣例（掃描 src/test/ 下現有測試檔案）
+- 測試慣例用探索官交接（{scout_handoff}）提供的既有測試範本片段，不足時只讀交接指定的檔案
 - 等待後端工程師完成後開始
 {若有 DB 工程師：參考 DB 工程師提供的約束條件和索引資訊，設計更完整的測試案例}
 - 任務：
@@ -146,6 +210,7 @@
   * 測試案例涵蓋：正常流程、邊界條件、異常處理
   * 測試命名遵循專案慣例
 - 完成後通知 Lead
+- spawn 參數：name=test-engineer、model: opus（寫入正式測試程式碼）
 - 使用繁體中文
 
 【任務依賴關係】
@@ -166,6 +231,7 @@
 
 請使用 delegate mode，Lead 只負責協調，不要自己寫 code。
 每個 Teammate 完成後要通知 Lead。
+所有 Teammate 都已從探索官交接取得脈絡，不要重複掃描整個 repository。
 所有輸出使用繁體中文。
 ```
 
@@ -179,8 +245,8 @@
 
 ### 若 DBHub 已安裝
 
-- Agent Teams 模式：加入「成員 0：DB 工程師」，成為最先開始的成員
-- Subagent 模式：在後端工程師提示詞中嵌入 `{db_mcp_instruction}`：
+- Agent Teams 模式：加入「成員 0：DB 工程師」（`model: opus`），成為最先開始的成員
+- Subagent 模式（`model: opus`）：在後端工程師提示詞中嵌入 `{db_mcp_instruction}`：
 ```
 專案已安裝 DB MCP（DBHub），你可以直接查詢資料庫：
 - 使用 execute_sql 查詢現有表結構，確認 db.md 設計與實際 DB 是否一致
@@ -194,4 +260,4 @@
 ### 若 DBHub 未安裝
 
 - Agent Teams 模式：不加入 DB 工程師，維持原有成員配置
-- Subagent 模式：`{db_mcp_instruction}` 替換為空字串
+- Subagent 模式（`model: opus`）：`{db_mcp_instruction}` 替換為空字串

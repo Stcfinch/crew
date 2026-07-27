@@ -1,4 +1,4 @@
-# Bug Workflow Plugin `v3.12.0`
+# Bug Workflow Plugin `v3.13.0`
 
 整合 Notion 與 Claude Code，自動化 Bug 生命週期管理。
 
@@ -106,6 +106,21 @@ flowchart TD
     style clarify fill:#fff3e0,stroke:#ff9800
     style startOpt fill:#f5f5f5,stroke:#bbb,stroke-dasharray: 5 5
 ```
+
+### 模型分工
+
+各階段的模型（含唯讀 vs 可改正式程式碼的邊界）一律以共用 reference
+[`references/model-policy.md`](references/model-policy.md) 為準：
+
+| 階段 | 工作 | model | 可改正式程式碼 |
+|------|------|-------|----------------|
+| `/bug-investigate` | 證據收集、log／stacktrace／Git 歷史分析、模式比對、假說驗證 | `sonnet` | ✗ |
+| `/bug-investigate` | 深度根因推理（僅 3-Strike 等升級條件成立時） | `opus` | ✗ |
+| `/bug-fix` | 定位、搜尋相似修正、找測試範本、分析編譯／測試輸出 | `sonnet` | ✗ |
+| `/bug-fix` | 修復實作、迴歸測試撰寫 | `opus` | ✓ |
+
+- 模型必須以 Agent tool 的結構化 `model` 參數傳入；只在 prompt 寫「請使用 Sonnet」不算（CI 的 `agent-model` job 會 block）。
+- 沒有根因確認就不進修正（鐵律）；`--verify-only` 不改程式碼，預設 `model: sonnet`。
 
 ## 使用範例
 

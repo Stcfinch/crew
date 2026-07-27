@@ -26,7 +26,14 @@ description: 產出技術規格書寫入 .spec/ 目錄（零 Notion 呼叫）。
 
 ### 2. 產出技術規格
 
-使用 **Agent tool** 啟動 subagent（model: opus），prompt 指示如下：
+使用 **Agent tool** 啟動 subagent（model: sonnet），prompt 指示如下：
+
+> **模型與邊界（硬性規則）**——完整政策見 plugin 根目錄 `references/model-policy.md`（相對 SKILL.md 為 `../../references/`）：
+> - 呼叫 Agent tool 時**必須實際傳入** `{"model": "sonnet"}`；只在 prompt 裡寫「請使用 Sonnet」不算，不保證生效。
+> - 本階段只做需求分析、程式碼探索與規格文件產出；🔴 **禁止修改正式程式碼**。
+> - 🔴 禁止自動啟動 `/plan-build`（或任何實作階段 skill）、禁止建立 Agent Team、禁止要求 Dynamic Workflow。
+> - 🔴 不得因需求文件多或內容長就自行升級 Opus；規格太大改為分節產出。
+> - 規格確認迴圈（步驟 4）照原樣執行，不可略過。
 
 **輸入來源**：
 - 需求描述從 `.spec/{slug}/README.md` 讀取（非 Notion）

@@ -3,12 +3,25 @@
 > 此檔案由 plan-review 步驟 5「完整審查（Agent Teams）」按需載入。
 > 模板中的 `{slug}` `{檔案清單}` 需替換為實際值。
 
+## 模型配置（硬性）
+
+| Reviewer | 參數 | 理由 |
+|----------|------|------|
+| 1 邏輯正確性 | `model: sonnet` | 規格符合度與一般邏輯檢查 |
+| 2 程式碼品質 | `model: sonnet` | 風格與一般品質檢查 |
+| 3 效能審查 | `model: opus` | 效能／交易／並行屬高風險判斷 |
+
+三者都用 **Agent tool 具名 spawn**，模型以結構化參數傳入（`model: sonnet` / `model: opus`）。
+🔴 不可只在 prompt 文字裡寫「使用 Opus 模型」——那不是參數，不保證生效（見共用 reference `model-policy.md`）。
+
+小變更且不涉及安全／交易／並行／效能敏感區域時，三者可全部用 `model: sonnet`，或直接建議改跑 `--quick`。
+
 ## 完整審查（Agent Teams）
 
-使用自然語言要求 Claude 建立 Agent Team：
+逐一具名 spawn 3 個 Reviewer（一個角色一次 Agent tool 呼叫，各自帶 `model: sonnet` 或 `model: opus`）：
 
 ```
-建立一個 Agent Team 來做 Code Review，生成 3 個 Reviewer：
+Code Review 分工，spawn 3 個 Reviewer（每個一次 Agent tool 呼叫，帶 name 與 model）：
 
 【Reviewer 1：邏輯正確性】Logic Reviewer
 - 讀取專案 CLAUDE.md 了解架構慣例
@@ -29,7 +42,7 @@
   * 邊界條件是否考慮
   * 回傳格式是否一致
 - 標記嚴重程度：🔴 嚴重 / 🟡 建議 / 🟢 良好
-- 使用 Opus 模型
+- spawn 參數：name=logic-reviewer、model: sonnet
 - 使用繁體中文
 
 【Reviewer 2：程式碼品質】Quality Reviewer
@@ -44,7 +57,7 @@
   * Error handling 是否完善
   * 有沒有 edge case 沒處理（空數據、數據不足等）
 - 標記：🟡 不一致 / 🟢 一致
-- 可使用 Sonnet 模型
+- spawn 參數：name=quality-reviewer、model: sonnet
 - 使用繁體中文
 
 【Reviewer 3：效能審查】Performance Reviewer
@@ -64,7 +77,7 @@
   * 快取策略建議
   * 連線池配置
 - 標記：🔴 效能瓶頸 / 🟡 效能風險 / 🟢 良好
-- 使用 Opus 模型
+- spawn 參數：name=performance-reviewer、model: opus
 - 使用繁體中文
 
 三位 Reviewer 完成後請互相分享各自的發現，

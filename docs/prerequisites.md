@@ -52,6 +52,21 @@
 
 > `/plan-setup` 會自動檢查並引導設定。
 
+### ⚠️ 不要設定 CLAUDE_CODE_SUBAGENT_MODEL
+
+CREW 依角色混用模型（探索／文件用 Sonnet、正式實作與高風險判斷用 Opus，
+政策見兩 plugin 的 `references/model-policy.md`）。下列設定會**覆寫**個別 Subagent、
+Agent Teams 與 Dynamic Workflow Agent 的模型選擇，讓整套混用政策失效：
+
+```bash
+CLAUDE_CODE_SUBAGENT_MODEL=sonnet   # ❌ 全部 agent 被鎖成 Sonnet（正式實作品質下降）
+CLAUDE_CODE_SUBAGENT_MODEL=opus     # ❌ 全部 agent 被鎖成 Opus（探索與讀文件浪費 token）
+```
+
+要混用模型，請**移除**這個環境變數；若你的 Claude Code 版本支援，也可設為
+`CLAUDE_CODE_SUBAGENT_MODEL=inherit`。兩者行為若與現況不符，以官方文件與實際版本為準，
+**優先選擇直接移除**（移除等於回到各 agent 自帶 `model` 參數的預設行為，最安全）。
+
 ---
 
 ## 瀏覽器驗證工具（plan-verify / bug-fix）

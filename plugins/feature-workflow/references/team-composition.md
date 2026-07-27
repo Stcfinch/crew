@@ -68,7 +68,8 @@ spec.md 判斷區塊可能包含 `DB_REQUIRED` 欄位，影響團隊組成和退
 顯示判斷依據，讓使用者確認或覆寫：
 
 ```
-📊 Teammate 配置：後端工程師（Subagent 模式）
+🔍 探索官：scout（model: sonnet，唯讀）
+📊 Teammate 配置：後端工程師（Subagent 模式，model: opus）
 
 判斷依據：
   - TASK_TYPE = bugfix → 預設 Subagent
@@ -78,6 +79,24 @@ spec.md 判斷區塊可能包含 `DB_REQUIRED` 欄位，影響團隊組成和退
 
 需要調整嗎？（如需完整 Agent Teams，輸入配置）[Y/n]
 ```
+
+## 模型配置
+
+判斷出的**團隊人數與角色**不影響模型配置；模型只看「這個角色做什麼」。完整政策見共用
+reference `model-policy.md`：
+
+| 角色性質 | 對應角色 | 參數 | 可改正式程式碼 |
+|---------|---------|------|----------------|
+| 唯讀探索（掃結構、找相似功能、選風格範本、追呼叫關係、整理角色上下文、分析編譯／測試輸出） | 探索官 scout | `model: sonnet` | ✗ |
+| 建立或修改正式程式碼 | DB／後端／API／前端／測試工程師 | `model: opus` | ✓ |
+
+規則：
+
+- 兩者都用 **Agent tool 具名 spawn**，模型以結構化參數傳入（`model: sonnet` / `model: opus`），不寫在 prompt 文字裡。
+- 探索先做、實作後做；同一個 agent 不能中途換模型，所以**探索與實作必然是不同 agent**。
+- 不論團隊是 1 人（Subagent 模式，實作者 `model: opus`）或 5 人（Agent Teams 模式），這張表都一樣適用。
+
+---
 
 ## Bug-workflow 相容
 

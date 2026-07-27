@@ -89,21 +89,30 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 📁 審查範圍：N 個檔案
 📊 Reviewer 配置：
-  • Reviewer 1 — 邏輯正確性（Opus）
-  • Reviewer 2 — 程式碼品質（Sonnet）
-  • Reviewer 3 — 效能審查（Opus）
+  • Reviewer 1 — 邏輯正確性（model: sonnet）
+  • Reviewer 2 — 程式碼品質（model: sonnet）
+  • Reviewer 3 — 效能審查（model: opus）
 
 確認開始？[Y/n]
 ```
+
+#### 模型配置規則（硬性）
+
+完整政策見 plugin 根目錄 `references/model-policy.md`（相對 SKILL.md 為 `../../references/`）。
+
+- 三位 Reviewer 都用 **Agent tool 具名 spawn**，模型以結構化 `model` 參數傳入（`sonnet` / `sonnet` / `opus`），🔴 不可只在 prompt 寫「使用 Opus 模型」。
+- 一般邏輯檢查、規格符合度、程式碼風格與品質 → `sonnet`；效能敏感（含交易、並行、大量資料）→ `opus`。
+- **小變更例外**：變更範圍小、且不涉及安全、交易、並行或效能敏感區域時，三位可全部用 `sonnet`，或直接建議使用者改跑 `/plan-review --quick`。採用例外時要在上面的確認畫面標明實際模型與理由。
+- 安全審查不在本 skill 範圍 → 由 `/plan-security`（`model: opus`）負責。
 
 ### 5. 啟動 Agent Teams
 
 #### 完整審查（Agent Teams）
 
-使用自然語言要求 Claude 建立 Agent Team，生成 3 個 Reviewer：
-- **Reviewer 1：邏輯正確性**（Opus）— 讀取 spec.md/arch.md/verify.md 與變更檔案，檢查 API 參數驗證、業務邏輯、查詢條件、例外處理、邊界條件、回傳格式
-- **Reviewer 2：程式碼品質**（Sonnet）— 比對專案既有檔案風格，檢查命名規範、package 結構、Lombok、註解、error handling、edge case
-- **Reviewer 3：效能審查**（Opus）— 讀取 db.md 與變更檔案，檢查 N+1、分頁、索引、迴圈內 DB 呼叫、快取、連線池
+用 **Agent tool 逐一具名 spawn** 3 個 Reviewer（一個角色一次呼叫，各自帶結構化 `model`）：
+- **Reviewer 1：邏輯正確性**（`model: sonnet`）— 讀取 spec.md/arch.md/verify.md 與變更檔案，檢查 API 參數驗證、業務邏輯、查詢條件、例外處理、邊界條件、回傳格式
+- **Reviewer 2：程式碼品質**（`model: sonnet`）— 比對專案既有檔案風格，檢查命名規範、package 結構、Lombok、註解、error handling、edge case
+- **Reviewer 3：效能審查**（`model: opus`）— 讀取 db.md 與變更檔案，檢查 N+1、分頁、索引、迴圈內 DB 呼叫、快取、連線池
 
 三位 Reviewer 完成後互相分享發現、交叉審查，Lead 只負責協調（delegate mode，不自己寫 code）彙整產出 Review Report，全程繁體中文。
 
@@ -111,7 +120,8 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 #### 快速審查（--quick，Subagent）
 
-使用 Agent tool 啟動單一 subagent（model: opus），只做邏輯正確性審查：
+使用 Agent tool 啟動單一 subagent（model: sonnet），只做邏輯正確性審查
+（呼叫時必須實際傳入 `{"model": "sonnet"}`；`--quick` 針對小型變更，唯讀不改程式碼）：
 
 ```
 你是資深程式碼審查員。

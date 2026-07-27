@@ -95,7 +95,7 @@
 ## 共用 Gotchas
 
 - **spec.md「判斷」區塊格式是 plan-build 的入口**：`FRONTEND_REQUIRED` 和 `DB_REQUIRED` 的值直接決定 plan-build 的團隊組成。格式錯誤（如用中文「是/否」而非 `true/false`）會 fallback 到預設值。
-- **Agent subagent 的 model 參數**：prompt 中寫「使用 Opus 模型」只是自然語言指示，不保證生效。必須在 Agent tool 的 `model` 參數實際設定 `"opus"`。
+- **Agent subagent 的 model 參數**：prompt 中寫「使用 Opus 模型」只是自然語言指示，不保證生效。必須在 Agent tool 的 `model` 參數實際設定 `"opus"`。**哪個角色該用哪個模型、以及探索／實作如何拆分，一律以共用 reference `model-policy.md` 為準**（本檔不重複那份政策）。
 - **重新執行覆蓋已有檔案**：覆蓋前會備份到 `{file}.bak`，但 `.bak` 只保留一份。
 
 ## 共用邊界情況
