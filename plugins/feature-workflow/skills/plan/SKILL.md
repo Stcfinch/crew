@@ -11,6 +11,9 @@ argument-hint: "[spec|db|arch]"
 > **產出只有這些**：`plan.md` 的章節條目、`deploy.sql`、`state.json` 的階段更新。
 > 🔴 不產生任何其他文件檔（規格書、DB 設計書、架構書、清單、日誌一律不落檔）。
 
+> **v1 舊任務**：`.spec/{slug}/plan.md` 不存在 → 這是 v1 結構，依
+> `../../references/legacy-v1.md` 的相容模式執行，並在開頭提示一次。
+> 過渡期限定，到期本段連同該檔一併刪除。
 ---
 
 ## 使用方式

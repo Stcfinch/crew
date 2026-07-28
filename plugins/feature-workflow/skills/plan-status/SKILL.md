@@ -21,6 +21,7 @@ description: 列出 .spec/ 目錄中所有活躍與已完成的任務（純本�
 /plan-status --cleanup=<N>   # 清除超過 N 天的已完成任務，例：--cleanup=60
 /plan-status --park <slug>   # 擱置指定任務
 /plan-status --unpark <slug> # 恢復指定任務
+/plan-status --migrate <slug> # 把 v1 舊結構任務機械搬移到 v2（過渡期，見 legacy-v1.md）
 ```
 
 ---
@@ -110,6 +111,41 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" unpark --slug <slug>
 
 1. 刪除 `.spec/{slug}/` 目錄
 2. 若該任務已於 `/plan-close` 用 `git add -f` 加入版本控制（見 plan-close 的 Gotchas），一併 `git rm -r --cached .spec/{slug}/` 取消追蹤；`plan-start` 產生的 `.gitignore` 規則不需還原或修改
+
+### 5. 遷移模式（--migrate，過渡期）
+
+把 v1 舊結構任務搬到 v2。判定與適用情境見 `../../references/legacy-v1.md`
+（**先讀它再動手** —— 大多數 v1 任務更適合「照舊跑完」而不是遷移）。
+
+🔴 **只做機械搬移，不做語意轉換。** 這條沒有例外。
+
+**動手前先確認**，列出將搬走哪些檔案，使用者回覆才執行：
+
+```
+準備遷移 push-tag-query（v1 → v2）：
+
+  搬到 archive/：spec.md(313行) db.md(99行) arch.md(583行) log.md(254行) files.md(121行)
+  合併：db.sql + deploy.sql → deploy.sql（去重）
+  轉換：README.md frontmatter → plan.md frontmatter + state.json
+  新建：plan.md（六章節骨架，內容留 TODO 佔位由你補）
+
+原文一個字都不會改。是否執行？[y/N]
+```
+
+確認後依序執行：
+
+1. 建 `.spec/{slug}/archive/`，**原封搬入** `spec.md`／`db.md`／`arch.md`／`log.md`／`files.md`／`review.md`／`security.md`／`verify.md`（用 `git mv` 或 `mv`，不改內容、不刪除）
+2. `db.sql` 與既有 `deploy.sql` 合併去重 → 單一 `deploy.sql`；衝突時**保留兩者並標注**，讓人決定，不要自己挑一個
+3. `README.md` frontmatter 的身分欄位 → `plan.md` frontmatter；狀態欄位 → `crew-state.py init` ＋ `set`（🔴 不手寫 JSON）
+4. 建 `plan.md` 六章節骨架（與 `/plan-start` **完全相同**），每個內容章節放一行佔位：
+   `TODO(migrate): 從 archive/{來源檔} 補` —— 標明去哪找原文
+5. 回報搬了什麼、哪幾節待補
+
+🔴 **禁止**用 LLM 把 archive 的內容摘要、壓縮或改寫進 `plan.md`。理由見 `legacy-v1.md`
+「為什麼不做自動語意轉換」——壓縮不可驗證，且會幻覺出從未做過的決策。
+
+**已結案的 v1 任務不遷移**（`_index.md` 標已完成，或無進行中跡象）：直接整包搬進
+`archive/` 即可，不必建 `plan.md`。
 
 ---
 

@@ -14,7 +14,7 @@
 | `/bug-update reopen <Bug>` | 重新開啟已結案的 Bug（復發處理） |
 | `/bug-close` | 結案前引導 merge 回 DEV + 從 Git diff 擷取修復細節 + 同步知識庫 |
 | `/project-add` | **偵測專案架構**（簡單型/產品型）→ Notion 註冊 → 可選安裝 DB MCP |
-| `/crew-doctor` | CREW 環境健診 — 19 項依賴與設定檢查（含 CREW hooks 是否載入），含 `--quick` / `--fix` 模式 |
+| `/crew-doctor` | CREW 環境健診 — 20 項依賴與設定檢查（含 CREW hooks 與 v1 舊任務偵測），含 `--quick` / `--fix` 模式 |
 | `/crew-init` | CREW 一鍵首次設定 — 統合 /bug-setup + /plan-setup + 提示 /init 與 /project-add，含 `--resume` |
 | `/crew-upgrade` | 一次更新 bug-workflow + feature-workflow，顯示 CHANGELOG 摘要 |
 
@@ -187,7 +187,7 @@ flowchart TD
 
 ```bash
 /crew-init                 # 一鍵首次設定（4 階段含偵測跳過、--resume 中斷續跑）
-/crew-doctor               # 環境健診 19 項（紅/黃/綠/選配）
+/crew-doctor               # 環境健診 20 項（紅/黃/綠/選配）
 /crew-doctor --quick       # 只跑紅燈必要項目
 /crew-doctor --fix         # 健診同時自動修可修項
 /crew-upgrade              # 檢查並更新所有 CREW plugins

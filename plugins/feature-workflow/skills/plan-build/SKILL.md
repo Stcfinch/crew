@@ -10,6 +10,9 @@ argument-hint: "[--with-test|--no-test] [--backend-only] [--dry-run] [--resume]"
 
 > **本 skill 不產生任何新文件檔**：變更清單的事實來源是 `git diff --name-only`，流程狀態一律經 `crew-state.py` 寫入 `state.json`，程式碼落點以錨點條目寫進 plan.md 的「指路」節。
 
+> **v1 舊任務**：`.spec/{slug}/plan.md` 不存在 → 這是 v1 結構，依
+> `../../references/legacy-v1.md` 的相容模式執行，並在開頭提示一次。
+> 過渡期限定，到期本段連同該檔一併刪除。
 ---
 
 ## 前置條件

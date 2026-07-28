@@ -31,7 +31,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" session-brief --cwd "${CLA
 | 執行者 | 你本機的 `python3`。找不到 `python3` 時整個 hook 靜默失效，不報錯 |
 | 輸出 | 未結案任務最多 3 行＋`/plan-next {slug}`；超過 3 個時多印一行「另有 N 個」 |
 | 沒東西可報時 | **零輸出、exit 0**，不佔任何 token |
-| 失敗時 | 一律靜默 exit 0，**絕不阻擋 session**。內建 80ms 總體時限與非阻塞 stdin 讀取 |
+| 失敗時 | 一律靜默 exit 0，**絕不阻擋 session**。內建 1 秒總體時限（讀 stdin 上限 0.2 秒）與非阻塞 stdin 讀取；實測典型耗時約 80ms |
 | 怎麼關 | `claude plugin disable <plugin>`（連 Skill 一起關）；或刪掉已安裝目錄的 `hooks/hooks.json` 後重啟（只關 hook） |
 
 動機：中斷的任務會被遺忘，`plan-close` 因此沒做到。在此之前兩個 plugin 全樹零 hook，
@@ -49,6 +49,59 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" session-brief --cwd "${CLA
   原 #11–18 順延為 #12–19，健診總項數 18 → 19
 - **根 README 與兩個 plugin README 新增「SessionStart hook（自動執行揭露）」段** —
   逐項寫明讀什麼、寫什麼、不外送、何時零輸出、怎麼關
+
+### ⚠️ 破壞性變更：`.spec/` 結構從 12–17 檔縮成 3 檔
+
+一個 feature 原本產 12–17 個檔、實測純文字 1893–2385 行。根因是文件大量**抄寫**了
+「程式碼才是唯一事實」的內容（欄位清單、方法簽章、類別清單、DDL、檔案清單）——
+抄寫本身是 Token 昂貴的主因，而抄本在程式碼一改就變成謊話，且沒有任何檢查抓得到。
+
+新結構：
+
+```
+.spec/{slug}/
+├── plan.md      六章節，只寫程式碼裡看不到的東西（需求、決策與理由、
+│                被否決方案、驗收條件、取捨）；「是什麼」用 @code: 錨點指過去
+├── state.json   流程狀態唯一權威，唯一寫者 crew-state.py
+└── deploy.sql   唯一 SQL 事實來源
+```
+
+實測：`plan.md` 47 行 ＋ `deploy.sql` 28 行 ＋ `state.json` 111 行 = **186 行**，
+較舊結構減約 **90–92%**。且 `state.json` 是機器讀的——`/plan-next` 實際餵給模型的
+只有 **85 bytes** 的結構化答案，不是 2055 bytes 的 JSON 原文。
+
+**廢除的產物**：`README.md`（任務層）、`spec.md`、`db.md`、`arch.md`、`db.sql`、
+`deploy-checklist.md`、`files.md`、`log.md`、`handoff.md`、`.spec/_index.md`；
+`review.md`／`security.md` 不再落檔（摘要一行進 plan.md）；
+`verify.md` 降為 `.cache/` 暫存；Word/Excel 報告移出主流程改為可選指令。
+
+**廢除的 skill**：`/plan-spec`、`/plan-db`、`/plan-arch` → 併為 `/plan` 的三個 pass
+（仍可 `/plan spec|db|arch` 單跑，且單跑不等於可以跳過確認）。
+
+**新增的 skill**：`/plan-drift` —— 檢查 `plan.md` 錨點是否失效。機械型（改名、行號位移）
+自動修，語意型逐條請使用者確認；符號消失常代表決策變了，該改的是決策紀錄而非硬改指標。
+
+**新增的硬關卡**：`/plan-close` 結案前跑漂移檢查，FAIL 擋、WARN 逐筆明示放行
+（不提供「全部放行」選項——那等於沒問）。通過才蓋 `verified_at_commit` 的章。
+這是全流程唯一會擋下結案的檢查，因為錯過這一刻，漂移的文件會被**原樣**推到 Notion
+並長期腐爛，把不可信的內容傳播出去比不同步更糟。
+
+### 舊任務怎麼辦（過渡期一個 minor 版或 90 天）
+
+**預設：照舊跑完。** v1 任務（`.spec/{slug}/plan.md` 不存在）會自動走相容模式，
+相容邏輯集中在 `feature-workflow/references/legacy-v1.md`，各 skill 只放一行分支引用。
+**不建議中途換軌**——遷移搬得動結構，搬不動語意，中途換軌會讓你在收尾階段面對一份半空的
+`plan.md`。
+
+**要遷移：`/plan-status --migrate <slug>`。** 只做**機械搬移**：舊文件原封搬進
+`archive/`（一個字不改）、`db.sql` 併入 `deploy.sql`、frontmatter 轉 `state.json`、
+`plan.md` 各章節留 `TODO(migrate)` 佔位**由人補**。
+
+🔴 **刻意不做自動語意轉換。** 把 425 行的 `spec.md` 壓成 80 行看起來很適合交給 LLM，
+但壓縮不可驗證、會幻覺出從未做過的決策，而且原文搬進 `archive/` 後不會有人再去對照。
+一份誠實的空白，比一份看似完整的幻覺有用。
+
+`crew-doctor` 新增 #16 偵測 v1 舊任務（健診總項數 19 → 20）。
 
 ### 已知限制
 

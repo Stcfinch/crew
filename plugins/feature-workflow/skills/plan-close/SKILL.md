@@ -16,6 +16,9 @@ description: 結案前先跑文件漂移硬關卡（FAIL 擋、WARN 需明示放
 
 將 `.spec/{slug}/plan.md` 與 `deploy.sql` 一次性批次同步到 Notion，更新狀態，同步到知識庫，並提交到 Git。**整個流程約 3-7 次 Notion API 呼叫**（Bug 類型有 `related_feature` 時會多出關聯 Feature 頁面的 fetch + update，達到上限）。
 
+> **v1 舊任務**：`.spec/{slug}/plan.md` 不存在 → 這是 v1 結構，依
+> `../../references/legacy-v1.md` 的相容模式執行，並在開頭提示一次。
+> 過渡期限定，到期本段連同該檔一併刪除。
 ---
 
 ## 設定目錄

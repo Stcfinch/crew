@@ -10,6 +10,9 @@ description: 瀏覽與探索已有的 .spec/ 規劃文件 —— 深度閱讀、
 > 一個任務的規劃只有一份文件：`.spec/{slug}/plan.md`（六章節）＋ `deploy.sql`（唯一 SQL 事實來源）。
 > 流程階段一律唯讀 `.spec/{slug}/state.json`（**只讀，不寫**）。本 skill 全程唯讀，不改任何檔。
 
+> **v1 舊任務**：`.spec/{slug}/plan.md` 不存在 → 這是 v1 結構，依
+> `../../references/legacy-v1.md` 的相容模式執行，並在開頭提示一次。
+> 過渡期限定，到期本段連同該檔一併刪除。
 ---
 
 ## 使用方式

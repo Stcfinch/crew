@@ -67,6 +67,11 @@ EXEMPTIONS = {
         "同上（bug-workflow 的同步副本）",
     "plugins/bug-workflow/skills/bug-close/SKILL.md":
         "新舊對照：警告不要沿用舊習慣刪掉 state.json",
+    # 以下兩項隨過渡期結束一併移除（見 legacy-v1.md「到期清理清單」）
+    "plugins/feature-workflow/references/legacy-v1.md":
+        "v1 相容層本體：職責就是描述 v1 產物與 v2 的對照（過渡期到期連同本檔刪除）",
+    "plugins/feature-workflow/skills/plan-status/SKILL.md":
+        "--migrate 必須點名要搬走哪些 v1 檔案（過渡期到期連同該子模式刪除）",
 }
 
 

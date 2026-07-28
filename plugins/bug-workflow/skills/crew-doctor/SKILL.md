@@ -19,7 +19,7 @@ description: CREW 環境健診 —— 一次性檢查 CREW 所有必要與選配
 ## 使用方式
 
 ```
-/crew-doctor              # 完整健診（所有 19 項）
+/crew-doctor              # 完整健診（所有 20 項）
 /crew-doctor --quick      # 只跑紅燈項目（8 項必要）
 /crew-doctor --fix        # 健診同時嘗試自動修復可修復項目
 ```
@@ -49,7 +49,7 @@ description: CREW 環境健診 —— 一次性檢查 CREW 所有必要與選配
 | 10 | Maven / Gradle | `which mvn` 或 `which gradle` | plan-build E4 編譯驗證跳過 |
 | 11 | CREW hooks 已載入 | 見下方「#11 CREW hooks 已載入」 | 開 session 時不會提醒未結案任務，中斷的任務容易被遺忘（`plan-close` 沒做到） |
 
-### 🟢 選配（4 項，缺少限制部分功能）
+### 🟢 選配（5 項，缺少限制部分功能）
 
 | # | 項目 | 檢查方式 | 缺失時影響 |
 |---|------|---------|-----------|
@@ -57,15 +57,16 @@ description: CREW 環境健診 —— 一次性檢查 CREW 所有必要與選配
 | 13 | DBHub MCP | `claude mcp list` 含 dbhub | DB 直連功能不可用，plan-build DB 工程師退場 |
 | 14 | .NET SDK ≥ 8 | `dotnet --version` | Word 報告降級為 python-docx 排版 |
 | 15 | python-docx | `python3 -c "import docx"` | 完全無 Word 報告能力（需先裝 .NET 或 docx） |
+| 16 | v1 舊結構任務 | 當前專案有 `.spec/*/` 含 `README.md` 但無 `plan.md` 的目錄 | 這些任務走相容模式；過渡期到期後不再支援 → 提示 `/plan-status --migrate {slug}`，並指向 `feature-workflow/references/legacy-v1.md`（**過渡期檢查項，到期連同該檔一併移除**） |
 
 ### 🔍 進階檢查（4 項，僅當 #3 Notion MCP 通過時才跑）
 
 | # | 項目 | 檢查方式 |
 |---|------|---------|
-| 16 | Notion 可讀 | 用 `notion-search` 試查 1 個現有頁面 |
-| 17 | 任務追蹤工具可達 | 從設定檔讀 ID，試 `retrieve-a-data-source` |
-| 18 | 設定檔欄位完整 | bug-workflow-config.md 必含「任務追蹤工具」「專案資料庫」ID |
-| 19 | 共用 reference 漂移 | 若 marketplace 原始碼在本機，跑 `check-shared-refs.py` |
+| 17 | Notion 可讀 | 用 `notion-search` 試查 1 個現有頁面 |
+| 18 | 任務追蹤工具可達 | 從設定檔讀 ID，試 `retrieve-a-data-source` |
+| 19 | 設定檔欄位完整 | bug-workflow-config.md 必含「任務追蹤工具」「專案資料庫」ID |
+| 20 | 共用 reference 漂移 | 若 marketplace 原始碼在本機，跑 `check-shared-refs.py` |
 
 #### #11 CREW hooks 已載入
 
@@ -111,15 +112,15 @@ OS 決定缺失提示的指令（例如 `brew install node` vs `winget install N
 依序執行，每項通過或失敗都立即顯示在輸出中。
 紅燈項目**不阻擋**後續檢查（要把完整圖像給使用者）。
 
-### 3. 跑強烈建議（#9-11）與選配（#12-15）
+### 3. 跑強烈建議（#9-11）與選配（#12-16）
 
 執行後標示為 🟡 警告或 🔵 選配。
 #11（CREW hooks）純本地檢查，不需 Notion，也不需網路。
 
-### 4. 進階檢查（#16-19，僅當 #3 通過時）
+### 4. 進階檢查（#17-20，僅當 #3 通過時）
 
 Notion 相關檢查需要實際 API call，每項 1-3 秒。
-若 #3 紅燈，跳過 #16-19（沒有 Notion 後端跑不了，含共用 reference 漂移檢查）。
+若 #3 紅燈，跳過 #17-20（沒有 Notion 後端跑不了，含共用 reference 漂移檢查）。
 
 ### 5. 產出摘要
 
@@ -131,11 +132,11 @@ CREW 環境健診摘要
 🔴 紅燈 0 項
 🟡 黃燈 1 項
 🟢 綠燈 14 項
-🔵 選配 4 項（其中 2 項未安裝）
+🔵 選配 5 項（其中 2 項未安裝）
 
 可用 Skill 評估：
   ✅ bug-investigate / bug-fix / bug-close 可用
-  ✅ plan-spec / plan-db / plan-arch / plan-build 可用
+  ✅ /plan（spec/db/arch 三 pass）/ plan-build 可用
   ⚠️  plan-verify 降級：Playwright 未裝，無法做瀏覽器驗收
   🔵 plan-verify --deep 不可用：chrome-devtools 未裝（影響有限）
 
@@ -202,17 +203,18 @@ CREW 環境健診摘要
       → 影響：plan-build E4 編譯驗證會跳過
    ✅ CREW hooks 已載入（bug-workflow + feature-workflow，python3 3.11.9）
 
-🔵 選配（4）
+🔵 選配（5）
    ⚫ chrome-devtools MCP 未安裝（--deep 模式不可用）
    ✅ DBHub MCP 已安裝
    ✅ .NET SDK 8.0.100
    ⚫ python-docx 未安裝（有 .NET 不影響）
+   ✅ 無 v1 舊結構任務
 
 🔍 進階檢查（4）
    ⏭️  跳過：紅燈未過（Notion MCP 缺失）
 
 ==========================================
-摘要：紅燈 2、黃燈 1、綠燈 12、選配 4
+摘要：紅燈 2、黃燈 1、綠燈 13、選配 5
 建議：先 claude plugin install notion，再 /project-add
 ==========================================
 ```
@@ -230,7 +232,7 @@ CREW 環境健診摘要
 
 - **`claude mcp list` 輸出格式**：不同版本可能變動，需用 grep / awk 適配
 - **跨平台路徑**：Windows 用 `%USERPROFILE%`、Unix 用 `$HOME`
-- **Notion API 速率限制**：#16-17 試查若被 throttle，標示為 ⚠️ 不算失敗
+- **Notion API 速率限制**：#17-18 試查若被 throttle，標示為 ⚠️ 不算失敗
 - **`--fix` 改 settings.json 風險**：先 cp settings.json.bak，失敗能還原
 - **MCP 未啟用 vs 未安裝**：`claude plugin list` 顯示 `enabled` 才算可用
 
@@ -240,7 +242,7 @@ CREW 環境健診摘要
 
 - **`claude` CLI 本身找不到**：跳出健診，提示「請確認 Claude Code 已安裝」
 - **HOME 環境變數異常**：跳出健診，提示「無法定位設定檔目錄」
-- **Notion 授權過期**：#16 失敗時提示「請在 Notion 中重新授權」
-- **使用者在 plugin marketplace 原始碼裡跑**：#19 才會跑，否則跳過
+- **Notion 授權過期**：#17 失敗時提示「請在 Notion 中重新授權」
+- **使用者在 plugin marketplace 原始碼裡跑**：#20 才會跑，否則跳過
 - **#11 hook 檢查在舊版 plugin 上**：引入 SessionStart hook 之前的版本沒有 `hooks/hooks.json`，找不到屬正常，提示 `/crew-upgrade` 即可，不算故障
 - **剛升級但未重啟**：hook 變更不會熱載入，`hooks/hooks.json` 檔案在但 hook 尚未生效，需重啟 Claude Code

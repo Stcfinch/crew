@@ -155,7 +155,7 @@ flowchart TD
 | `/bug-update reopen <Bug>` | 重新開啟已結案 Bug |
 | `/project-add` | **偵測專案架構** + Notion 註冊 + DB MCP 安裝 |
 | `/crew-init` | **一鍵首次設定** — 統合 /bug-setup + /plan-setup + 提示 /init 與 /project-add，含 --resume |
-| `/crew-doctor` | 環境健診（檢查 19 項依賴與設定，含 CREW hooks 是否載入；支援 --quick / --fix） |
+| `/crew-doctor` | 環境健診（檢查 20 項依賴與設定，含 CREW hooks 與 v1 舊任務偵測；支援 --quick / --fix） |
 | `/crew-upgrade` | 一次更新所有 CREW plugins |
 
 詳細說明見 [plugins/bug-workflow/README.md](plugins/bug-workflow/README.md)
@@ -281,7 +281,7 @@ flowchart LR
 | **專案已註冊？** | 提示執行 `/project-add` | bug-start/update/close、plan-start/close/sync |
 
 > 💡 `/init` 建立的 CLAUDE.md 建議 **commit + push**，讓團隊成員進入專案時不需重新執行。
-> 進階：跑 `/crew-doctor` 額外檢查 MCP、Agent Teams、Notion 可達性、CREW hooks 是否載入等 19 項。
+> 進階：跑 `/crew-doctor` 額外檢查 MCP、Agent Teams、Notion 可達性、CREW hooks 是否載入等 20 項。
 
 ---
 

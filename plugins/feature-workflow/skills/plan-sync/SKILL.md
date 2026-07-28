@@ -10,6 +10,9 @@ description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy
 > 同步範圍只有兩個檔：`plan.md`（唯一文件）與 `deploy.sql`（唯一 SQL 事實來源）。
 > `state.json` 是本地流程狀態，**不同步 Notion**（Notion 只鏡射一個「開發階段」字串）。
 
+> **v1 舊任務**：`.spec/{slug}/plan.md` 不存在 → 這是 v1 結構，依
+> `../../references/legacy-v1.md` 的相容模式執行，並在開頭提示一次。
+> 過渡期限定，到期本段連同該檔一併刪除。
 ---
 
 ## 設定目錄

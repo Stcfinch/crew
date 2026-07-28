@@ -10,6 +10,10 @@ argument-hint: "[<slug>] [--all]"
 
 > 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-next 專用」＋ `../../references/boundaries.md`「plan-next」段。
 
+> **v1 舊任務**：`.spec/{slug}/plan.md` 不存在 → 這是 v1 結構（無 `state.json`），依
+> `../../references/legacy-v1.md` 的相容模式判位並提示一次。
+> 過渡期限定，到期本段連同該檔一併刪除。
+
 ## 使用方式
 
 `/plan-next`（當前活躍任務）｜`/plan-next <slug>`（指定任務）｜`/plan-next --all`（所有活躍任務）
