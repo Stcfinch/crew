@@ -139,6 +139,45 @@ flowchart TD
 - 模型必須以 Agent tool 的結構化 `model` 參數傳入；只在 prompt 寫「請使用 Sonnet」不算（CI 的 `agent-model` job 會 block）。
 - 沒有根因確認就不進修正（鐵律）；`--verify-only` 不改程式碼，預設 `model: sonnet`。
 
+---
+
+## 斷點保險：中斷了也接得回來
+
+長時間的調查與修復很容易被打斷 —— crash、關機、隔天重開。CREW 的保險是
+`.spec/{slug}/state.json`，目標是**最多損失一個工作單元**。
+
+```
+.spec/{slug}/state.json      # 流程狀態唯一權威，唯一寫者 scripts/crew-state.py
+```
+
+bug 型任務若沒有 `.spec/` 目錄，會建輕量目錄只放這一個檔（slug 取當前 branch 去掉
+`fix/`、`hotfix/` 等前綴）。
+
+**一個工作單元是什麼**：`bug-investigate` 是「一個假說的驗證結果」（確認或否定都算完成），
+`bug-fix` 是「一個修復步驟」—— 根因確認、程式碼修改、迴歸測試各算一個。
+
+**進度即寫。** 每完成一個單元就立刻寫，不准等做完一批再補 —— 中斷不挑時間，事後補寫等於沒有保險。
+
+| 要記的東西 | 去處 |
+|-----------|------|
+| ⚠️ 歧義點與風險 | `work_unit.ambiguities`（`/plan-next` 會印在接手簡報最前面） |
+| 已完成（附證據） | `work_unit.evidence` ＋ `steps[].commit` |
+| 進行中／未完成 | `work_unit.remaining` |
+| 接手前要準備 | `resume_hint`（branch、要啟動的服務、先讀哪些檔） |
+
+**結案不刪除。** 舊版的 `handoff.md` 是純過程性檔案、結案即刪；`state.json` 結案後要保留
+並入版控 —— `/plan-deploy-confirm` 事後要靠它查「這個任務的 SQL 到底跑了沒」。
+
+> 🔴 不要手寫這個 JSON。欄位拼錯不會當場報錯，會在幾天後 `/plan-next` 判位錯誤時才爆；
+> 而且 Agent Teams 多成員同時寫會寫壞檔案（script 有 `flock` 加鎖與原子寫入，手寫沒有）。
+>
+> 完整紀律見共用 reference [`state-discipline.md`](references/state-discipline.md)。
+
+遺失或損壞時跑 `crew-state.py rebuild --slug {slug}`，它會從 git 與檔案系統重建，
+並把 `inferred` 標為 `true` 提醒你人工核對一次。
+
+---
+
 ## 使用範例
 
 ### 調查 Bug（主入口）

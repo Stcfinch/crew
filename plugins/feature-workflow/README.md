@@ -93,6 +93,90 @@ flowchart TD
 
 ---
 
+## `.spec/` 產出結構
+
+一個任務三個檔，跑完整個流程也不會變多：
+
+```
+.spec/{slug}/
+├── plan.md      唯一給人與 LLM 讀的文件（六章節，典型 50–80 行，硬上限 100）
+├── state.json   流程狀態，機器讀的，唯一寫者是 scripts/crew-state.py
+├── deploy.sql   唯一 SQL 事實來源（由 /plan 的 db pass 產出）
+└── .cache/      一次性報告暫存（gitignore，verify.md 等）
+    screenshots/ evidence/   驗收證據（gitignore，binary 不進 context）
+```
+
+### plan.md 的六個章節
+
+```markdown
+---
+slug: login-lock
+name: 登入鎖定
+type: feature
+verified_at_commit: 3f2a91c      # 由 /plan-drift 或 /plan-close 蓋章
+verified_at: 2026-07-28
+drift_policy: normal              # strict | normal | off
+---
+
+## 目標與範圍        <!-- crew:goal owner=spec -->
+## 驗收條件          <!-- crew:ac   owner=spec -->
+## 決策紀錄          <!-- crew:dec  append-only -->
+## 已知取捨與風險    <!-- crew:risk append-only -->
+## 指路              <!-- crew:map  append-only -->
+## 檢查報告摘要      <!-- crew:rep  append-only -->
+```
+
+| 章節 | 可以寫 | **禁止寫** | 上限 |
+|------|--------|-----------|------|
+| 目標與範圍 | 為何做、In/Out of Scope | API 表、欄位、類別名 | 12 行 |
+| 驗收條件 | `- [ ] AC-1 {可機器驗證的一句話}` | 實作步驟、selector | 15 行 |
+| 決策紀錄 | `D-n [階段] 決策｜理由｜被否決方案＋否決理由` | DDL、方法簽章、Mermaid | 30 行 |
+| 已知取捨與風險 | 明知的技術債、邊界外情境 | 已修掉的問題 | 8 行 |
+| 指路 | 錨點（見下） | 把指到的內容抄一份 | 10 行 |
+| 檢查報告摘要 | `[日期] {類型} {結論}｜🔴n 🟡n` | 逐條發現 | 6 行 |
+
+禁止欄的共同點是 **code-truth** —— 程式碼才是事實的東西。抄進來只會得到一份改天變謊話的抄本。
+
+### 錨點語法
+
+```markdown
+- 鎖定計數改走 Redis（原因：多節點 in-memory 會漏算）
+  → `@code:src/main/java/.../LoginAttemptService.java#recordFailure` (L88)
+- 表結構見 `@sql:deploy.sql#login_attempt`
+```
+
+`@code:<相對路徑>[#<符號>]`、`@sql:deploy.sql#<表名>`。
+行號 `(L88)` 在 token **外面** —— 給人看的，程式碼上下位移不算漂移。
+
+### 寫入紀律（四層防覆蓋）
+
+骨架由 `/plan-start` 用 Write 建立**一次**，之後**一律用 Edit 對 HTML 錨點註解插入**：
+
+1. **一節一 owner** —— 只有「目標與範圍／驗收條件」可被改寫，且只有 spec pass 能碰
+2. **共享節 append-only，以條目為單位** —— db／arch／build 各 pass 只能插入新 `D-n`
+3. **改變主意用 supersede** —— `D-7 [arch] 取代 D-3：…（原因…）`，不刪除舊條目
+4. **每條自帶 `[階段]` tag** —— 一眼看出是哪個階段寫的
+
+> 🔴 整檔改寫或把整個章節當 `old_string` 取代，會**靜默吃掉**同一節裡其他階段寫的條目。
+> 決策史是這份文件唯一不會過期的價值，弄丟了沒有任何 lint 抓得到。
+
+### 三道漂移防線
+
+| 時機 | 機制 | 會不會擋 |
+|------|------|---------|
+| 隨時 | `/plan-drift` — 機械型自動修，語意型逐條問過才改 | 否 |
+| `plan-build` 退出驗證 | E5/E6 錨點有效性 | 否（剛產完碼符號正在流動，誤殺率最高） |
+| `plan-review` | R0 pre-check，報告當 Reviewer 1 的輸入 | 否 |
+| **`plan-close`** | **唯一硬關卡**，在 `git add -f` 與 Notion 同步**之前** | **FAIL 擋、WARN 逐筆明示放行** |
+
+`verified_at_commit` 只有 `/plan-drift` 與 `/plan-close` 能寫 ——
+`plan-build` 剛改完程式碼就自己蓋章等於作廢。
+
+> 設計理由見 [ADR-006](../../docs/adr/006-anchors-over-transcription.md)；
+> v1 舊任務的相容與遷移見 [`references/legacy-v1.md`](references/legacy-v1.md)。
+
+---
+
 ## Skill 清單
 
 | Skill | 說明 | Notion 呼叫 |

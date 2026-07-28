@@ -36,6 +36,104 @@ claude plugin install feature-workflow
 
 ---
 
+## `.spec/` 長什麼樣，為什麼這樣設計
+
+一個任務只有三個檔：
+
+```
+.spec/{slug}/
+├── plan.md      唯一給人與 LLM 讀的文件（六章節，典型 50–80 行）
+├── state.json   流程狀態，機器讀的，唯一寫者是 crew-state.py
+└── deploy.sql   唯一 SQL 事實來源，給 DBA 執行
+```
+
+### 文件只寫程式碼裡看不到的東西
+
+`plan.md` 六個章節：**目標與範圍**、**驗收條件**、**決策紀錄**、**已知取捨與風險**、**指路**、**檢查報告摘要**。
+
+共同點是「翻程式碼翻不到」：為什麼要做、為什麼選 A 不選 B、當初知道但決定先不處理的坑。
+這些不會因為改一行程式就過期。
+
+反過來說，**欄位清單、方法簽章、類別清單、DDL、檔案清單一律不准寫進 `plan.md`**。
+這些東西程式碼才是事實，抄一份進文件只會得到兩個結果：Token 變貴，以及一份改天就變成謊話的抄本。
+要指涉它們就用錨點：
+
+```markdown
+- 鎖定計數改走 Redis（原因：多節點 in-memory 會漏算）
+  → `@code:src/main/java/.../LoginAttemptService.java#recordFailure` (L88)
+- 表結構見 `@sql:deploy.sql#login_attempt`
+```
+
+行號 `(L88)` 寫在錨點外面，是給人看的提示 —— 程式碼上下位移不算漂移。
+
+### 這樣做的代價
+
+錨點自己會失效：檔案改名、符號被刪、程式碼改了但決策沒更新。所以有三道防線：
+
+| 防線 | 做什麼 | 會不會擋你 |
+|------|--------|-----------|
+| `check-spec-drift.py` | 驗錨點是否還指得到東西（D1–D7 分級） | 不會，它只回報 |
+| `/plan-drift` | 機械型（改名、行號位移）自動修；語意型逐條問過你才改 | 不會 |
+| `/plan-close` 硬關卡 | 結案前擋在 `git add` 與 Notion 同步**之前** | **會** —— FAIL 擋，WARN 逐筆問過才放行 |
+
+硬關卡只設在結案這一刻，因為此時程式碼已穩定、誤殺最低；而錯過這一刻，漂移的文件會被
+原樣推進 Notion 知識庫長期腐爛 —— 把不可信的內容傳播出去，比不同步更糟。
+
+會 FAIL 的只有兩種情況：錨點指的**檔案真的不在**、**符號真的不在檔案裡**。
+其餘一律 WARN。這是刻意的 —— 誤報太多會讓人把檢查關掉，那比沒有檢查更糟。
+
+> 完整的設計理由與被否決的方案見 [ADR-006](docs/adr/006-anchors-over-transcription.md)。
+
+### 實測
+
+| 指標 | v4 | v5 |
+|------|-----|-----|
+| `.spec/` 純文字 | 1893–2385 行 | **186 行** |
+| 產出檔數 | 12–17 | **3** |
+| `/plan-next` 餵給模型 | 讀多個檔案，再讓模型讀 18 列決策表推理 | **85 bytes** 結構化答案 |
+| 漂移偵測 | 2 項單向抽查，WARN 不擋 | 錨點檢查 ＋ 結案硬關卡 |
+
+（`state.json` 111 行看起來不小，但它是機器讀的 —— `/plan-next` 拿到的是 script 算好的答案，不是 JSON 原文。）
+
+---
+
+## 從 v4 升級
+
+`bug-workflow@4.0.0` 與 `feature-workflow@5.0.0` 是 **major 版，含破壞性變更**。
+
+**手上的舊任務不會壞。** v1 任務（`.spec/{slug}/plan.md` 不存在）會自動走相容模式跑完，
+過渡期為**一個 minor 版或 90 天**。
+
+| 情況 | 怎麼做 |
+|------|--------|
+| 任務已跑到 build 之後，只差收尾 | **照舊跑完**（預設）。不建議中途換軌 —— 遷移搬得動結構、搬不動語意 |
+| 任務還在規劃早期，或打算長期維護這份文件 | `/plan-status --migrate <slug>` |
+
+`--migrate` 只做機械搬移：舊文件原封搬進 `archive/`（一個字不改）、`db.sql` 併入 `deploy.sql`、
+frontmatter 轉 `state.json`、`plan.md` 各章節留 `TODO(migrate)` 佔位由你補。
+
+**刻意不做自動語意轉換** —— 把 425 行的 `spec.md` 交給 LLM 壓成 80 行，壓縮不可驗證，
+而且會幻覺出當初根本沒討論過的決策，被後人當成史實。一份誠實的空白比一份看似完整的幻覺有用。
+
+跑 `/crew-doctor` 會告訴你當前專案有沒有 v1 舊任務。詳見
+[`legacy-v1.md`](plugins/feature-workflow/references/legacy-v1.md)。
+
+### 廢除與新增
+
+| 廢除 | 取代者 |
+|------|--------|
+| `/plan-spec`、`/plan-db`、`/plan-arch` | `/plan` 的三個 pass（仍可 `/plan spec\|db\|arch` 單跑） |
+| `spec.md`、`db.md`、`arch.md`、任務層 `README.md` | `plan.md` |
+| `db.sql`、`deploy-checklist.md` | `deploy.sql` ＋ `state.json` 的 `deploy` |
+| `files.md` | `git diff --name-only` |
+| `log.md`、`handoff.md`、`.spec/_index.md` | `state.json` |
+| `review.md`、`security.md` | 不落檔，摘要一行進 `plan.md` |
+| `verify.md` | `.cache/`（一次性暫存） |
+
+新增：`/plan-drift`（漂移檢查與修復）。
+
+---
+
 ## SessionStart hook（自動執行揭露）
 
 **安裝 bug-workflow 或 feature-workflow 後，你的機器上會多一個自動執行的東西。** 這裡寫清楚它是什麼。

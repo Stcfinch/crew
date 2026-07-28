@@ -9,6 +9,7 @@
 | [ADR-003](./003-playwright-default.md) | 為何 plan-verify 預設 Playwright 而非 chrome-devtools | 已採用 |
 | [ADR-004](./004-shared-ref-duplication.md) | 為何兩 plugin 各自帶共用 reference（DRY 退讓給獨立性） | 已採用 |
 | [ADR-005](./005-bug-investigate-main-entry.md) | 為何 bug-investigate 取代 bug-start 為主入口 | 已採用 |
+| [ADR-006](./006-anchors-over-transcription.md) | 為何文件用錨點指向程式碼，而非抄寫程式碼內容 | 已採用 |
 
 ## 寫新 ADR 的時機
 
