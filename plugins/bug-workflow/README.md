@@ -14,7 +14,7 @@
 | `/bug-update reopen <Bug>` | 重新開啟已結案的 Bug（復發處理） |
 | `/bug-close` | 結案前引導 merge 回 DEV + 從 Git diff 擷取修復細節 + 同步知識庫 |
 | `/project-add` | **偵測專案架構**（簡單型/產品型）→ Notion 註冊 → 可選安裝 DB MCP |
-| `/crew-doctor` | CREW 環境健診 — 18 項依賴與設定檢查，含 `--quick` / `--fix` 模式 |
+| `/crew-doctor` | CREW 環境健診 — 19 項依賴與設定檢查（含 CREW hooks 是否載入），含 `--quick` / `--fix` 模式 |
 | `/crew-init` | CREW 一鍵首次設定 — 統合 /bug-setup + /plan-setup + 提示 /init 與 /project-add，含 `--resume` |
 | `/crew-upgrade` | 一次更新 bug-workflow + feature-workflow，顯示 CHANGELOG 摘要 |
 
@@ -51,6 +51,23 @@ claude plugin install bug-workflow
 ```
 
 安裝後 Plugin 會自動啟用。若未自動啟用，手動執行：`claude plugin enable bug-workflow`
+
+### SessionStart hook（自動執行揭露）
+
+本 plugin 安裝一個 **SessionStart hook**。每次開啟 session（新開、`--resume`、`/clear`）時，
+Claude Code 會在**你的本機**執行 `python3 scripts/crew-state.py session-brief`：
+
+- **讀取範圍**：只讀**當前專案**目錄下的 `.spec/*/state.json`（CREW 自己產生的流程狀態檔）
+- **不外送任何資料**：純本機 Python 標準函式庫，零網路呼叫
+- **不寫專案檔案**：只在系統暫存目錄寫一個 session marker，避免與 feature-workflow 的同名 hook 重複輸出
+- **輸出**：未結案任務清單（最多 3 行）＋ 對應的 `/plan-next {slug}` 指令
+- **無 `.spec/` 或全部結案時零輸出**（exit 0，不佔 token）
+- **不阻擋**：任何錯誤都靜默 exit 0，內建 1 秒總體時限（讀 stdin 上限 0.2 秒），實測典型耗時約 80ms
+
+要關掉：`claude plugin disable bug-workflow`（連 Skill 一起關），或刪除已安裝目錄下的
+`hooks/hooks.json` 後重啟 Claude Code（只關 hook、保留 Skill）。hook 變更需**重啟**才生效。
+
+完整說明見[根 README 的 SessionStart hook 段](../../README.md#sessionstart-hook自動執行揭露)。
 
 ### 更新
 
@@ -170,7 +187,7 @@ flowchart TD
 
 ```bash
 /crew-init                 # 一鍵首次設定（4 階段含偵測跳過、--resume 中斷續跑）
-/crew-doctor               # 環境健診 18 項（紅/黃/綠/選配）
+/crew-doctor               # 環境健診 19 項（紅/黃/綠/選配）
 /crew-doctor --quick       # 只跑紅燈必要項目
 /crew-doctor --fix         # 健診同時自動修可修項
 /crew-upgrade              # 檢查並更新所有 CREW plugins

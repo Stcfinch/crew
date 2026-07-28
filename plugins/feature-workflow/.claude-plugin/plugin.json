@@ -28,6 +28,7 @@
     "./skills/plan-demo",
     "./skills/plan-deploy-confirm"
   ],
+  "hooks": "./hooks/hooks.json",
   "keywords": [
     "feature",
     "notion",

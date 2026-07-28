@@ -36,6 +36,42 @@ claude plugin install feature-workflow
 
 ---
 
+## SessionStart hook（自動執行揭露）
+
+**安裝 bug-workflow 或 feature-workflow 後，你的機器上會多一個自動執行的東西。** 這裡寫清楚它是什麼。
+
+兩個 plugin 各安裝一個 **SessionStart hook**。每次開啟 session（新開、`--resume`、`/clear`）時，
+Claude Code 會在**你的本機**執行一行指令：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" session-brief --cwd "${CLAUDE_PROJECT_DIR}"
+```
+
+| 問題 | 答案 |
+|------|------|
+| 它讀什麼 | 只讀**當前專案**目錄下的 `.spec/*/state.json`（CREW 自己產生的流程狀態檔） |
+| 它寫什麼 | 不寫任何專案檔案。只在系統暫存目錄寫一個 session marker，用來讓兩個 plugin 同裝時不重複輸出 |
+| 它送什麼到網路上 | **不外送任何資料。** 純本機 Python 標準函式庫，沒有任何網路呼叫 |
+| 它輸出什麼 | 未結案任務清單（最多 3 行）＋ 對應的 `/plan-next {slug}` 指令 |
+| 沒有 `.spec/` 或全部結案時 | **零輸出、exit 0**，不佔任何 token |
+| 它會不會擋住我 | 不會。任何錯誤都靜默 exit 0；內建 1 秒總體時限（讀 stdin 上限 0.2 秒），逾時就放棄。實測典型耗時約 80ms |
+| 原始碼在哪 | [`plugins/bug-workflow/scripts/crew-state.py`](plugins/bug-workflow/scripts/crew-state.py) 的 `session-brief` 子命令；hook 設定在各 plugin 的 `hooks/hooks.json` |
+
+輸出長這樣：
+
+```
+[CREW] 2 個未結案任務
+• push-tag-query（feature｜build 3/7｜停滯 6 天）→ /plan-next push-tag-query
+• sso-login-fix（bug｜fix 1/3｜停滯 21 天）→ /plan-next sso-login-fix
+```
+
+**不想要它**：`claude plugin disable bug-workflow`（與 `feature-workflow`）可整個關掉 plugin；
+或刪除已安裝目錄下的 `hooks/hooks.json` 後重啟 Claude Code，只關掉 hook、保留所有 Skill。
+
+> hook 變更不會熱載入。裝好或改動後要**重啟 Claude Code** 才生效。
+
+---
+
 ## 完整工作流
 
 從安裝到日常使用的完整流程：
@@ -65,7 +101,7 @@ flowchart TD
     subgraph Phase2["🚀 Phase 2：日常使用"]
         direction TB
         bugFlow["/bug-investigate → /bug-fix → /bug-close"]
-        planFlow["/plan-start → /plan-spec → /plan-db → /plan-arch<br/>→ /plan-build → /plan-security → /plan-verify → /plan-review → /plan-close"]
+        planFlow["/plan-start → /plan<br/>→ /plan-build → /plan-security → /plan-verify → /plan-review → /plan-close"]
     end
 
     Phase0 --> Phase1 --> Phase2
@@ -119,7 +155,7 @@ flowchart TD
 | `/bug-update reopen <Bug>` | 重新開啟已結案 Bug |
 | `/project-add` | **偵測專案架構** + Notion 註冊 + DB MCP 安裝 |
 | `/crew-init` | **一鍵首次設定** — 統合 /bug-setup + /plan-setup + 提示 /init 與 /project-add，含 --resume |
-| `/crew-doctor` | 環境健診（檢查 18 項依賴與設定，含 --quick / --fix） |
+| `/crew-doctor` | 環境健診（檢查 19 項依賴與設定，含 CREW hooks 是否載入；支援 --quick / --fix） |
 | `/crew-upgrade` | 一次更新所有 CREW plugins |
 
 詳細說明見 [plugins/bug-workflow/README.md](plugins/bug-workflow/README.md)
@@ -137,7 +173,7 @@ flowchart TD
     start["/plan-start<br/><i>建立 Notion + .spec/ + Git branch</i>"]
     explore["/plan-explore<br/><i>思考夥伴（可選）</i>"]
     browse["/plan-browse<br/><i>規劃瀏覽（可選）</i>"]
-    plan["/plan-spec → /plan-db → /plan-arch<br/><i>本地規劃</i>"]
+    plan["/plan（spec → db → arch 三 pass）<br/><i>本地規劃，產出寫進單一 plan.md</i>"]
     build["/plan-build<br/><i>Agent Teams 產生程式碼</i>"]
     security["/plan-security<br/><i>三層安全掃描</i>"]
     ide(["IDE 啟動 + Chrome 開啟頁面"])
@@ -165,10 +201,7 @@ flowchart TD
 | `/plan-start <任務簡述>` | 建立 Notion 條目 + `.spec/` 目錄 + Git branch（含退出驗證） | **3-5 次** |
 | `/plan-explore [主題]` | 思考夥伴：探索想法、調查問題、比較方案 | **0 次** |
 | `/plan-browse [slug]` | 規劃瀏覽：深度閱讀、跨任務比較、模式搜尋 | **0 次** |
-| `/plan` | 完整規劃串接（自動依序 spec→db→arch） | **0 次** |
-| `/plan-spec` | 技術規格書 | **0 次** |
-| `/plan-db` | 資料庫設計 | **0 次** |
-| `/plan-arch` | 架構設計 | **0 次** |
+| `/plan [spec\|db\|arch]` | 規劃三 pass（不帶參數＝全跑），產出寫進單一 `plan.md` | **0 次** |
 | `/plan-build [--dry-run]` | 探索官（Sonnet）+ Agent Teams 最多 5 人產生程式碼（Opus，含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描 | **0 次** |
 | `/plan-verify [--excel/--e2e]` | 瀏覽器驗收驗證 + 驗證記憶 + Word 多風格報告（3 種風格可選）+ Excel 報告 + E2E Runner（含截圖穩定化、i18n 4 語系） | **0 次** |
@@ -177,7 +210,8 @@ flowchart TD
 | `/plan-sync` | 手動中途同步（按需） | **2-3 次** |
 | `/plan-deploy-confirm [slug]` | SQL 執行回報 — DBA 逐 Step 確認 deploy.sql 寫回 Notion「🚀 部署狀態」（含 --env / --all-done / --list） | **3-5 次** |
 | `/plan-status` | 列出所有活躍任務 | **0 次** |
-| `/plan-next [slug]` | 智慧推薦下一步指令（讀 .spec/ + Git branch + verify.md 狀態，含 --all） | **0 次** |
+| `/plan-next [slug]` | 智慧推薦下一步指令（讀 `state.json` 判位，含 --all） | **0 次** |
+| `/plan-drift [slug]` | 文件漂移檢查與修復 — 驗證 `plan.md` 錨點是否失效，機械型自動修、語意型逐條確認 | **0 次** |
 | `/plan-demo [自訂題目]` | 純本地評估模式 — 不依賴 Notion 產出範例 .spec/demo-{slug}/ | **0 次** |
 
 詳細說明見 [plugins/feature-workflow/README.md](plugins/feature-workflow/README.md)
@@ -247,7 +281,7 @@ flowchart LR
 | **專案已註冊？** | 提示執行 `/project-add` | bug-start/update/close、plan-start/close/sync |
 
 > 💡 `/init` 建立的 CLAUDE.md 建議 **commit + push**，讓團隊成員進入專案時不需重新執行。
-> 進階：跑 `/crew-doctor` 額外檢查 MCP、Agent Teams、Notion 可達性等 18 項。
+> 進階：跑 `/crew-doctor` 額外檢查 MCP、Agent Teams、Notion 可達性、CREW hooks 是否載入等 19 項。
 
 ---
 

@@ -5,7 +5,7 @@ description: 列出 .spec/ 目錄中所有活躍與已完成的任務（純本�
 
 # plan-status — 查看任務狀態
 
-純本地操作，讀取 `.spec/_index.md` 和各任務的 `README.md`，格式化顯示所有任務狀態。**不呼叫任何 Notion API**。
+純本地操作。狀態一律由 `crew-state.py` 讀寫（`.spec/{slug}/state.json` 是唯一權威），本 skill 只負責呈現與清理。**不呼叫任何 Notion API**。
 
 > **前置檢查**：參照 plugin 根目錄 `references/prerequisites.md`（相對 SKILL.md 為 `../../references/`）檢查 CLAUDE.md 是否存在。
 
@@ -14,12 +14,12 @@ description: 列出 .spec/ 目錄中所有活躍與已完成的任務（純本�
 ## 使用方式
 
 ```
-/plan-status               # 列出所有任務
-/plan-status --active      # 只列出進行中的任務
-/plan-status --detail      # 詳細模式，顯示每個任務的設計文件完成度
-/plan-status --cleanup           # 清除超過 30 天（預設）的已完成任務
-/plan-status --cleanup=<N>      # 清除超過 N 天的已完成任務，例：--cleanup=60
-/plan-status --park <slug>   # 暫停指定任務
+/plan-status                 # 列出所有任務（含已結案）
+/plan-status --active        # 只列出未結案的任務
+/plan-status --detail        # 詳細模式：每個任務的階段進度與檢查結果
+/plan-status --cleanup       # 清除超過 30 天（預設）的已完成任務
+/plan-status --cleanup=<N>   # 清除超過 N 天的已完成任務，例：--cleanup=60
+/plan-status --park <slug>   # 擱置指定任務
 /plan-status --unpark <slug> # 恢復指定任務
 ```
 
@@ -27,41 +27,38 @@ description: 列出 .spec/ 目錄中所有活躍與已完成的任務（純本�
 
 ## 流程
 
-### 1. 檢查 .spec/ 目錄
-
-若 `.spec/` 目錄不存在或為空 → 提示使用者先執行 `/plan-start`。
-
-### 2. 掃描任務
-
-讀取 `.spec/_index.md`。若 `_index.md` 不存在或不完整，從各子目錄的 `README.md` 重建：
+### 1. 掃描任務
 
 ```bash
-# 掃描所有 slug 目錄
-ls -d .spec/*/
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" list --all --format json
 ```
 
-對每個目錄，讀取 `README.md` 的 YAML frontmatter 取得：
-- type、name、slug、status、branch、notion_url、created
+`--active` 時去掉 `--all`（script 即不含已結案任務）。回傳每筆含 `slug`／`name`／`type`／`phase`／`closed`／`parked`／`inferred`／`updated`／`stale_days`／`next`。
 
-### 3. 格式化輸出
+- 輸出為空陣列 → 提示先執行 `/plan-start`
+- 非 0 exit（例：取不到檔案鎖）→ 照 script 訊息明說「無法讀取任務狀態」並附原因，不要改用猜測
 
-#### 基本模式
+**不要自行掃 frontmatter 或重建索引**：`crew-state.py list` 即時掃 `.spec/*/state.json`，沒有快取可漂移。
+
+### 2. 格式化輸出
+
+依 `closed` / `parked` 分成三組。`inferred` 為 true 的任務在該列尾標 `⚠️ 推測`。
 
 ```
 📋 任務狀態
 
 ## 進行中（{N} 個）
 
-| # | 類型 | 名稱 | 狀態 | 分支 | 建立日期 |
-|---|------|------|------|------|---------|
-| 1 | 🔧 feature | 推播標籤查詢 | 架構設計 | feature/push-tag-query | 2026-03-16 |
-| 2 | 🐞 bug | SSO 登入錯誤 | 調查中 | hotfix/sso-login-fix | 2026-03-17 |
+| # | 類型 | 名稱 | 階段 | 停滯 | 下一步 |
+|---|------|------|------|------|--------|
+| 1 | 🔧 feature | 推播標籤查詢 | build | 3 天 | /plan-build --resume |
+| 2 | 🐞 bug | SSO 登入錯誤 | verify | 1 天 | /plan-verify |
 
-## 暫停中（{N} 個）
+## 擱置中（{N} 個）
 
-| # | 類型 | 名稱 | 暫停前狀態 | 分支 | 暫停日期 |
-|---|------|------|-----------|------|---------|
-| 1 | 🔧 feature | 資料匯出 | DB 設計 | feature/data-export | 2026-03-15 |
+| # | 類型 | 名稱 | 擱置時階段 | 擱置原因 |
+|---|------|------|-----------|---------|
+| 1 | 🔧 feature | 資料匯出 | db | 等 DBA 回覆 |
 
 ## 已完成（{N} 個）
 
@@ -72,71 +69,32 @@ ls -d .spec/*/
 
 #### 詳細模式（--detail）
 
+額外唯讀讀取 `.spec/{slug}/state.json`（**只讀，不寫**）取 `steps`、`work_unit`、`results`、`resume_hint`：
+
 ```
-📋 任務詳細狀態
-
-### 1. 🔧 推播標籤查詢（feature/push-tag-query）
-   狀態：架構設計
-   Notion：https://www.notion.so/xxx
-   設計文件：
-     ✅ README.md（需求描述）
-     ✅ spec.md（技術規格 — 3 個 API、5 項業務規則）
-     ✅ db.md + db.sql（2 個表、3 個索引）
-     ✅ arch.md（8 個類別、2 個設計模式）
-     ❌ files.md（待 /plan-build）
-     ❌ review.md（待 /plan-review）
-     📝 log.md（3 筆紀錄）
-
-### 2. 🐞 SSO 登入錯誤（hotfix/sso-login-fix）
-   狀態：調查中
-   Notion：https://www.notion.so/yyy
-   關聯 Feature：推播標籤查詢
-   設計文件：
-     ✅ README.md（問題描述）
-     ✅ investigation.md（含 Log 和 SQL）
-     ❌ root-cause.md
-     ❌ fix.md
+### 1. 🔧 推播標籤查詢（push-tag-query）
+   階段：build｜分支：feature/push-tag-query｜Notion：{notion.page_id 有值時附連結，無則「未建立」}
+   步驟：start ✅  spec ✅  db ⏭️ 跳過(DB_REQUIRED=false)  arch ✅  build ⏳ 3/7  security ⬜  verify ⬜  review ⬜  close ⬜
+   結果：verify —｜review —｜security —
+   下一步：/plan-build --resume（build 中斷於 3/7 檔案）
 ```
 
-### 4. 暫停/恢復模式
+步驟圖示對應 `steps.{name}.status`：`done` ✅／`in_progress` ⏳／`skipped` ⏭️（附 `reason`）／`failed` ❌／`pending` ⬜。
 
-#### --park `<slug>`
+### 3. 擱置／恢復
 
-1. 讀取 `.spec/{slug}/README.md`，確認任務存在且非已完成/已暫停狀態
-2. 在 README.md 的 frontmatter 新增 `parked_status` 欄位，記錄當前 `status` 值
-3. 更新 `status` 為 `暫停`
-4. 更新 `_index.md`：將該任務從「進行中」移至「暫停中」區段，記錄暫停日期
-5. 在 `log.md` 追加暫停紀錄：
-   ```markdown
-   ### [{日期}] 任務暫停
-   - 暫停前狀態：{原狀態}
-   - 原因：{使用者可選填}
-   ```
-6. 輸出確認：
-   ```
-   ⏸️  已暫停：{name}（原狀態：{parked_status}）
-   恢復請執行：/plan-status --unpark {slug}
-   ```
+一律交給單一寫者，**不要自己改任何檔案**：
 
-#### --unpark `<slug>`
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" park   --slug <slug> --reason "<原因>"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" unpark --slug <slug>
+```
 
-1. 讀取 `.spec/{slug}/README.md`，確認 `status` 為 `暫停` 且 `parked_status` 存在
-2. 將 `status` 恢復為 `parked_status` 的值
-3. 移除 `parked_status` 欄位
-4. 更新 `_index.md`：將該任務從「暫停中」移回「進行中」區段
-5. 在 `log.md` 追加恢復紀錄：
-   ```markdown
-   ### [{日期}] 任務恢復
-   - 恢復狀態：{原 parked_status}
-   ```
-6. 輸出確認：
-   ```
-   ▶️  已恢復：{name}（狀態：{restored_status}）
-   ```
+`--reason` 為選填；使用者沒說原因就不帶。script 的輸出（`✅ {slug} 已擱置…` / `✅ {slug} 已復工｜下一步：…`）照實轉述即可。擱置中的任務不會出現在 session 開場提醒。
 
-### 5. 清理模式（--cleanup）
+### 4. 清理模式（--cleanup）
 
-未指定 `<N>` 時預設 30 天；指定 `--cleanup=<N>` 時以 N 天為基準。
+未指定 `<N>` 時預設 30 天；天數從 `steps.close.at`（結案時間）算起。
 
 ```
 以下已完成任務超過 30 天：
@@ -148,20 +106,10 @@ ls -d .spec/*/
 是否清除？（會刪除 .spec/ 目錄，Notion 資料不受影響）[y/N]
 ```
 
-確認後：
+確認後才動手（**未確認一律不刪**）：
+
 1. 刪除 `.spec/{slug}/` 目錄
-2. 從 `_index.md` 的「已完成」表移除對應列
-3. 若該任務已於 `/plan-close` 用 `git add -f` 加入版本控制（見 plan-close 的 Gotchas），需一併 `git rm -r --cached .spec/{slug}/` 取消追蹤；`plan-start` 產生的 `.gitignore` 規則本身不需還原或修改
-
-### 6. 索引修復
-
-若掃描發現 `_index.md` 與實際目錄不一致（目錄存在但索引缺少、或索引有但目錄不存在），自動修復並提示：
-
-```
-⚠️  索引修復：
-  + 新增 push-tag-query 到索引（目錄存在但索引缺少）
-  - 移除 old-feature 從索引（索引有但目錄不存在）
-```
+2. 若該任務已於 `/plan-close` 用 `git add -f` 加入版本控制（見 plan-close 的 Gotchas），一併 `git rm -r --cached .spec/{slug}/` 取消追蹤；`plan-start` 產生的 `.gitignore` 規則不需還原或修改
 
 ---
 
@@ -170,25 +118,23 @@ ls -d .spec/*/
 - 查 background task 執行狀態 → 非本 skill
 - 查 Jira 單狀態 → jira-from-pm 或 jira MCP
 - 要推薦下一步該做什麼 → /plan-next
-- 看規劃文件內容（spec/db/arch 等） → /plan-browse
+- 看規劃文件內容 → /plan-browse
+- 文件與程式碼是否同步 → /plan-drift
 
 ---
 
 ## Gotchas
 
-- **_index.md 與實際目錄常不同步**：`_index.md` 是快取性質，手動刪除目錄或中斷操作都可能造成不一致。掃描時應以「目錄存在 + README.md 可解析」為準，`_index.md` 僅作為輔助，發現不一致時自動修復（見『索引修復』一節）。
-- **--cleanup 的天數計算基準**：應從移入「已完成」的日期算起，不是 `README.md` 中的 `created` 日期。完成日期從 `_index.md` 的「已完成」表的「完成日期」欄位讀取；若該欄位不存在，fallback 到 `log.md` 最後一筆紀錄的日期。
-- **--park 不能暫停已完成的任務**：已完成的任務不應被暫停，因為暫停的語意是「稍後繼續」，已完成的任務沒有繼續的必要。
-- **--unpark 要求 parked_status 存在**：若 README.md 的 `parked_status` 欄位不存在（手動修改造成），無法自動恢復。此時提示使用者手動指定要恢復到的狀態。
+- **狀態不自己寫**：park／unpark／階段變更全部走 `crew-state.py`。本 skill 若直接編輯 `state.json` 或 plan.md frontmatter，會繞過原子寫入與併發鎖，是欄位漂移的來源。
+- **壞掉的 state.json 會被靜默略過**：`list` 掃不到的目錄不會出現在輸出。若使用者說「有個任務不見了」，跑 `crew-state.py rebuild --slug <slug>` 重建，重建結果會標 `inferred`。
+- **「不擱置已結案任務」要本 skill 自己擋**：`crew-state.py park` 不檢查 `closed`，對已結案任務照樣寫入成功。擱置語意是「稍後繼續」，已結案的沒有繼續的必要 → 呼叫 `park` 前務必先用 `list --all` 確認該任務 `closed` 為 false，是 true 就拒絕並說明理由。
+- **`--cleanup` 是刪檔操作**：一定要先列出清單、取得使用者明確確認，且只刪已結案且超期的任務。
 
 ---
 
 ## 邊界情況
 
-- **`.spec/` 不存在**：提示先執行 `/plan-start`
-- **`_index.md` 損壞**：從各目錄的 `README.md` 重建
-- **README.md frontmatter 解析失敗**：顯示警告，列出該目錄但標記為「格式異常」
-- **Git branch 已刪除**：顯示分支但標記為「分支不存在」
-- **--park 指定不存在的 slug**：提示任務不存在，列出可用的進行中任務
-- **--unpark 指定非暫停狀態的任務**：提示該任務不在暫停狀態
-- **`_index.md` 缺少「暫停中」區段**：索引修復時自動補充
+- **`.spec/` 不存在或無任務**：提示先執行 `/plan-start`
+- **Git branch 已刪除**：詳細模式顯示 `resume_hint.branch` 但標「分支不存在」
+- **`--park`／`--unpark` 指定不存在的 slug**：script 回 exit 1，照其訊息回報並列出可用任務
+- **`--unpark` 指定非擱置任務**：script 會直接把 `parked` 設為 null（冪等操作、exit 0）；輸出時說明該任務原本就未擱置

@@ -1,12 +1,15 @@
 ---
 name: plan-start
-description: 建立 Notion 條目 + .spec/ 規劃目錄 + Git branch 的統一任務入口（支援 feature 與 bug），含退出驗證確保必填欄位完整。當使用者提到 /plan-start、「開新 CREW 任務」、「建立規劃任務」時觸發此 Skill。
+description: 建立 Notion 條目 + .spec/{slug}/（plan.md 骨架 + state.json）+ Git branch 的統一任務入口（支援 feature 與 bug），含退出驗證確保必填欄位完整。當使用者提到 /plan-start、「開新 CREW 任務」、「建立規劃任務」時觸發此 Skill。
 argument-hint: "<任務簡述> [選項]"
 ---
 
 # plan-start — 統一任務入口（本地規劃模式）
 
-在 Notion「任務追蹤工具」建立條目，同時在專案根目錄建立 `.spec/{slug}/` 本地規劃目錄，並可選建立 Git branch。支援 Feature 和 Bug 兩種類型。
+在 Notion「任務追蹤工具」建立條目，同時在專案根目錄建立 `.spec/{slug}/`（`plan.md` 骨架 ＋ `state.json`），並可選建立 Git branch。支援 Feature 和 Bug 兩種類型。
+
+> 本 skill 是 plan.md 骨架的**唯一建立者**。骨架用 Write 寫**一次**，之後所有階段一律用 Edit 對錨點插入 —— 章節契約與寫入紀律見 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）。
+> 紀律護欄：`../../references/discipline-preamble.md`。
 
 ---
 
@@ -121,8 +124,8 @@ Git Repo 識別碼解析規則：
 **Step B**：取得 `page_id` 後，使用 `patch-block-children` 追加 plugin 根目錄 `references/notion-page-template.md`（相對 SKILL.md 為 `../../references/`）的標準 8 區塊模板。
 
 **錯誤處理**：
-- Step A 失敗 → 本地 `.spec/` 目錄照常建立，`notion_page_id` 留空
-- Step B 失敗 → 頁面已建立（有 properties 無 body），記錄到 log.md
+- Step A 失敗 → 本地 `.spec/` 目錄照常建立，`notion.page_id` 留空
+- Step B 失敗 → 頁面已建立（有 properties 無 body），在回傳結果中提示可用 `/plan-sync` 補寫
 
 #### Bug 類型
 
@@ -193,7 +196,7 @@ Git Repo 識別碼解析規則：
 
 建立方式同 Feature 的兩步法（Step A + Step B），但 Step B 追加的是上方內嵌模板，而非 `references/notion-page-template.md`。
 
-### 7. 建立 .spec/ 本地規劃目錄
+### 7. 建立 .spec/{slug}/ 本地任務目錄
 
 #### 7-1. 確保 .gitignore 包含 .spec/
 
@@ -204,78 +207,72 @@ Git Repo 識別碼解析規則：
 .spec/
 ```
 
-#### 7-2. 建立目錄結構
-
-**Feature 類型**：
+#### 7-2. 建立目錄與 plan.md 骨架
 
 ```bash
 mkdir -p .spec/{slug}
 ```
 
-建立 `README.md`：
+用 **Write** 建立 `.spec/{slug}/plan.md`，內容**就是**下方骨架（六個章節、六個 HTML 錨點註解，各節留空）。
+`type` 依步驟 1 的推斷填 `feature` 或 `bug`；`verified_at_commit` 與 `verified_at` **留空**（只有 `/plan-drift` 與 `/plan-close` 能寫）。
 
 ```markdown
 ---
-type: feature
-name: {任務簡述}
 slug: {slug}
-status: 需求分析
-notion_url: {Notion 頁面 URL}
-notion_page_id: {Notion 頁面 ID}
-branch: {Git branch 名稱，若後續建立}
-tech_stack: {技術棧 ID，從 projects/{repo-id}.md 的 stack 欄位取得}
-created: {當前日期 YYYY-MM-DD}
+name: {任務簡述}
+type: {feature|bug}
+verified_at_commit:
+verified_at:
+drift_policy: normal
 ---
 
 # {任務簡述}
 
-## 需求描述
+> {使用者提供的一句話需求／問題描述；沒有就留「（待 /plan 補）」}
 
-{使用者提供的描述，或待填寫}
+## 目標與範圍        <!-- crew:goal owner=spec -->
+
+## 驗收條件          <!-- crew:ac   owner=spec -->
+
+## 決策紀錄          <!-- crew:dec  append-only -->
+
+## 已知取捨與風險    <!-- crew:risk append-only -->
+
+## 指路              <!-- crew:map  append-only -->
+
+## 檢查報告摘要      <!-- crew:rep  append-only -->
 ```
 
-**Bug 類型**：
+🔴 **本 skill 是唯一能用 Write 碰 plan.md 的地方**。骨架寫完後，本 skill 自己也只能用 Edit 對錨點註解那一行插入內容。
+🔴 **不要**在骨架裡塞需求全文、API 表、欄位清單或範例錨點 —— 章節內容由 `/plan` 的三個 pass 依 `references/plan-common.md`「章節契約」填入。
+🔴 **不建立**其他任何文件檔；一個任務只有 `plan.md` ＋ `state.json`（＋ DB 階段才產生的 `deploy.sql`）。
+
+#### 7-3. 建立 state.json（唯一權威）
+
+流程狀態不寫進 plan.md，一律由單一寫者 `crew-state.py` 建立與更新：
 
 ```bash
-mkdir -p .spec/{slug}
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" init \
+  --slug {slug} --name "{任務簡述}" --type {feature|bug} \
+  --notion-page-id {Notion 頁面 ID，沒有就省略} \
+  --commit "$(git rev-parse HEAD 2>/dev/null)"
 ```
 
-建立 `README.md`：
+`init` 會把 `start` 標為 done、`phase` 設為 `start`。exit 1（slug 已存在）→ 確認是否重複建立；exit 3（環境問題）→ 修好再重跑，**不要**改用手寫 JSON。
 
-```markdown
----
-type: bug
-name: {任務簡述}
-slug: {slug}
-status: 調查中
-notion_url: {Notion 頁面 URL}
-notion_page_id: {Notion 頁面 ID}
-branch: {Git branch 名稱，若後續建立}
-related_feature: {關聯的 feature slug，若有}
-related_feature_notion: {關聯 feature 的 Notion URL，若有}
-created: {當前日期 YYYY-MM-DD}
----
-
-# {任務簡述}
-
-## 問題描述
-
-{使用者提供的描述，或待填寫}
-```
-
-#### 7-3. Bug 自動關聯 Feature
+#### 7-4. Bug 自動關聯 Feature
 
 **本地 `.spec/` 層關聯**：
 
 若使用者指定 `--related <feature-slug>`：
-- 驗證 `.spec/{feature-slug}/` 存在
-- 讀取其 `README.md` 取得 `notion_url`、`notion_page_id`
-- 填入 Bug README.md 的 `related_feature` 和 `related_feature_notion`
+- 驗證 `.spec/{feature-slug}/plan.md` 存在
+- 用 `crew-state.py list --all --format json` 取得該 feature 的 `notion.page_id`
+- 在 Bug 的 plan.md「指路」節插入一行：`- 來源 feature：{feature-slug}（Notion：{URL}）`（依寫入紀律用 Edit 對 `crew:map` 錨點插入）
 
 若未指定，嘗試智慧匹配：
-1. 掃描 `.spec/` 下所有目錄的 `README.md`（type=feature 且 status 非「需求分析」）
+1. `crew-state.py list --all --format json` 取得所有 `type=feature` 的任務
 2. 從 Bug 描述中擷取關鍵字（Controller 名稱、Service 名稱、表名等）
-3. 比對各 feature 的 `spec.md`、`arch.md`、`db.md` 中的類別名和表名
+3. 比對各 feature `plan.md` 的「目標與範圍」「決策紀錄」「指路」內容
 4. 若匹配成功，提示使用者確認
 5. 若無法判斷，跳過（使用者可後續手動指定）
 
@@ -283,7 +280,7 @@ created: {當前日期 YYYY-MM-DD}
 
 本地關聯成功後，同步建立 Notion 的「相關任務」self-relation：
 
-1. 從關聯 feature 的 `README.md` 取得 `notion_page_id`（已在本地關聯時讀取）
+1. 從關聯 feature 的 `state.json` 取得 `notion.page_id`（已在本地關聯時讀取）
 2. 使用 `notion-update-page` 設定 Bug 頁面的「相關任務」：
    ```json
    {
@@ -292,7 +289,7 @@ created: {當前日期 YYYY-MM-DD}
      }
    }
    ```
-3. 失敗 → 記錄到 `log.md`，不阻擋流程
+3. 失敗 → 在回傳結果中提示可手動關聯，不阻擋流程
 
 若本地關聯未成功（`.spec/` 中無匹配 feature），嘗試 Notion 層盲搜（同 `/bug-start`「自動關聯來源 Feature」一節邏輯）：
 
@@ -306,34 +303,13 @@ created: {當前日期 YYYY-MM-DD}
 
 若成功關聯到 Feature（本地或 Notion 層），進一步偵測 Feature 的開發分支：
 
-1. 從 feature 的 `.spec/` README.md 取得 `branch` 欄位，或從 Notion 頁面讀取「修復分支」欄位
+1. 從 feature 的 `state.json` 取得 `git.branch`，或從 Notion 頁面讀取「修復分支」欄位
 2. 驗證分支存在：`git branch -a | grep -F "<branch-name>"`
 3. 分支存在 → 設定 Bug 的修復分支為 feature branch，詢問是否切換
 4. 分支不存在 → 提示使用者選擇（建新分支 / 當前分支 / 手動指定）
 5. 失敗 → 跳過，修復分支保持「建立 Git branch」一節的設定
 
-### 8. 更新 .spec/_index.md
-
-讀取或建立 `.spec/_index.md`：
-
-```markdown
-# 任務索引
-
-## 進行中
-
-| slug | 類型 | 名稱 | 狀態 | 分支 | Notion | 建立日期 |
-|------|------|------|------|------|--------|---------|
-| {slug} | {feature/bug} | {名稱} | {狀態} | {branch} | [連結]({url}) | {日期} |
-
-## 已完成
-
-| slug | 類型 | 名稱 | 完成日期 | Notion |
-|------|------|------|---------|--------|
-```
-
-在「進行中」表格新增一列。
-
-### 9. 建立 Git branch
+### 8. 建立 Git branch
 
 從專案設定檔讀取 `prod_branch`（PROD 分支），作為新分支的基準：
 
@@ -348,31 +324,40 @@ created: {當前日期 YYYY-MM-DD}
 1. `git checkout {prod_branch} && git pull && git checkout -b {type}/{slug}`
    （feature → `feature/{slug}`，bug → `hotfix/{slug}`，從 PROD 分支建立）
 2. 更新 Notion 條目的「修復分支」欄位
-3. 更新 `.spec/{slug}/README.md` 的 `branch` 欄位
+3. 寫回狀態（**不要**手寫任何欄位）：
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" set \
+     --slug {slug} --branch {分支名} --base {prod_branch}
+   ```
 
 > 若 `prod_branch` 未設定（舊專案），回退到從當前分支建立，並提示使用者執行 `/project-add` 補充分支設定。
 
-### 10. 退出驗證（強制，不可跳過）
+### 9. 退出驗證（強制，不可跳過）
 
-在回傳結果前，逐項檢查以下退出條件，確保 Notion 條目與本地 `.spec/` 的完整性。
+在回傳結果前，逐項檢查以下退出條件。
 
 #### 驗證方式
 
-對 Notion 欄位的驗證，**一律用 `notion-fetch` 讀回頁面確認欄位有值**，不信任 Agent 在「建立 Notion 條目」一節的記憶。
+- 對 Notion 欄位的驗證，**一律用 `notion-fetch` 讀回頁面確認欄位有值**，不信任 Agent 在「建立 Notion 條目」一節的記憶。
+- 對本地狀態的驗證，**一律用 script 判定**，不用肉眼看檔案：
+
+  ```bash
+  python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" validate --slug {slug} --expect-phase start
+  ```
 
 #### 自動驗證項目
 
 | # | 檢查項目 | 驗證方式 | 失敗處理 |
 |---|---------|---------|---------|
-| S1 | Notion 頁面已建立 | `.spec/{slug}/README.md` 的 `notion_page_id` 非空 | 若「建立 Notion 條目」一節 Step A 已失敗（走降級路徑）→ 降為 ⚠️ WARN，提示稍後用 `/plan-sync` 補建；否則重試建立 |
+| S1 | Notion 頁面已建立 | `crew-state.py list --slug {slug} --format json` 的 `notion.page_id` 非空 | 若「建立 Notion 條目」一節 Step A 已失敗（走降級路徑）→ 降為 ⚠️ WARN，提示稍後用 `/plan-sync` 補建；否則重試建立 |
 | S2 | 專案資料庫已設定 | `notion-fetch` 讀回頁面，確認「專案資料庫」relation 欄位非空 | 從 `projects/{repo-id}.md` 取得 `notion_page_id`，用 `notion-update-page` 補上 relation |
-| S3 | 修復分支已設定 | `.spec/{slug}/README.md` 的 `branch` 欄位非空 **且** `notion-fetch` 確認「修復分支」欄位非空 | 見下方 S3 特殊處理 |
+| S3 | 修復分支已設定 | `list` 輸出的 `git.branch` 非空 **且** `notion-fetch` 確認「修復分支」欄位非空 | 見下方 S3 特殊處理 |
 | S4 | 開發階段已設定（僅 Feature） | Feature → `notion-fetch` 確認「開發階段」欄位 = `需求分析`；Bug → 跳過此項 | 用 `notion-update-page` 補上 |
 | S5 | 負責人已設定 | `notion-fetch` 確認「負責人」欄位非空 | 僅提示「負責人未自動設定，請至 Notion 手動指派」 |
-| S6 | .spec/ 目錄已建立 | `.spec/{slug}/README.md` 存在 | 重試建立 |
-| S7 | _index.md 已更新 | `.spec/_index.md` 包含新 slug | 重試寫入 |
+| S6 | plan.md 骨架完整 | `.spec/{slug}/plan.md` 存在，且六個錨點註解（`crew:goal` `crew:ac` `crew:dec` `crew:risk` `crew:map` `crew:rep`）各出現一次 | 缺哪節就用 Edit 補回該節標題行，**不要**重寫整檔 |
+| S7 | state.json 已建立且合法 | `crew-state.py validate --slug {slug} --expect-phase start` exit 0 | exit 1 → 依訊息修正後重跑；仍失敗 → `crew-state.py rebuild --slug {slug}` |
 
-> **S1 條件式降級**：「建立 Notion 條目」一節的設計允許 Notion API 不可用時繼續建立本地 `.spec/`（offline-first）。若該節 Step A 已失敗，S1 不應阻擋整個流程，改為 WARN 並記錄。僅在 Step A 成功（頁面應已建立）但 `notion_page_id` 為空時才視為 BLOCK。
+> **S1 條件式降級**：「建立 Notion 條目」一節的設計允許 Notion API 不可用時繼續建立本地 `.spec/`（offline-first）。若該節 Step A 已失敗，S1 不應阻擋整個流程，改為 WARN 並記錄。僅在 Step A 成功（頁面應已建立）但頁面 ID 為空時才視為 BLOCK。
 
 #### S3 特殊處理（刻意 friction）
 
@@ -401,32 +386,17 @@ created: {當前日期 YYYY-MM-DD}
 
 #### 失敗自動修復
 
-驗證失敗時，Agent **自行修復**（補呼叫 `notion-update-page` 等），不要求使用者手動操作。僅在自動修復也失敗時才提示使用者。
+驗證失敗時，Agent **自行修復**（補呼叫 `notion-update-page`、重跑 `crew-state.py` 等），不要求使用者手動操作。僅在自動修復也失敗時才提示使用者。
 
-#### 驗證報告格式
+### 10. 回傳結果
 
-寫入 `.spec/{slug}/log.md` 並在回傳結果中顯示：
-
-```
-退出驗證結果：
-  ✅ S1 Notion 頁面已建立
-  ✅ S2 專案資料庫：{專案名稱}
-  ✅ S3 修復分支：{branch}
-  ✅ S4 開發階段：需求分析
-  ⚠️  S5 負責人未自動設定（email 不匹配）
-  ✅ S6 .spec/{slug}/ 已建立
-  ✅ S7 _index.md 已更新
-
-  結論：{全部通過 / 有 N 項 WARN，建議處理後再進 plan-spec}
-```
-
-### 11. 回傳結果
+驗證結果只在對話輸出（不落檔；事件流由 `state.json` 的 `history` 承接）：
 
 ```
 任務已建立！
 
 📋 Notion 頁面：{URL}
-📁 本地規劃：.spec/{slug}/
+📁 本地任務：.spec/{slug}/（plan.md + state.json）
 🔀 Git branch：{branch}（若有）
 📊 類型：{Feature / Bug}
 
@@ -436,16 +406,15 @@ created: {當前日期 YYYY-MM-DD}
   {✅/⚠️} S3 修復分支：{branch}
   {✅/⚠️} S4 開發階段：{階段}
   {✅/⚠️} S5 負責人：{姓名 或 未設定}
-  {✅/⚠️} S6 .spec/{slug}/ 已建立
-  {✅/⚠️} S7 _index.md 已更新
+  {✅/⚠️} S6 plan.md 骨架六節齊全
+  {✅/⚠️} S7 state.json 驗證通過（phase=start）
   結論：{摘要}
 
 後續可使用：
-  • /plan-spec             — 技術規格
-  • /plan-db               — DB 設計
-  • /plan-arch             — 架構設計
+  • /plan                  — 完整規劃（spec → db → arch 三個 pass 寫進 plan.md）
+  • /plan spec|db|arch     — 只跑其中一個 pass
   • /plan-build            — Agent Teams 產生程式碼
-  • /plan-review           — Agent Teams 審查
+  • /plan-next             — 不確定下一步時問它
   • /plan-status           — 查看所有任務狀態
   • /plan-close            — 結案並同步 Notion
 ```
@@ -455,11 +424,12 @@ created: {當前日期 YYYY-MM-DD}
 ## Gotchas
 
 - **slug 翻譯品質影響全流程**：slug 會成為 `.spec/` 目錄名稱和 Git branch 名稱，一旦建立就很難改。中文翻譯成英文時，優先用專案中已有的術語（如範例專案中的「推播」→ `push` 而非 `broadcast`），保持與 codebase 一致。
-- **_index.md 的 Markdown 表格格式脆弱**：如果使用者手動編輯了 `_index.md` 破壞了表格格式（缺少 `|` 或對齊跑掉），後續 `/plan-status` 讀取會解析失敗。寫入時確保表格格式正確。
+- **骨架的錨點註解是後續所有寫入的插入點**：六行 `<!-- crew:xxx -->` 註解**不可改寫、不可對齊調整、不可翻譯**。改掉一個字，後續 pass 的 Edit 就找不到插入點，`crew-state.py rebuild` 也會誤判階段。
+- **狀態不手寫**：分支、Notion 頁面 ID、階段一律經 `crew-state.py`。直接編輯 `state.json` 會繞過原子寫入與併發鎖；寫進 plan.md frontmatter 則會製造第二套狀態。
 - **Bug 類型的 Notion 模板與 bug-start 不同步**：plan-start 建立 Bug 時用的模板要和 `bug-start` 的完全一致。如果 bug-start 更新了模板但 plan-start 沒跟上，會導致 `/bug-close` 找不到預期的區塊標題。
 - **.gitignore 追加位置**：追加 `.spec/` 到 `.gitignore` 時，如果檔案末尾沒有換行，新增的行會和最後一行黏在一起。追加前確認末尾有換行。
-- **Notion 層 relation 用 page ID 不是 URL**：`notion-update-page` 設定「相關任務」relation 時，`id` 欄位要填 page ID（UUID 格式），不是頁面 URL。`.spec/` README.md 的 `notion_page_id` 就是正確的值。
-- **本地關聯和 Notion 關聯可能不一致**：`.spec/` 中的 `related_feature` 和 Notion 的「相關任務」是兩個獨立的關聯。使用者在 Notion 手動刪除關聯不會更新 `.spec/`，反之亦然。這是已知的 offline-first 限制。
+- **Notion 層 relation 用 page ID 不是 URL**：`notion-update-page` 設定「相關任務」relation 時，`id` 欄位要填 page ID（UUID 格式），不是頁面 URL。`state.json` 的 `notion.page_id` 就是正確的值。
+- **本地關聯和 Notion 關聯可能不一致**：本地「指路」節的來源 feature 與 Notion 的「相關任務」是兩個獨立的關聯。使用者在 Notion 手動刪除關聯不會更新本地，反之亦然。這是已知的 offline-first 限制。
 - **Bug 的 Feature Branch 偵測依賴關聯結果**：Feature Branch 偵測是「Bug 自動關聯 Feature」一節的延伸邏輯，若關聯 Feature 失敗則整個分支偵測都跳過。不要獨立於關聯結果執行分支偵測。
 
 ---
@@ -469,7 +439,7 @@ created: {當前日期 YYYY-MM-DD}
 start 組 —— 本 skill 是完整入口（Notion + .spec/ + branch）；只要建 Notion bug 條目用 `/bug-start`。
 
 - 只需 Notion bug 條目、不要 .spec/ 與 branch → 改用 `/bug-start`
-- 任務已建、要規劃內容 → 改用 `/plan` 或 `/plan-spec`
+- 任務已建、要規劃內容 → 改用 `/plan`
 - 規劃前探索 → 改用 `/plan-explore`
 - 註冊專案（非任務）→ 改用 `/project-add`
 
@@ -478,8 +448,8 @@ start 組 —— 本 skill 是完整入口（Notion + .spec/ + branch）；只�
 ## 邊界情況
 
 - **設定目錄不存在**：提示先執行 `/plan-setup` 或 `/bug-setup`
-- **不在 Git repo 中**：跳過分支和專案自動偵測
-- **`.spec/` 目錄已存在同名 slug**：加數字後綴或詢問使用者
-- **Notion API 失敗（Step A）**：仍建立本地 `.spec/` 目錄，`notion_page_id` 留空，提示使用者可稍後用 `/plan-sync` 補建
-- **Notion API 失敗（Step B）**：頁面已建立但無 body 內容，記錄到 log.md，提示使用者可用 `/plan-sync` 補寫 body
+- **不在 Git repo 中**：跳過分支和專案自動偵測；`crew-state.py init` 的 `--commit` 省略
+- **`.spec/` 目錄已存在同名 slug**：加數字後綴或詢問使用者（不要用 `init --force` 覆蓋別人的狀態檔）
+- **Notion API 失敗（Step A）**：仍建立本地 `.spec/{slug}/`，Notion 頁面 ID 留空，提示使用者可稍後用 `/plan-sync` 補建
+- **Notion API 失敗（Step B）**：頁面已建立但無 body 內容，提示使用者可用 `/plan-sync` 補寫 body
 - **分支名稱衝突**：提示自訂名稱

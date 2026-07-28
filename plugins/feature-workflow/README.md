@@ -15,6 +15,23 @@ claude plugin install feature-workflow
 
 首次使用前執行 `/plan-setup` 完成設定引導。
 
+### SessionStart hook（自動執行揭露）
+
+本 plugin 安裝一個 **SessionStart hook**。每次開啟 session（新開、`--resume`、`/clear`）時，
+Claude Code 會在**你的本機**執行 `python3 scripts/crew-state.py session-brief`：
+
+- **讀取範圍**：只讀**當前專案**目錄下的 `.spec/*/state.json`（CREW 自己產生的流程狀態檔）
+- **不外送任何資料**：純本機 Python 標準函式庫，零網路呼叫
+- **不寫專案檔案**：只在系統暫存目錄寫一個 session marker，避免與 bug-workflow 的同名 hook 重複輸出
+- **輸出**：未結案任務清單（最多 3 行）＋ 對應的 `/plan-next {slug}` 指令
+- **無 `.spec/` 或全部結案時零輸出**（exit 0，不佔 token）
+- **不阻擋**：任何錯誤都靜默 exit 0，內建 1 秒總體時限（讀 stdin 上限 0.2 秒），實測典型耗時約 80ms
+
+要關掉：`claude plugin disable feature-workflow`（連 Skill 一起關），或刪除已安裝目錄下的
+`hooks/hooks.json` 後重啟 Claude Code（只關 hook、保留 Skill）。hook 變更需**重啟**才生效。
+
+完整說明見[根 README 的 SessionStart hook 段](../../README.md#sessionstart-hook自動執行揭露)。
+
 ### 更新
 
 ```bash
@@ -46,7 +63,7 @@ flowchart TD
     subgraph dev["🚀 開發循環（每個功能重複）"]
         direction TB
         start["/plan-start &lt;功能簡述&gt;<br/><i>建立 Notion + .spec/ + Git branch</i>"]
-        plan["/plan-spec → /plan-db → /plan-arch<br/><i>本地規劃（零 Notion 呼叫）</i>"]
+        plan["/plan（spec → db → arch 三 pass）<br/><i>本地規劃，產出寫進單一 plan.md（零 Notion 呼叫）</i>"]
         build["/plan-build<br/><i>Agent Teams 最多 5 人產生程式碼</i>"]
         security["/plan-security<br/><i>三層安全掃描</i>"]
         ide(["IDE 啟動本地服務<br/>Chrome 開啟頁面"])
@@ -85,10 +102,7 @@ flowchart TD
 | `/plan-explore` | 思考夥伴：探索想法、調查問題、比較方案 | **0 次** |
 | `/plan-browse` | 規劃瀏覽：深度閱讀、跨任務比較、模式搜尋 | **0 次** |
 | `/plan-start` | 建立任務到 .spec/ + Notion（含退出驗證） | **3-5 次** |
-| `/plan` | 完整規劃串接（自動依序 spec→db→arch） | **0 次** |
-| `/plan-spec` | 技術規格書 | **0 次** |
-| `/plan-db` | 資料庫設計 | **0 次** |
-| `/plan-arch` | 架構設計 | **0 次** |
+| `/plan [spec\|db\|arch]` | 規劃三 pass（不帶參數＝全跑），產出寫進單一 `plan.md` | **0 次** |
 | `/plan-build` | 探索官（Sonnet）+ Agent Teams 最多 5 人產生程式碼（Opus，含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描（靜態規則/上下文感知/對抗性思維） | **0 次** |
 | `/plan-verify` | 瀏覽器驗收驗證 + Health Score + 驗證記憶（--excel Excel / --word Word 多風格報告 / --e2e E2E Runner） | **0 次** |
@@ -98,6 +112,7 @@ flowchart TD
 | `/plan-deploy-confirm` | SQL 執行回報 — DBA 逐 Step 確認 deploy.sql 執行狀態並寫回 Notion「🚀 部署狀態」 | **3-5 次** |
 | `/plan-status` | 查看任務狀態 | **0 次** |
 | `/plan-next` | 智慧推薦當前任務的下一步指令（含 `--all` 列所有任務） | **0 次** |
+| `/plan-drift` | 文件漂移檢查與修復 — 驗證 `plan.md` 錨點是否失效，機械型自動修、語意型逐條確認 | **0 次** |
 | `/plan-demo` | 純本地評估模式 — 不依賴 Notion 產出範例 .spec/demo-{slug}/，給評估者 5 分鐘看到效果 | **0 次** |
 | `/project-add` | 新增或更新專案對應（來自 bug-workflow） | 1-2 次 |
 

@@ -3,7 +3,58 @@
 所有 CREW plugins（bug-workflow、feature-workflow）的變更紀錄。
 
 格式：每個版本一個區塊，以 `## [plugin@version]` 開頭。
+尚未發版的變更暫放在最上方的 `## [Unreleased]` 區塊，發版時併入該版號區塊。
 `/crew-upgrade` 會讀取此檔案，顯示上次更新以來的變更摘要。
+
+---
+
+## [Unreleased]
+
+### ⚠️ 重要變更：安裝後會在你的機器上自動執行程式（SessionStart hook）
+
+**這是 plugin 行為的實質變更，不是單純加一個功能。** 升級到含此變更的版本後，
+`bug-workflow` 與 `feature-workflow` 各會註冊一個 **SessionStart hook**——
+在你每次開啟 Claude Code session 時（新開、`--resume`、`/clear`），
+**不會逐次詢問**，直接在你的本機執行一行指令：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" session-brief --cwd "${CLAUDE_PROJECT_DIR}"
+```
+
+決定要不要升級之前，先讀完這張表：
+
+| 面向 | 事實 |
+|------|------|
+| 讀什麼 | 只讀**當前專案**目錄下的 `.spec/*/state.json`。不掃家目錄、不掃其他專案 |
+| 寫什麼 | **不寫任何專案檔案。** 只在系統暫存目錄寫一個 session marker（兩 plugin 同裝時去重用） |
+| 網路 | **完全不外送資料。** 純 Python 標準函式庫，程式碼裡沒有任何網路呼叫 |
+| 執行者 | 你本機的 `python3`。找不到 `python3` 時整個 hook 靜默失效，不報錯 |
+| 輸出 | 未結案任務最多 3 行＋`/plan-next {slug}`；超過 3 個時多印一行「另有 N 個」 |
+| 沒東西可報時 | **零輸出、exit 0**，不佔任何 token |
+| 失敗時 | 一律靜默 exit 0，**絕不阻擋 session**。內建 80ms 總體時限與非阻塞 stdin 讀取 |
+| 怎麼關 | `claude plugin disable <plugin>`（連 Skill 一起關）；或刪掉已安裝目錄的 `hooks/hooks.json` 後重啟（只關 hook） |
+
+動機：中斷的任務會被遺忘，`plan-close` 因此沒做到。在此之前兩個 plugin 全樹零 hook，
+完全靠使用者自己記得打 `/plan-status`。
+
+### 新增
+
+- **`plugins/bug-workflow/hooks/hooks.json`、`plugins/feature-workflow/hooks/hooks.json`** —
+  SessionStart hook 設定。matcher `startup|resume|clear`（不掛 `compact`，避免自動壓縮後重複提醒），
+  `timeout: 5` 秒上限。輸出以 `hookSpecificOutput.additionalContext` 形式注入
+  （純 stdout 在 Claude Code 只會顯示成 hook 狀態行、不會進模型 context，故必須包一層 JSON）
+- **兩個 `plugin.json` 新增 `"hooks": "./hooks/hooks.json"`** — 明確宣告 hook 設定路徑
+- **`crew-doctor` 新增 #11「CREW hooks 已載入」** — 🟡 強烈建議層級，永遠不會是紅燈（hook 只做提醒，
+  缺少不影響任何 Skill）。檢查 hook 設定檔存在／`python3` 可執行／指令實跑 exit 0 三項。
+  原 #11–18 順延為 #12–19，健診總項數 18 → 19
+- **根 README 與兩個 plugin README 新增「SessionStart hook（自動執行揭露）」段** —
+  逐項寫明讀什麼、寫什麼、不外送、何時零輸出、怎麼關
+
+### 已知限制
+
+- hook 變更**不會熱載入**。安裝或升級後必須**重啟 Claude Code** 才生效；
+  `/crew-doctor` #11 在「檔案已在但尚未重啟」時會誤報綠燈
+- hook 指令寫死 `python3`。環境若只有 `python3.11` 而無 `python3`，hook 會靜默不執行
 
 ---
 

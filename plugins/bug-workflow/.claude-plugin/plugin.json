@@ -19,6 +19,7 @@
     "./skills/crew-doctor",
     "./skills/crew-init"
   ],
+  "hooks": "./hooks/hooks.json",
   "keywords": [
     "bug",
     "notion",
