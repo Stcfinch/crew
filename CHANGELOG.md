@@ -8,7 +8,10 @@
 
 ---
 
-## [Unreleased]
+## [feature-workflow@5.0.0] - 2026-07-28
+
+> **major 版：`.spec/` 結構重構。** 文件只寫程式碼裡看不到的東西，「是什麼」用錨點指過去。
+> 一招同時解掉 Token 昂貴與文件漂移兩個問題。含 SessionStart hook 與 v1 遷移路徑。
 
 ### ⚠️ 重要變更：安裝後會在你的機器上自動執行程式（SessionStart hook）
 
@@ -108,6 +111,44 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" session-brief --cwd "${CLA
 - hook 變更**不會熱載入**。安裝或升級後必須**重啟 Claude Code** 才生效；
   `/crew-doctor` #11 在「檔案已在但尚未重啟」時會誤報綠燈
 - hook 指令寫死 `python3`。環境若只有 `python3.11` 而無 `python3`，hook 會靜默不執行
+
+---
+
+## [bug-workflow@4.0.0] - 2026-07-28
+
+> **major 版：斷點保險從 `handoff.md` 檔案改為 `state.json`，且結案不再刪除。**
+> 與 feature-workflow@5.0.0 同批發布，兩者共用 `crew-state.py` 與 `state-discipline.md`。
+
+### ⚠️ 破壞性變更
+
+- **共用 reference `handoff-discipline.md` 更名為 `state-discipline.md`** —— 內容從
+  「怎麼寫 `handoff.md`」改為「怎麼用 `crew-state.py` 維護 `state.json`」。
+  保留原有紀律道理（進度即寫、歧義點當場記、已完成必附證據），只換載體；
+  新增「唯一寫者」與「自我修復 `rebuild`」兩節
+- **`bug-close` 不再刪除斷點檔** —— 舊版結案時 `rm -f handoff.md`；新版改為
+  `crew-state.py set --step close --status done`，**保留 `state.json` 並入版控**。
+  `/plan-deploy-confirm` 事後要靠它查 `steps.close.status` 與 `deploy` 執行進度，
+  刪掉就查不到「這個任務的 SQL 到底跑了沒」
+- **bug 型輕量目錄只放 `state.json`**（原本只放 `handoff.md`），用
+  `crew-state.py init --type bug` 建立
+
+### 新增
+
+- **`scripts/crew-state.py`（共用 script，權威副本在本 plugin）** —— `.spec/{slug}/state.json`
+  的單一寫者。子命令 `init/set/unit/result/next/list/park/unpark/rebuild/validate/session-brief`。
+  `flock` 加鎖 ＋ `os.replace()` 原子寫入；`rebuild` 可從 git 與檔案系統重建並標 `inferred`。
+  純 stdlib、python 3.11
+- **SessionStart hook** —— 見上方 feature-workflow@5.0.0 的揭露段
+- **`crew-doctor` #11 CREW hooks 已載入、#16 v1 舊結構任務偵測** —— 健診項數 18 → 20
+- **`scripts/check-shared-refs.py` 新增 `SHARED_SCRIPTS`** —— 共用 script 也納入 sha256
+  一致性檢查（與 reference 的差別：來源尚未建立時優雅跳過）
+
+### 修正
+
+- **`sync-shared-refs.sh` 的改名陷阱** —— 目標檔不存在時原本直接 `exit 1`，導致共用檔
+  無法改名。改為同步模式自動建立、`--check` 模式回報缺失，行為與 `SHARED_SCRIPTS` 迴圈一致
+- **`model-policy.md` 角色對照表** —— `/plan-db` 已廢除、`db.md`／`db.sql` 已廢除，
+  改為 `/plan` 的三個 pass 與 `deploy.sql`
 
 ---
 
