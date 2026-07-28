@@ -1,6 +1,7 @@
-# 範例：verify.md 驗證報告
+# 範例：`.spec/{slug}/.cache/verify.md` 驗證報告
 
 以下展示 `/plan-verify` 的理想產出格式，涵蓋四種狀態（PASS / FAIL / SKIP / MANUAL）。
+報告本身是 `.cache/` 下的一次性暫存，結論（PASS/WARN/FAIL、Health Score）另由 `crew-state.py result --kind verify` 寫進 `state.json`。
 
 ---
 
@@ -330,7 +331,7 @@ Headers:
 
 ### 參考文件
 
-- 技術規格書：.spec/push-tag-query/spec.md
-- 架構設計：.spec/push-tag-query/arch.md
-- 驗證技術紀錄：.spec/push-tag-query/verify.md
+- 規劃文件（目標與範圍／驗收條件／決策紀錄）：.spec/push-tag-query/plan.md
+- 部署 SQL（表結構事實來源）：.spec/push-tag-query/deploy.sql
+- 驗證技術紀錄：.spec/push-tag-query/.cache/verify.md
 - API 測試原始記錄：.spec/push-tag-query/evidence/

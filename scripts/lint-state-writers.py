@@ -50,32 +50,23 @@ FIX_HINT = {
     "DEPRECATED_FILE": "已廢除的檔名；狀態一律讀寫 state.json（透過 crew-state.py），文件內容併入 plan.md",
 }
 
-# --- 例外清單（重構過渡用）---------------------------------------------------
-# ⚠️ 重構階段 5–7（改寫 SKILL.md）完成後須逐一移除，清空本清單為止。
-#    本次 commit 只接線基礎設施，尚未改寫任何 SKILL.md，因此現有命中全數先豁免，
-#    讓 CI 保持綠燈；每改寫完一個檔案就刪掉對應這一行，收緊防線。
-# 格式：repo 相對路徑 → 待清理的原因摘要
-# 維護提醒：檔案改寫完卻忘了刪除條目時，本 lint 會在結尾印「豁免已失效」提示
-#          （不阻擋 CI），據此收斂清單。
+# --- 例外清單 ----------------------------------------------------------------
+# 過渡期已結束：重構階段 5–7 的 18 個暫時豁免已全部清掉，以下是**永久**豁免。
+#
+# 唯一合法的豁免理由是「刻意的新舊對照說明」—— 這些句子把 handoff.md 明確標示為
+# 舊版做法，用來教「結案不刪除」這個容易搞錯的語意變更。拿掉反而讓人沿用舊習慣踩坑。
+#
+# 🔴 新增條目前先自問：這是「在教新舊差異」，還是「還沒改完」？
+#    後者不得進本清單 —— 那會讓防線永久破洞。理由欄禁止寫「暫時」「之後再處理」。
+# 格式：repo 相對路徑 → 為什麼這個檔案提到廢除檔名是正確的
+# 維護提醒：檔案改寫後條目失效時，本 lint 會在結尾印「豁免已失效」提示（不阻擋 CI）。
 EXEMPTIONS = {
-    "plugins/bug-workflow/references/handoff-discipline.md": "handoff.md 字樣（階段 5–7 改寫）",
-    "plugins/bug-workflow/skills/bug-close/SKILL.md": "handoff.md 字樣（階段 5–7 改寫）",
-    "plugins/feature-workflow/references/handoff-discipline.md": "handoff.md 字樣（階段 5–7 改寫）",
-    "plugins/feature-workflow/references/plan-common.md": "handoff.md／_index.md 字樣（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-arch/SKILL.md": "手寫 status:（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-build/SKILL.md": "手寫 status: 與 _index.md（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-close/SKILL.md": "手寫 status:、handoff.md、_index.md（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-db/SKILL.md": "手寫 status:（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-demo/SKILL.md": "手寫 status: 與 _index.md（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-deploy-confirm/SKILL.md": "手寫 status:（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-next/SKILL.md": "handoff.md／_index.md 字樣（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-review/SKILL.md": "手寫 status: 與 _index.md（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-security/SKILL.md": "手寫 status: 與 _index.md（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-spec/SKILL.md": "手寫 status:（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-start/SKILL.md": "手寫 status: 與 _index.md（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-status/SKILL.md": "_index.md 字樣（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-sync/SKILL.md": "手寫 status:（階段 5–7 改寫）",
-    "plugins/feature-workflow/skills/plan-verify/SKILL.md": "手寫 status: 與 _index.md（階段 5–7 改寫）",
+    "plugins/bug-workflow/references/state-discipline.md":
+        "新舊對照：說明 handoff.md 結案即刪、state.json 結案保留（語意變更需明講）",
+    "plugins/feature-workflow/references/state-discipline.md":
+        "同上（bug-workflow 的同步副本）",
+    "plugins/bug-workflow/skills/bug-close/SKILL.md":
+        "新舊對照：警告不要沿用舊習慣刪掉 state.json",
 }
 
 

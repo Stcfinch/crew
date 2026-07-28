@@ -1,13 +1,25 @@
 ---
 name: plan-verify
-description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條件，產出 verify.md 與 Health Score，可選 --deep 查 console/network。當使用者提到 /plan-verify、「.spec 驗收條件驗證」、「瀏覽器驗收 spec」時觸發此 Skill。
+description: 透過 Playwright MCP 操作瀏覽器逐條驗證 plan.md 的 AC-n 驗收條件，摘要一行進 plan.md、明細暫存 .cache/，可選 --deep 查 console/network。當使用者提到 /plan-verify、「.spec 驗收條件驗證」、「瀏覽器驗收 spec」時觸發此 Skill。
+argument-hint: "[<URL>] [--deep|--manual|--api-only|--recheck|--e2e]"
 ---
 
 # plan-verify — 瀏覽器驗收驗證
 
-透過 **Playwright MCP** 操作瀏覽器，逐條驗證驗收條件，產出 `.spec/{slug}/verify.md` 驗證報告、Health Score 與截圖。
+透過 **Playwright MCP** 操作瀏覽器，逐條驗證 `.spec/{slug}/plan.md`「驗收條件」節的 `AC-n`，產出 Health Score 與截圖。
 
 可選搭配 **chrome-devtools-mcp** 做 console log 和 network 除錯分析（`--deep` 模式）。
+
+> **產物落點（三層，別搞混）**
+>
+> | 產物 | 位置 | 進版控？ |
+> |------|------|---------|
+> | 逐條結果全文 | 對話輸出 ＋ `.spec/{slug}/.cache/verify.md`（一次性暫存，供 Word／Excel 報告消費） | ❌ gitignore |
+> | 一行摘要 | `plan.md`「檢查報告摘要」節 | ✅ 隨 `/plan-close` 進版控 |
+> | 機器可讀結果 | `state.json` 的 `results.verify`（`crew-state.py result`） | ✅ |
+> | 截圖／evidence | `.spec/{slug}/screenshots/`、`evidence/` | ❌ gitignore（binary 不進 context） |
+>
+> `.cache/` 是**暫存**：內容隨時可刪、不可被任何 skill 當成事實來源引用（唯一消費者是可選的報告產出指令）。
 
 ---
 
@@ -20,9 +32,15 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 /plan-verify <URL>              # 指定目標頁面
 /plan-verify --api-only         # 只驗證 API（不操作 UI，不需瀏覽器）
 /plan-verify --recheck          # 僅重新驗證上次失敗的項目
-/plan-verify --excel            # 驗證完成後產出 Excel 報告
-/plan-verify --word --excel     # 同時產出 Word + Excel 報告
 /plan-verify --e2e              # E2E Runner 模式（需 e2e_repo 設定）
+```
+
+**Word／Excel 報告已移出主流程**，改為驗證完成後的獨立可選指令（見『可選指令：Word／Excel 驗收報告』一節）：
+
+```
+/plan-verify --word             # 只產 Word 報告（讀 .cache/verify.md，不重跑驗證）
+/plan-verify --excel            # 只產 Excel 報告
+/plan-verify --word --excel     # 兩份都產
 ```
 
 ---
@@ -41,7 +59,7 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 
 ## 紀律護欄
 
-> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-verify 專用」＋ `../../references/boundaries.md`「plan-verify」段＋ `../../references/handoff-discipline.md`「plan-verify」段（斷點保險，進度即寫）；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-verify 專用」＋ `../../references/boundaries.md`「plan-verify」段；斷點保險改為**進度即寫 `state.json`**（每驗完一條 `AC-n` 就跑 `crew-state.py unit`）；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -64,7 +82,7 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 
 4. --api-only 模式跳過瀏覽器檢查，只需 curl 可用
 
-5. Word 報告工具偵測（決定 report_engine，詳見 phases/word-report.md step 10.0c）
+5. Word 報告工具偵測（**僅 `--word` 時執行**；決定 report_engine，詳見 phases/word-report.md step 10.0c）
    → 檢查 dotnet --version 是否 ≥ 8.0
      → 有 → 檢查 MiniMaxAIDocx.Core.csproj 是否存在
               （$MinimaxCorePath env var override 優先，否則 fallback
@@ -74,7 +92,7 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
      → 沒有 → 檢查 python3 -c "import docx" 是否成功
        → 有 → report_engine = python-docx（基礎排版，已就緒）
        → 沒有 → report_engine = python-docx-pending（需安裝）
-   此結果暫存，到 step 10 使用者選擇產出 Word 報告時才生效
+   此結果只在 `--word` 模式使用；主流程不偵測、不提示
 ```
 
 偵測完成後顯示摘要：
@@ -82,7 +100,7 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 ```
 🔧 驗證工具：Playwright MCP
 🔍 除錯工具：chrome-devtools-mcp（--deep 可用）
-📄 報告工具：{minimax-docx / python-docx / python-docx（需安裝）}
+{📄 報告工具：{minimax-docx / python-docx / python-docx（需安裝）} ← 僅 --word 模式顯示}
 ```
 
 報告工具偵測結果說明：
@@ -98,9 +116,9 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 
 ### 1. 定位活躍任務
 
-與 `/plan` 相同邏輯：從 Git branch 或 `.spec/_index.md` 匹配活躍任務。
+參照 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）的「定位活躍任務」（`crew-state.py list`），流程位置一律以 `state.json` 為準。
 
-讀取 `.spec/{slug}/README.md` 取得 `type`（feature/bug）和元資訊。
+`type`（feature/bug）與任務名稱從 `.spec/{slug}/plan.md` 的 frontmatter 讀取。
 
 ### 1.5 產品偵測
 
@@ -112,16 +130,21 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
   3. 將產品知識注入後續驗證計畫
 - **無 product_id** → 🔵 通用模式（不載入產品知識庫）
 
-### 2. 讀取驗收條件
+### 2. 讀取驗收條件（`AC-n`）
 
-根據任務類型讀取：
+讀 `.spec/{slug}/plan.md`「驗收條件」節（`<!-- crew:ac owner=spec -->`）的條目：
 
-| 類型 | 檔案 | 區塊 |
-|------|------|------|
-| Feature | `.spec/{slug}/spec.md` | 「驗收條件」區塊（通常為 checkbox 清單） |
-| Bug | `.spec/{slug}/fix.md` | 「驗證方式」區塊 |
+```text
+- [ ] AC-1 可依日期範圍查詢推播紀錄
+- [ ] AC-2 列表支援分頁，每頁上限 100 筆
+```
 
-若找不到驗收條件 → 提示使用者手動輸入驗收條件清單。
+- **編號 `AC-n` 是 join key**，後續所有輸出（逐條結果、摘要行、`state.json`、截圖檔名）一律沿用同一個編號，🔴 不要自己重新編號。
+- 同時讀「已知取捨與風險」節：列為 Out of Scope 或已接受的取捨，對應項目標 `⏭️ SKIP` 並註明理由，不要報成 FAIL。
+- 決策紀錄 `D-n` 提供「為什麼這樣做」，判斷實際行為是刻意還是缺陷時用。
+- 🔴 plan.md 的 checkbox **不由本 skill 勾選**（那是規格的狀態，不是驗證結果）；驗證結果寫在摘要行與 `state.json`。
+
+「驗收條件」節為空（尚未跑 `/plan spec`）→ 提示先執行 `/plan spec`，或請使用者當場口述條件（此時在回報中標「本次驗收條件未進 plan.md，下次無法比對」）。
 
 ### 2.5 載入驗證記憶
 
@@ -132,7 +155,7 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 2. **Layer 2 專案級記憶**
    → 讀取專案 repo 的 `.claude/verify-memory.md`（若存在）
 3. **Layer 1 任務級記憶**
-   → 讀取 `.spec/{slug}/verify-memory.md`（若存在，如 --recheck 時）
+   → 讀取 `.spec/{slug}/.cache/verify-memory.md`（若存在，如 --recheck 時；`.cache/` 為 gitignore 暫存）
 
 #### 時效性檢查（last_verified）
 
@@ -146,7 +169,8 @@ description: 透過 Playwright MCP 操作瀏覽器逐條驗證 .spec/ 驗收條�
 | 無欄位（舊格式） | 🟡 視為需確認 | 同 31-90 天規則處理 |
 
 > 過時記憶比沒記憶更糟：UI 改版後舊 selector 可能仍存在但已被覆蓋為其他用途，照舊記憶會點錯目標。
-> 失效門檻可在 `.spec/{slug}/README.md` 的 `memory_expiry_days` 設定，格式 `30/90`（fresh/stale 門檻）。
+> 失效門檻預設 `30/90`（fresh/stale）；要調整就在指令中明說（例：`/plan-verify --manual` 時口頭指定），
+> 🔴 不要為此在 plan.md frontmatter 加欄位 —— frontmatter 只放身分與漂移兩類欄位。
 
 #### 合併為驗證 context
 
@@ -188,7 +212,7 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 | UI 檢查 | `$CDP snap` → AI 分析 | 同上 |
 | 資料驗證 | API + UI 交叉比對 | 同上 |
 
-讀取 `.spec/{slug}/arch.md` 推斷 API 路徑和頁面 URL（若有）。
+API 路徑與頁面 URL 從 plan.md「指路」節的錨點（`@code:`）**指向的程式碼本身**讀取（Controller 的 `@RequestMapping`、路由設定），不從文件敘述推斷 —— 文件會過期，程式碼不會。
 
 **產品模式增強**：有 product_id 時，驗證計畫建構可參考：
 - 頁面導航地圖 → 精確的 URL 路徑和選單路徑
@@ -202,12 +226,12 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 ```
 即將驗證 {N} 條驗收條件：
 
-| # | 驗收條件 | 類型 | 驗證方式 | 截圖 |
-|---|---------|------|---------|------|
-| 1 | 可依日期範圍查詢 | API | GET /api/xxx | — |
-| 2 | 支援分頁顯示 | UI | 點擊下一頁 | 自動 📸 |
-| 3 | 後台可查詢紀錄 | API | GET /admin/xxx | 後台 📸 |
-| 4 | 支援匯出 Excel | UI | 點擊匯出按鈕 | 自動 📸 |
+| AC | 驗收條件 | 類型 | 驗證方式 | 截圖 |
+|----|---------|------|---------|------|
+| AC-1 | 可依日期範圍查詢 | API | GET /api/xxx | — |
+| AC-2 | 支援分頁顯示 | UI | 點擊下一頁 | 自動 📸 |
+| AC-3 | 後台可查詢紀錄 | API | GET /admin/xxx | 後台 📸 |
+| AC-4 | 支援匯出 Excel | UI | 點擊匯出按鈕 | 自動 📸 |
 
 驗證模式：{MCP 工具 / Bash cdp.mjs}
 {--api-only: 將跳過 UI 類型驗證}
@@ -216,7 +240,7 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 截圖欄說明：
   —      純 API 驗證，無對應頁面
   自動 📸  UI 操作自動截圖
-  後台 📸  API 驗證完後額外開啟後台頁面截圖（AI 從 arch.md 推斷）
+  後台 📸  API 驗證完後額外開啟後台頁面截圖（AI 從「指路」錨點指向的 Controller 推斷）
 
 使用者可在確認時覆寫（如「第 1 項也加截圖」或「第 3 項不需要截圖」）。
 
@@ -232,7 +256,7 @@ AI 分析每條驗收條件，將其分類並規劃驗證方式：
 使用 `browser_tabs`（`action: list`）列出所有開啟的分頁，智慧匹配目標 URL：
 
 1. 使用者透過參數指定的 URL
-2. 從 `arch.md` 或 `spec.md` 推斷的頁面路徑（如 `/admin/xxx`）
+2. 從「指路」錨點指向的 Controller／路由設定讀到的頁面路徑（如 `/admin/xxx`）
 3. 包含 `localhost` 的分頁
 
 匹配後使用 `browser_tabs`（`action: select`）切換到目標分頁。
@@ -282,10 +306,16 @@ verify-map.json 格式：
 > Selector Fallback 6 級、stability 截圖、API+UI 交叉比對等細節都在 phases/run-verification.md 內。
 
 摘要（僅供 AI 確認自己在做什麼，實際步驟必須讀 phases 全文）：
-- 依序對每條驗收條件執行驗證
+- 依序對每條 `AC-n` 執行驗證，結果沿用同一個 `AC-n` 編號
 - 各類型（API / UI 操作 / UI 檢查 / 表單）用對應工具
 - Selector 失敗走 6 級 fallback 並記錄到 Layer 1 記憶
 - 每步驟後判斷是否值得記憶（見『記憶記錄判斷』一節）
+- **每驗完一條就寫進度**（中斷後可續跑，不必從頭再驗一遍）：
+  ```bash
+  python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" unit --slug {slug} \
+    --skill plan-verify --done {已驗條數} --total {AC 總數} --label 條 \
+    --remaining "{未驗的 AC 編號，逗號分隔}"
+  ```
 
 ### 5.5 記憶記錄判斷（每步驟後）
 
@@ -303,7 +333,7 @@ verify-map.json 格式：
 每筆寫入記憶**必須包含 `last_verified: YYYY-MM-DD` 欄位**（當天日期）。
 若覆寫既有條目（值改變），仍刷新 `last_verified`。
 
-暫存在 `.spec/{slug}/verify-memory.md`（Layer 1）。欄位格式見本文件『2.5 載入驗證記憶』（`last_verified` 時效性欄位）與『5.5 記憶記錄判斷』（各觸發條件對應的記錄內容），無獨立 schema 文件。
+暫存在 `.spec/{slug}/.cache/verify-memory.md`（Layer 1，gitignore）。欄位格式見本文件『2.5 載入驗證記憶』（`last_verified` 時效性欄位）與『5.5 記憶記錄判斷』（各觸發條件對應的記錄內容），無獨立 schema 文件。跨任務資產請走『記憶升級判斷』一節升級到專案 `.claude/verify-memory.md`（Layer 2）—— `.cache/` 隨時會被清掉。
 
 ### 6. 收集截圖與 Evidence
 
@@ -322,35 +352,58 @@ mkdir -p .spec/{slug}/evidence
 cp {screenshot_path} .spec/{slug}/screenshots/verify-{N}-{desc}.png
 ```
 
-截圖命名規則：`verify-{序號}-{簡述}.png`，如 `verify-1-query-result.png`。
-Evidence 命名規則：`verify-{序號}-request.txt`、`verify-{序號}-response.json`（非 JSON 用 `.txt`）。
+截圖命名規則：`verify-{AC 編號}-{簡述}.png`，如 `verify-AC-1-query-result.png`。
+Evidence 命名規則：`verify-{AC 編號}-request.txt`、`verify-{AC 編號}-response.json`（非 JSON 用 `.txt`）。
 
-### 7. 產出 verify.md
+### 7. 逐條結果（對話輸出 ＋ `.cache/` 暫存）
 
-寫入 `.spec/{slug}/verify.md`：
+完整逐條結果**輸出在對話**，同一份內容另寫到 `.spec/{slug}/.cache/verify.md`：
 
-> **格式與完整範例見 [`examples/verify-report-sample.md`](./examples/verify-report-sample.md)**：涵蓋 PASS / FAIL / SKIP / MANUAL 四種狀態的理想產出格式，含摘要表、統計表（PASS/WARN/FAIL/SKIP/MANUAL）與每項的 `human_steps` / `evidence` 註解區塊。產出時照該範本結構撰寫。
+```bash
+mkdir -p .spec/{slug}/.cache
+```
+
+- `.cache/verify.md` 的**唯一用途**是給可選的 Word／Excel 報告當輸入（見『可選指令』一節）。它是一次性暫存：不進版控、不同步 Notion、不被其他 skill 當事實來源、`/plan-close` 不讀它。
+- 🔴 **不要**寫 `.spec/{slug}/verify.md`（舊路徑，已廢除）。
+
+> **格式與完整範例見 [`examples/verify-report-sample.md`](./examples/verify-report-sample.md)**：涵蓋 PASS / FAIL / SKIP / MANUAL 四種狀態的理想產出格式，含摘要表、統計表（PASS/WARN/FAIL/SKIP/MANUAL）與每項的 `human_steps` / `evidence` 註解區塊。產出時照該範本結構撰寫，項目編號用 `AC-n`。
 > WARN 用途：環境差異導致的預期外行為，功能正常但 Selector 不穩定。
 
-### 8. 更新 .spec/
+### 8. 落檔的兩件事（摘要一行 + 狀態）
 
-1. 更新 `README.md`：`status: 驗證中`
-2. 在 `log.md` 追加紀錄：
+**8a. plan.md「檢查報告摘要」節 append 一行**
 
-```markdown
-### [{日期}] 驗收驗證
-- **模式**：{完整/api-only/manual/recheck}
-- **工具**：{Playwright MCP / cdp.mjs}
-- **結果**：✅ {N} / ⚠️ {N} / ❌ {N} / ⏭️ {N} / 👤 {N}
-- **報告**：verify.md
+依 `references/plan-common.md`「寫入紀律」用 **Edit** 對 `<!-- crew:rep  append-only -->` 那一整行插入，格式固定：
+
+```text
+- [{YYYY-MM-DD}] verify {PASS|WARN|FAIL}｜✅{N} ⚠️{N} ❌{N} ⏭️{N} 👤{N}｜Health {分數}
 ```
+
+🔴 只寫這一行：逐條結果不進 plan.md（該節上限 6 行），🔴 不得整節取代、不得動別節。
+日期用 `date +%F` 的實際輸出。結論詞：無 ❌ 且無 ⚠️ → `PASS`；有 ⚠️ 無 ❌ → `WARN`；有 ❌ → `FAIL`。
+
+**8b. 寫回 state.json（唯一狀態權威）**
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" result --slug {slug} \
+  --kind verify --status {PASS|WARN|FAIL} \
+  --set health_score={分數} --set passed={N} --set failed={N} --set skipped={N} \
+  --set manual={N} --set mode={full|api-only|manual|recheck|e2e}
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" unit --slug {slug} --clear
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" set --slug {slug} \
+  --step verify --status done --phase verify
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" validate --slug {slug} --expect-phase verify
+```
+
+`results.verify` 取代舊流程「解析 verify.md 文字」的做法 —— 下游（`/plan-review`、`/plan-next`、`/plan-close`）一律讀這裡。
 
 ### 9. 回傳結果
 
 ```
 驗收驗證完成！
 
-📋 報告：.spec/{slug}/verify.md
+📋 逐條結果：見上方對話全文（暫存 .spec/{slug}/.cache/verify.md）
+📝 已寫入：plan.md 摘要一行 + state.json results.verify
 📸 截圖：.spec/{slug}/screenshots/ ({N} 張)
 📊 統計：✅ {PASS} / ⚠️ {WARN} / ❌ {FAIL} / ⏭️ {SKIP} / 👤 {MANUAL}
 🔧 工具：Playwright MCP{，chrome-devtools-mcp（--deep）}
@@ -363,13 +416,14 @@ Evidence 命名規則：`verify-{序號}-request.txt`、`verify-{序號}-respons
 
 後續可使用：
   • /plan-verify --recheck — 重新驗證失敗項目
+  • /plan-verify --word    — 產 Word 驗收報告（可選，讀 .cache/）
   • /plan-review          — Agent Teams 程式碼審查
   • /plan-close           — 結案並同步 Notion
 ```
 
 ### 9.5 記憶升級判斷
 
-驗證完成後，檢查 `.spec/{slug}/verify-memory.md`（Layer 1）是否有新記錄：
+驗證完成後，檢查 `.spec/{slug}/.cache/verify-memory.md`（Layer 1）是否有新記錄：
 
 1. 有新記錄 → 提問使用者：
    ```
@@ -398,15 +452,27 @@ plan-verify 完成後（所有 PASS），若 `e2e_repo` 已設定：
 所有驗收條件通過。是否產出 E2E 測試骨架？[Y/n]
 ```
 
-YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.js`：
+YES → 從 `.cache/verify.md` 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.js`：
 - 80% 完成度的骨架（import、describe/test、登入、基本操作、截圖）
 - TODO/FIXME 標記需人工調整的地方
 - 試跑：`PROFILE={p} npx playwright test rob{next}* --headed`
 - 人工 review 後 commit
 
-### 10. 報告產出（Word 驗收報告）
+---
 
-驗證完成後可選產出 Word 驗收報告。
+## 可選指令：Word／Excel 驗收報告（不在主流程）
+
+Word／Excel 報告是 `.cache/verify.md` 的**重排版衍生品**（零新增資訊），偶爾才需要交付給客戶或主管，
+因此**不在 `/plan-verify` 主流程**，改由使用者明確下指令才產出：
+
+```
+/plan-verify --word     # Word 驗收報告
+/plan-verify --excel    # Excel 驗收報告
+```
+
+- **輸入**：`.spec/{slug}/.cache/verify.md`（不重跑驗證）。檔案不存在 → 提示先跑一次 `/plan-verify`，🔴 不要憑印象生報告。
+- **輸出**：`build/{功能}-驗收報告.docx` / `.xlsx`（專案根目錄的 `build/`，非 `.spec/`；🔴 交付物不進 `.spec/`，也不進版控）。
+- **報告工具偵測**（`report_engine`）只在此模式執行，見『前置檢查流程』第 5 項。
 
 > 📄 **執行前必讀全文**：[`phases/word-report.md`](./phases/word-report.md)
 > 本段僅是入口摘要，**不可只依摘要執行**；風格選擇、引擎選擇、minimax-docx / python-docx
@@ -416,18 +482,18 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 - 先問風格（Intumit Brand / Tech Dark / Swiss Minimal）
 - 依 `report_engine` 偵測結果走 minimax-docx 或 python-docx
 - 兩者皆無 → 引導安裝 python-docx
-- 產出 `.spec/{slug}/{功能}-驗收報告.docx`
 
 ---
 
 ## --recheck 模式
 
-讀取既有 `.spec/{slug}/verify.md`，解析其中 `❌ FAIL` 的項目：
+讀取既有 `.spec/{slug}/.cache/verify.md`，解析其中 `❌ FAIL` 的項目：
 
 1. 只重跑 FAIL 項目
-2. 結果合併回**同一份** verify.md（覆蓋對應項目的狀態）
+2. 結果合併回**同一份** `.cache/verify.md`（覆蓋對應 `AC-n` 的狀態）
 3. 更新統計區塊
-4. 在 log.md 追加 recheck 紀錄
+4. `plan.md`「檢查報告摘要」節**再 append 一行**新的 verify 摘要（🔴 不覆蓋前一行；該節 append-only，逼近 6 行上限時壓縮舊條目），並重跑『落檔的兩件事』一節 8b 的 `crew-state.py result`
+5. `.cache/verify.md` 不存在（已被清掉）→ 退化為完整驗證，並在回報中說明
 
 ---
 
@@ -443,17 +509,18 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 | `lighthouse_audit` | Lighthouse 稽核 | 效能/可及性報告 |
 | `emulate` | 裝置/網路模擬 | 行動裝置驗證 |
 
-結果追加到 verify.md 的「除錯分析」段落。
+結果追加到對話輸出與 `.cache/verify.md` 的「除錯分析」段落。
 
 ---
 
 ## 何時不用
 
-本 skill 專責「透過瀏覽器逐條驗證 .spec/ 驗收條件」，以下情境不屬此範圍：
+本 skill 專責「透過瀏覽器逐條驗證 plan.md 的 `AC-n`」，以下情境不屬此範圍：
 - 驗證程式改動是否生效（非瀏覽器驗收）→ 改用內建 `/verify`
 - 宣稱完成前的一般驗證 → 改用 `superpowers:verification-before-completion`
 - 驗證 SQL 語法對不對 → 直接檢查語法，非本 skill 職責
 - 審查程式碼品質/邏輯 → 改用 `/plan-review`
+- 檢查文件錨點與程式碼是否對得上 → 改用 `/plan-drift`（本 skill 只驗運行時行為）
 
 ---
 
@@ -464,6 +531,8 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 - **Playwright 和 chrome-devtools 的截圖路徑不同**：Playwright 的 `browser_take_screenshot` 存到指定路徑；chrome-devtools 的 `take_screenshot` 回傳 base64。收集截圖到 `.spec/{slug}/screenshots/` 時需注意。
 - **--deep 模式需要 chrome-devtools-mcp**：若未安裝，`--deep` 功能不可用但不影響標準驗證。提示使用者安裝。
 - **記憶檔格式演進**：`verify-memory.md` 的格式可能隨版本演進。讀取時做好 fallback（舊格式仍可讀取，缺少的段落視為空）。
+- **`.cache/` 會消失，別把它當事實來源**：它在 `.gitignore` 內、清 build 或換機器就沒了。要保留的結論只有兩處：plan.md 的摘要一行與 `state.json` 的 `results.verify`。Word／Excel 報告要留就自己搬出 `build/`。
+- **驗證結果不回寫 plan.md 的 checkbox**：`- [ ] AC-n` 的勾選狀態屬規格（spec pass 的 owner），不是驗證結果。驗證通過與否看 `state.json` 的 `results.verify` 與摘要行；勾 checkbox 會讓兩套語意打架。
 - **產品知識庫的 i18n 對照表可能不完整**：`products/{id}.md` 只列出高頻操作的翻譯。若驗證時遇到未列出的文字，退回穩定 selector 策略。
 - **Layer 2 記憶需 git push 才能共享**：專案的 `.claude/verify-memory.md` 需要使用者自行 commit 和 push，plugin 不會自動操作 git。
 
@@ -473,14 +542,14 @@ YES → 從 verify.md 的操作步驟和 selector 產出 `rob{next}-{slug}.spec.
 
 ## 邊界情況
 
-- **無驗收條件**：提示使用者手動輸入，或建議先執行 `/plan-spec`
+- **plan.md「驗收條件」節為空**：提示先執行 `/plan spec`，或請使用者當場口述（並在回報標「本次條件未進 plan.md」）
 - **Playwright MCP 未安裝**：提示安裝指令（`claude mcp add playwright --scope user -- npx @playwright/mcp@latest`）
 - **Playwright 操作失敗**（如 selector 不存在）：標記該條為 FAIL，記錄錯誤訊息，繼續下一條
-- **evidence 檔案寫入失敗**（磁碟空間不足等）：記錄警告，verify.md 中標註 `evidence_error: {原因}`，不阻斷驗證流程
+- **evidence 檔案寫入失敗**（磁碟空間不足等）：記錄警告，`.cache/verify.md` 中標註 `evidence_error: {原因}`，不阻斷驗證流程
 - **--api-only 跳過 UI**：UI 類型標記為 SKIP，不影響其他驗證
 - **截圖失敗**：記錄警告，不阻斷流程
-- **verify.md 已存在**：詢問覆蓋或追加（--recheck 自動合併）
-- **驗證過程中使用者中斷**：已完成的結果仍寫入 verify.md（部分報告）
+- **`.cache/verify.md` 已存在**：直接覆蓋（它是一次性暫存，無保留價值；--recheck 例外，走合併）
+- **驗證過程中使用者中斷**：已完成的結果仍寫入 `.cache/verify.md`（部分報告），且 `crew-state.py unit` 已記下斷點，下次可續跑
 - **products/{id}.md 不存在**：product_id 指向的檔案不存在時，降為通用模式，顯示 WARN
 - **verify-memory.md 格式損壞**：解析失敗時跳過記憶載入，不阻擋驗證流程
 - **verify-map.json 不存在**（--e2e 模式）：全部退回 MCP 模式

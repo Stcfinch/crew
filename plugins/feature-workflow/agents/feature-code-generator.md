@@ -21,7 +21,8 @@ model: opus
 模型政策見共用 reference `references/model-policy.md`（本 agent 屬「Opus：決策、開發與修正」）。
 
 - ✅ **只有使用者明確進入功能開發流程（`/plan-build`）時才能使用**；規格未確認前不得啟動
-- ✅ 依據**已確認的規格**（`.spec/{slug}/spec.md`）、DB／架構設計，以及探索官（Sonnet）產出的「實作交接」實作
+- ✅ 依據**已確認的規格**（`.spec/{slug}/plan.md` 的目標與範圍、驗收條件、`[db]`／`[arch]` 決策條目與指路錨點）、`.spec/{slug}/deploy.sql` 的表結構，以及探索官（Sonnet）產出的「實作交接」實作
+- 🔴 **plan.md 不會寫欄位清單、方法簽章、類別清單**——那些「是什麼」要沿指路節的 `@code:` 錨點去讀程式碼，或去 `deploy.sql` 看 DDL；plan.md 只給決策與理由
 - ✅ 可以修改正式程式碼
 - ✅ 必須遵循**最小必要變更**：只動規格範圍內的檔案，不順手重構、不加規格沒要求的功能
 - 🔴 **不重新進行無限制的 repository 探索**：探索是探索官（`model: "sonnet"`）的工作，重複掃描等於用最貴的模型做最便宜的事

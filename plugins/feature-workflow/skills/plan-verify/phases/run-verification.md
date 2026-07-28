@@ -8,7 +8,7 @@ stability 截圖、API+UI 交叉比對等驗證執行細節。
 
 ### 5. 逐條驗證
 
-依序對每條驗收條件執行驗證。
+依序對 `plan.md`「驗收條件」節的每條 `AC-n` 執行驗證，結果沿用同一個 `AC-n` 編號。
 
 **截圖穩定化**：每次截圖前，執行 `references/verify-stability.md` 定義的 6 步前置流程（ESC×2 → 關閉面板 → 回到頂部 → networkidle → 等動畫 → 截圖）。失敗時最多重試 3 次。
 
@@ -54,7 +54,7 @@ curl -s "http://localhost:8080/api/xxx" -H "Cookie: {cookie}" | head -100
 mkdir -p .spec/{slug}/evidence
 
 # 寫入完整請求（含 method、URL、headers）
-cat > .spec/{slug}/evidence/verify-{N}-request.txt << 'EOF'
+cat > .spec/{slug}/evidence/verify-{AC 編號}-request.txt << 'EOF'
 GET http://localhost:8080/ap/pushTagQuery/list?startDate=2026-01-01&endDate=2026-03-18&pageNum=1&pageSize=20
 Headers:
   Cookie: JSESSIONID=abc123def456
@@ -62,9 +62,9 @@ Headers:
 EOF
 
 # 寫入完整回應 body（JSON 用 .json，其餘用 .txt）
-curl -s "..." | python3 -m json.tool > .spec/{slug}/evidence/verify-{N}-response.json
+curl -s "..." | python3 -m json.tool > .spec/{slug}/evidence/verify-{AC 編號}-response.json
 # 若非 JSON：
-curl -s "..." > .spec/{slug}/evidence/verify-{N}-response.txt
+curl -s "..." > .spec/{slug}/evidence/verify-{AC 編號}-response.txt
 ```
 
 此檔案為**原始內容、不遮蔽**，供內部技術驗證用。Word 報告中引用時會自動遮蔽敏感資訊（見步驟 10.3）。
@@ -92,7 +92,7 @@ $CDP snap {target}
 $CDP shot {target}
 ```
 
-截圖命名：`verify-{N}-admin-{desc}.png`，存入 `screenshots/`。
+截圖命名：`verify-{AC 編號}-admin-{desc}.png`，存入 `screenshots/`。
 
 #### UI 驗證
 
@@ -147,7 +147,7 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 每個驗證步驟前後都詢問使用者確認：
 
 ```
-[2/5] 驗證「支援分頁顯示」
+[2/5] 驗證 AC-2「支援分頁顯示」
   → 即將點擊下一頁按鈕：#nextPage
   確認執行？[Y/n/skip]
 ```
@@ -162,7 +162,7 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 | 證據 | API 回應摘要 / snap 關鍵節點 / 截圖路徑 |
 | 失敗原因 | 僅 FAIL 時記錄 |
 | 操作敘述 | 人話描述的操作步驟清單（用於 Word 報告） |
-| evidence 檔案 | API 類型時記錄：`evidence/verify-{N}-request.txt`、`evidence/verify-{N}-response.json` |
+| evidence 檔案 | API 類型時記錄：`evidence/verify-{AC 編號}-request.txt`、`evidence/verify-{AC 編號}-response.json` |
 
 - `PASS`：驗證通過
 - `WARN`：通過但有疑慮（環境差異、selector 不穩定）
@@ -177,8 +177,8 @@ AI 分析 snapshot 輸出（無障礙樹）來判斷：
 - 描述「做了什麼」而非「用了什麼指令」
 - 包含預期結果與實際結果的比對
 
-此資料暫存於 AI 工作記憶中，寫入 verify.md 的 `<!-- human_steps -->` 註解區塊，
-並在步驟 10 產出 Word 報告時使用。
+此資料暫存於 AI 工作記憶中，寫入 `.spec/{slug}/.cache/verify.md` 的 `<!-- human_steps -->` 註解區塊，
+供可選指令 `/plan-verify --word` 產出 Word 報告時使用（不在主流程）。
 
 **翻譯對照表**：
 

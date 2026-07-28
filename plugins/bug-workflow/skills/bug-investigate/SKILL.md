@@ -18,7 +18,7 @@ AI 主動調查 Bug 根因：收集證據、比對已知模式、建立假說、
 
 ## 紀律護欄
 
-> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「bug-investigate 專用」＋ `../../references/boundaries.md`「bug-investigate」段＋ `../../references/handoff-discipline.md`「bug-investigate」段（斷點保險，進度即寫）；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
+> 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「bug-investigate 專用」＋ `../../references/boundaries.md`「bug-investigate」段＋ `../../references/state-discipline.md`「bug-investigate」段（斷點保險，進度即寫）；有「可以跳過」「應該夠了」的衝動時，停下查表確認是否為已知偏離模式。
 
 ---
 
@@ -56,7 +56,7 @@ AI 根據 bug 描述自動收集初始證據，不需使用者介入。
 > **模型與邊界（硬性規則）**——完整政策見 plugin 根目錄 `references/model-policy.md`（相對 SKILL.md 為 `../../references/`）：
 > - 2.1–2.5 的證據收集用 **Agent tool 啟動唯讀 subagent**，呼叫時**必須實際傳入** `{"model": "sonnet"}`；只在 prompt 寫「請使用 Sonnet」不算。
 > - 互不依賴的收集項（log／Git 歷史／環境狀態／知識庫與學習搜尋）可在同一則訊息並行派出，回報只給結論與 `檔案:行號`，不貼大段原文。
-> - 🔴 `/bug-investigate` **全程不修改正式程式碼**；只寫 Notion 調查紀錄、`.spec/` 與 handoff。
+> - 🔴 `/bug-investigate` **全程不修改正式程式碼**；只寫 Notion 調查紀錄、`.spec/` 與 `state.json`。
 > - 🔴 沒有根因確認，不得進入修正（不自動觸發 `/bug-fix`）。
 > - 🔴 不得因第一次假說失敗就升級 Opus（升級條件見 4.4）。
 > - 🔴 不自動啟動 Dynamic Workflow、不依賴 `/effort ultracode`；沒有它本 skill 也要能跑完。

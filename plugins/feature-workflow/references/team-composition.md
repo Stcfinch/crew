@@ -1,11 +1,26 @@
 # 團隊組成判斷規則
 
+> **兩個資料來源，不要混用**：
+> - **流程與身分** → `.spec/{slug}/state.json`（唯一權威，單一寫者 `crew-state.py`）：
+>   `type`（`feature` | `bug`）、`phase`、`steps.{步驟}.status` 與 `.reason`、`inferred`。
+> - **範圍判斷旗標** → `plan.md` 決策紀錄的 `D-1 [spec] 範圍判斷` 條目：
+>   `TASK_TYPE`、`CHANGE_SCOPE`、`FRONTEND_REQUIRED`、`DB_REQUIRED`、`NEW_API` 等。
+>
+> `state.json` 的 `type` 只分 `feature` / `bug`（見 `crew-state.py init --type` 的選項），
+> **不含**上列旗標；把旗標寫進 `state.json` 或 plan.md frontmatter 都是錯的。
+
 ## 判斷流程
 
-### Step 1：讀取判斷區塊
+### Step 1：讀取範圍判斷
 
-從 spec.md 的「判斷」區塊取得 TASK_TYPE 和 CHANGE_SCOPE。
-若判斷區塊不存在或缺少新欄位 → 回退到 v4.9.0 的邏輯（只看 FRONTEND_REQUIRED × DB_MCP）。
+```bash
+# 任務身分與流程位置（唯一權威）
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" list --slug {slug} --format json
+```
+
+再從 `.spec/{slug}/plan.md`「決策紀錄」節讀 `D-1 [spec] 範圍判斷` 條目，取得 TASK_TYPE 和 CHANGE_SCOPE。
+若 `D-1` 條目不存在或缺欄位 → 回退到基本判斷（只看 FRONTEND_REQUIRED × DB_MCP 兩個欄位）。
+若 `D-1` 被後續條目 supersede（`D-n [階段] 取代 D-1：…`）→ **以最新那條為準**，不是第一條。
 
 ### Step 2：按 TASK_TYPE 分流
 
@@ -38,7 +53,7 @@
 
 ### Step 3：完整判斷（feature 或 CHANGE_SCOPE = full）
 
-沿用 v4.9.0 邏輯，增加 NEW_API 判斷：
+在基本判斷（FRONTEND × DB_MCP）之上，增加 NEW_API 判斷：
 
 | FRONTEND | DB_MCP | NEW_API | 團隊組成 |
 |----------|--------|---------|---------|
@@ -53,7 +68,9 @@
 
 ### Step 3.5：DB_REQUIRED 處理
 
-spec.md 判斷區塊可能包含 `DB_REQUIRED` 欄位，影響團隊組成和退出驗證：
+`D-1 [spec] 範圍判斷` 條目可能包含 `DB_REQUIRED` 欄位，影響團隊組成和退出驗證。
+若 `state.json` 的 `steps.db.status` 為 `skipped`（`reason` 通常是 `DB_REQUIRED=false`），
+代表 db pass 已明確跳過，等同 `false`：
 
 | DB_REQUIRED 值 | 團隊組成影響 | 退出驗證影響 |
 |---------------|-------------|-------------|
@@ -71,7 +88,7 @@ spec.md 判斷區塊可能包含 `DB_REQUIRED` 欄位，影響團隊組成和退
 🔍 探索官：scout（model: sonnet，唯讀）
 📊 Teammate 配置：後端工程師（Subagent 模式，model: opus）
 
-判斷依據：
+判斷依據（來源：plan.md D-1 範圍判斷｜state.json type=bug）：
   - TASK_TYPE = bugfix → 預設 Subagent
   - CHANGE_SCOPE = backend-only
   - FRONTEND_REQUIRED = false
@@ -100,9 +117,11 @@ reference `model-policy.md`：
 
 ## Bug-workflow 相容
 
-bugfix 任務可能從 bug-workflow（/bug-investigate）進入，此時有 fix.md 而非 spec.md。
+bug 型任務（從 `/bug-investigate` 進入，或 `/plan-start` 建立時選 bug）走的是**同一套**產物：
+`plan.md` ＋ `state.json` ＋ 必要時 `deploy.sql`，只是 `state.json` 的 `type` 為 `bug`。
+沒有另一份 bug 專用的規劃文件。
 
-判斷區塊讀取優先順序：
-1. `.spec/{slug}/spec.md` 的「判斷」區塊
-2. `.spec/{slug}/fix.md` — 從修復方案推斷（TASK_TYPE 固定為 bugfix，CHANGE_SCOPE 從修復範圍推斷）
-3. 都沒有 → 詢問使用者
+範圍判斷讀取優先順序：
+1. `.spec/{slug}/plan.md` 決策紀錄的 `D-1 [spec] 範圍判斷`（若已被 supersede，取最新那條）
+2. 無 `D-1` 但 `state.json` 的 `type` 為 `bug` → TASK_TYPE 視為 `bugfix`，CHANGE_SCOPE 從決策紀錄的 `[spec]`／`[arch]` 條目與根因所在層級推斷
+3. 都推不出來 → 詢問使用者（**不要**用「哪些檔案存在」猜）

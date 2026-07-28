@@ -7,6 +7,9 @@ description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy
 
 將 `.spec/{slug}/` 目錄的當前進度同步到 Notion。用於需要在結案前查看 Notion 頁面、或與團隊成員分享進度的場景。**不在常規流程中**，按需使用。
 
+> 同步範圍只有兩個檔：`plan.md`（唯一文件）與 `deploy.sql`（唯一 SQL 事實來源）。
+> `state.json` 是本地流程狀態，**不同步 Notion**（Notion 只鏡射一個「開發階段」字串）。
+
 ---
 
 ## 設定目錄
@@ -22,10 +25,9 @@ description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy
 ## 使用方式
 
 ```
-/plan-sync                 # 同步當前任務的所有文件
-/plan-sync spec            # 只同步 spec.md
-/plan-sync db              # 只同步 db.md + db.sql
-/plan-sync arch            # 只同步 arch.md
+/plan-sync                 # 同步當前任務的 plan.md + deploy.sql
+/plan-sync plan            # 只同步 plan.md
+/plan-sync sql             # 只同步 deploy.sql
 ```
 
 ---
@@ -34,32 +36,35 @@ description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy
 
 ### 1. 定位活躍任務
 
-與 `/plan` 相同邏輯。讀取 `.spec/{slug}/README.md` 取得 `type` 和 `notion_page_id`。
+依 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）的「定位活躍任務」。
+`type` 從 `.spec/{slug}/plan.md` 的 frontmatter 讀；Notion 頁面 ID 從 `.spec/{slug}/state.json` 的
+`notion.page_id` **唯讀**取得（`crew-state.py list` 的 JSON 不含此欄位，別去那裡找）。
 
 ### 2. 檢查 Notion 頁面
 
-若 `notion_page_id` 為空（例如 `/plan-start` 時 Notion 建立失敗）：
+若 `notion.page_id` 為空（例如 `/plan-start` 時 Notion 建立失敗）：
 - 詢問使用者是否要補建 Notion 條目
 - 若是，執行與 `/plan-start` 的「建立 Notion 條目」步驟相同的建立邏輯
-- 建立後更新 README.md 的 `notion_page_id` 和 `notion_url`
+- 建立後把頁面 ID 交給單一寫者寫回（🔴 不要手改 `state.json`）：
+
+  ```bash
+  python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" set --slug {slug} --notion-page-id {page_id}
+  ```
 
 ### 3. 確定同步範圍
 
-掃描 `.spec/{slug}/` 目錄，列出可同步的檔案：
+掃描 `.spec/{slug}/` 目錄。可同步的只有兩個檔：
 
 ```
-可同步的文件：
-  ✅ spec.md → 📐 技術規格
-  ✅ db.md   → 🗄️ 資料庫設計
-  ❌ arch.md → 🏗️ 架構設計（不存在）
-  ✅ deploy.sql → 🗄️ 資料庫設計 → 部署 SQL
-  ✅ deploy-checklist.md → 🚀 上線前置作業
-  ✅ review.md → 📋 程式碼審查
+可同步的產物：
+  ✅ plan.md    → 📋 需求描述 ＋ 📐 技術規格 ＋ 📝 開發日誌
+  ✅ deploy.sql → 🗄️ 資料庫設計 → 遷移 SQL
 
-同步所有？[Y/n] 或輸入要同步的項目（如 spec db）
+同步所有？[Y/n] 或輸入要同步的項目（plan / sql）
 ```
 
-若使用者指定了子命令（如 `/plan-sync spec`），只同步指定項目。
+`deploy.sql` 不存在（`DB_REQUIRED=false`）→ 該列顯示 ❌ 並跳過，不是錯誤。
+若使用者指定了子命令（如 `/plan-sync plan`），只同步指定項目。
 
 ### 4. 執行同步
 
@@ -69,11 +74,28 @@ description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy
 
 **4-2. 更新內容**（1 次 `notion-update-page` content）
 
-將選定的本地文件內容寫入對應 Notion 區塊。對應關係依 plugin 根目錄 `references/plan-common.md`（相對 SKILL.md 為 `../../references/`）「本地檔案 ↔ Notion 區塊對應表」；本 skill 只同步使用者選定的項目，且不建立「🚀 部署狀態」區塊（該區塊僅由 `/plan-close` 初始化）。
+將選定的產物寫入對應 Notion 區塊（區塊標題以 plugin 根目錄 `references/notion-page-template.md`，相對 SKILL.md 為 `../../references/`，的 8 區塊模板為準）：
+
+| 本地來源 | Notion 區塊 |
+|---------|------------|
+| `plan.md`「目標與範圍」＋「驗收條件」 | 📋 需求描述 |
+| `plan.md`「決策紀錄」＋「已知取捨與風險」＋「指路」 | 📐 技術規格 |
+| `plan.md`「檢查報告摘要」 | 📝 開發日誌 |
+| `deploy.sql` 全文 | 🗄️ 資料庫設計 → 遷移 SQL |
+
+- **原樣搬運，不重寫**：章節內容照抄，不要在同步時「順手潤稿」或補充 —— 那會讓 Notion 與 plan.md 講不同的話。
+- 「指路」節的 `@code:` / `@sql:` 錨點照原文寫入，🔴 **不要**把錨點指到的程式碼展開貼進 Notion。
+- 本 skill 只同步使用者選定的項目，且不建立「🚀 部署狀態」區塊（該區塊僅由 `/plan-close` 初始化）。
 
 **4-3. 更新 Properties**（1 次 `notion-update-page` properties）
 
-根據 README.md 的 `status` 更新「開發階段」屬性：status 值即開發階段值，一對一對應（例：`status: 開發中` → 開發階段設為「開發中」）。
+「開發階段」屬性取自 `.spec/{slug}/state.json` 的 `phase`（**唯讀**；階段的唯一權威是 state.json，不是 plan.md）。
+寫完後把鏡射結果記回狀態檔，讓下次同步知道 Notion 上目前顯示什麼：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" set \
+  --slug {slug} --mirrored-status "{寫進 Notion 的開發階段字串}" --synced-now
+```
 
 ### 5. 回傳結果
 
@@ -81,7 +103,8 @@ description: 手動中途同步 .spec/ 目錄當前進度到 Notion（含 deploy
 同步完成！
 
 📊 Notion 頁面：{URL}
-📄 已同步：spec.md, db.md
+📄 已同步：plan.md（{已同步的章節}）、deploy.sql（{M} 個部署步驟）
+📂 開發階段：{state.json 的 phase}
 📊 Notion API 呼叫：{N} 次
 
 提示：此為中途同步，結案時請使用 /plan-close 做完整同步。
@@ -102,13 +125,16 @@ sync 組——本 skill 是「未結案的中途同步」；結案批次同步�
 ## Gotchas
 
 - **中途同步不更新知識庫**：`plan-sync` 只更新 Notion 任務頁面的內容和 Properties，知識庫同步是 `plan-close` 的工作。回傳結果中需明確提示「知識庫將在結案時同步」。
-- **notion_page_id 為空時的模板選擇**：補建 Notion 條目時，需從 `README.md` 的 `type` 欄位（`feature` / `bug`）判斷套用哪個模板。若 frontmatter 解析失敗讀不到 `type`，應詢問使用者而非預設。
+- **`notion.page_id` 為空時的模板選擇**：補建 Notion 條目時，需從 `plan.md` frontmatter 的 `type` 欄位（`feature` / `bug`）判斷套用哪個模板。若 frontmatter 解析失敗讀不到 `type`，應詢問使用者而非預設。
+- **同步是單向的（本地 → Notion）**：使用者在 Notion 頁面直接編輯的內容，下次 `/plan-sync` 會被本地覆蓋。plan.md 才是事實來源，要改內容請改 plan.md（用 Edit 對錨點，不整檔改寫）。
+- **對應表兩處要一致**：`/plan-close` 也把 plan.md ＋ deploy.sql 同步到同一組 Notion 區塊。改本節的對應表時要同步確認 `plan-close` 的版本，否則同一份 plan.md 會在中途同步與結案同步落到不同區塊。
 
 ---
 
 ## 邊界情況
 
-- **notion_page_id 為空**：引導補建 Notion 條目
-- **無文件可同步**：提示先執行 `/plan` 產出文件
+- **`notion.page_id` 為空**：引導補建 Notion 條目
+- **plan.md 六章節都還是空的**：提示先執行 `/plan` 產出規劃內容
+- **`state.json` 缺失或壞掉**：跑 `crew-state.py rebuild --slug {slug}`，並在回報中標「狀態為推測」
 - **Notion 頁面內容與模板不符**：嘗試模糊匹配區塊標題，找不到則附加在頁面最後
 - **Notion API 失敗**：顯示具體錯誤，建議檢查網路或稍後重試

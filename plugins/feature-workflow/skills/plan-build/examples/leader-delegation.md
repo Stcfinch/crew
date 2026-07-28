@@ -10,21 +10,23 @@
 
 ```
 Leader → 全體：
-  「功能名稱：推播標籤查詢。設計文件在 .spec/push-tag-query/ 下，
-   arch.md 定義了 4 個新類別。以下是分工：」
+  「功能名稱：推播標籤查詢。規劃在 .spec/push-tag-query/plan.md，
+   決策紀錄有 4 條 [arch] 條目定義分層歸屬。以下是分工：」
 
 Leader → backend-engineer：
-  「請先讀 arch.md 和 db.md。參考現有的 PushService.java 和
-   TagMapper.java 作為風格範本。產出 POJO → Mapper → Service 共 6 個檔案。
-   完成後告訴我每個 Service method 的簽名。」
+  「請先讀 plan.md 的「決策紀錄」（[arch]／[db] 條目）與 deploy.sql。
+   參考現有的 PushService.java 和 TagMapper.java 作為風格範本。
+   產出 POJO → Mapper → Service 共 6 個檔案。
+   完成後告訴我每個 Service method 的簽名，我要拿去補「指路」錨點。」
 
 Leader → api-engineer：
-  「等後端工程師完成 Service 層後開始。讀 spec.md 的 API 設計區段，
-   產出 Controller + DTO。API 路由前綴用 /ap/pushTagQuery/。」
+  「等後端工程師完成 Service 層後開始。讀 plan.md 的「驗收條件」
+   （AC-1～AC-4）與 [spec] 決策條目，產出 Controller + DTO。
+   API 路由前綴用 /ap/pushTagQuery/。」
 
 Leader → frontend-engineer：
-  「你可以和後端同時開始。讀 spec.md 的畫面需求，參考現有的
-   push_analysis.jsp 作為風格範本。」
+  「你可以和後端同時開始。讀 plan.md 的「目標與範圍」與畫面相關的
+   AC 條目，參考現有的 push_analysis.jsp 作為風格範本。」
 
 Leader → test-engineer：
   「等後端完成後開始。為 Service 層寫 JUnit 測試，
@@ -53,11 +55,13 @@ Leader → test-engineer：
 ```
 Leader（所有人完成後）：
   「全員完成。我來做 API 契約交叉比對：
-   - Controller 的 @RequestMapping 路徑 ✅ 和 spec.md 一致
+   - Controller 的 @RequestMapping 路徑 ✅ 和 AC-2 描述的端點一致
    - DTO 的欄位名 ✅ 和前端 AJAX 呼叫一致
    - 測試 import 的 Service ✅ package 路徑正確
 
-   沒有不一致，產出 files.md。」
+   沒有不一致。接著把各層落點 append 到 plan.md 的「指路」節：
+   `@code:.../PushTagQueryServiceImpl.java#queryByTag` 等，
+   並用 crew-state.py 記錄本階段完成。改動檔案清單以 git diff 為準，不另建檔。」
 ```
 
 ---

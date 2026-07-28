@@ -59,13 +59,15 @@
 使用者：/plan-explore push-tag-query
        DB 設計感覺不對，table 之間的關聯太複雜了
 
-你：[讀取 .spec/push-tag-query/ 下的文件]
+你：[讀取 .spec/push-tag-query/plan.md 與 deploy.sql，唯讀 state.json 確認在 db 階段]
 
-     你在 db.md 裡設計了 3 個表，讓我畫出關聯...
+     deploy.sql 裡是 3 張表，D-4 那條決策說「條件獨立成表」是為了支援動態條件數。
+     讓我畫出關聯...
 
      [繪製 ER 圖，探索替代方案，建議路徑]
 
-     要我更新 db.md 反映這個新設計嗎？
+     這是一條新的取捨。要我 append 一條決策（`- D-6 [db] 取代 D-4：…`）
+     再重跑 `/plan db` 讓它改寫 deploy.sql 嗎？
      還是先加個 spike 任務調查一下？
 ```
 

@@ -1,7 +1,7 @@
 # CREW SKILL.md 統一模板
 
 > 產出日期：2026-07-13
-> 適用範圍：bug-workflow（10 skills）＋ feature-workflow（19 skills），共 29 個 SKILL.md。
+> 適用範圍：bug-workflow ＋ feature-workflow 的全部 SKILL.md（實際數量以 `scripts/lint-skills.py` 的檢查結果為準，本檔不寫死）。
 > 用途：本檔是 C12/C13/C15/C16 批次修改的規範載體，也是未來新增 skill 的撰寫依據。修改既有 skill 時逐段對照本檔；本檔僅規範結構與書寫，不規範各 skill 的業務邏輯。
 > 依據來源：`scratchpad/cross/consistency.md`（一致性分析與模板草案）＋ `scratchpad/c-items.md`（C1–C16 優化項）。
 > 標注規則：**[必要]** 每個 skill 都要有；**[條件必要]** 符合括號條件時必須有；**[選用]** 依需要。段落順序一律照下列骨架由上而下排列。
@@ -94,17 +94,20 @@ argument-hint: "{<必填引數> [選填引數] [--旗標]}"          # [條件�
 ## 前置條件                                              # [必要]
 > **前置檢查**：{見第五節，feature 輕量版句式}
 - 適用類型：Feature / Bug / 兩者                          # [必要；type 不符時明示導向（如 type=bug → /bug-fix）]
-- 前置檔案：{spec.md / db.md / arch.md…＋缺檔時的行為}
+- 前置產物：{plan.md 的哪些章節須已有內容 / deploy.sql…＋缺產物時的行為}
+                                                        # [必要；`.spec/{slug}/` 只有 plan.md、state.json、deploy.sql 三種產物，
+                                                        #  流程位置一律讀 state.json（`crew-state.py next`），不得用「哪些檔案存在」反推]
 
 ## 流程
 ### 1. 定位活躍任務 + 讀取專案上下文                        # [必要，統一參照 plugin 根目錄 references/plan-common.md]
-### 2. {主體步驟}                                        # 產出型 skill（spec/db/arch）須附「產出檔章節契約」：
-                                                        #  各段最低要求＋subagent 交付前自檢清單（比照 plan-spec）
+### 2. {主體步驟}                                        # 會寫 plan.md 的 skill（如 /plan 的 spec／db／arch 三個 pass）須附
+                                                        #  「plan.md 章節契約」：寫哪一節、各節最低要求＋subagent 交付前自檢清單。
+                                                        #  契約本體以 references/plan-common.md 為權威，SKILL.md 只寫本 skill 的差異，不複製一份
 …
-### N. 回傳結果                                          # [必要；回報內容依旗標/條件動態組裝（如 DB_REQUIRED=false 不列 db.md）]
+### N. 回傳結果                                          # [必要；回報內容依旗標/條件動態組裝（如 DB_REQUIRED=false 不列 deploy.sql）]
 
-## Gotchas / ## 邊界情況                                  # [必要——plan-arch、plan-db、plan-spec、plan 目前缺，須補；
-                                                        #  內容至少涵蓋：缺前置檔、type 不符、subagent 失敗三種]
+## Gotchas / ## 邊界情況                                  # [必要；內容至少涵蓋：前置產物缺（plan.md 該章節仍為空、deploy.sql 未產）、
+                                                        #  type 不符、subagent 失敗三種]
 ```
 
 段落用途差異速查：
@@ -114,7 +117,7 @@ argument-hint: "{<必填引數> [選填引數] [--旗標]}"          # [條件�
 | 設定目錄 | 條件必要 | 僅直接讀寫設定者用「設定目錄」（對應 feature 的目錄＋config-resolver 機制）；其餘引用 config-resolver.md |
 | 前置條件（適用類型） | 必要 | 明示支援的 type 與不符時導向 |
 | 流程首步 | 必要 | 一律「定位活躍任務 + 讀取專案上下文」並參照 plan-common.md |
-| 產出檔章節契約 | 條件必要 | 產出型 skill 必附，控制產出形狀 |
+| plan.md 章節契約 | 條件必要 | 會寫 plan.md 的 skill 必附，控制產出形狀；契約本體在 references/plan-common.md |
 
 ---
 
@@ -165,7 +168,7 @@ argument-hint: "{<必填引數> [選填引數] [--旗標]}"          # [條件�
 ## 七、通用書寫規則（兩份模板共用）
 
 1. **references 路徑統一**：實體檔在 plugin 根目錄（`bug-workflow/references/`、`feature-workflow/references/`），29 個 skill 目錄下並無 references/。SKILL.md 內一律寫「plugin 根目錄 `references/…`（相對 SKILL.md 為 `../../references/`）」；本環境實測 `${CLAUDE_PLUGIN_ROOT}` 可展開時改用 `${CLAUDE_PLUGIN_ROOT}/references/…`（C12，先實測再批次）。
-2. **檔內路徑寫完整相對根路徑**：如 `.spec/{slug}/README.md`，不可只寫 `README.md`。
+2. **檔內路徑寫完整相對根路徑**：如 `.spec/{slug}/plan.md`，不可只寫 `plan.md`。
 3. **巢狀 code fence**：範例內含 code fence 時，外層用四個反引號 ```` ``` ````→```` ```` ````（避免 bug-investigate:150 那類外層提前閉合）。
 4. **禁止時效性字面值**：版本號（「回退到 v4.9.0」）、工具數（「29 種工具」）、API 呼叫次數上限（「僅 3-5 次」）改為描述性文字或範圍，避免自相矛盾與過時。
 5. **範例情境用中性假例**：統一用「推播標籤查詢／SSO 登入異常」（plan-browse、plan-status 既有慣例），不得寫入特定客戶專案名（如 AQI、防汛水費、LineBC、Solr apilog）。
@@ -187,6 +190,6 @@ argument-hint: "{<必填引數> [選填引數] [--旗標]}"          # [條件�
 | 2 | plan-browse 用「模式 1~6」而非整數流程步驟（僅尾段順序須修正） | 多模式查詢工具本質非線性，模式制比硬編步驟更準確 |
 | 3 | 「鐵律」段僅 bug-fix / bug-investigate 有 | 只有真有硬前提（根因必填）者才需要，擴散全體會稀釋權威性 |
 | 4 | 「設定檔」（bug）vs「設定目錄」（feature）命名不同 | 兩 plugin 設定機制實際不同（單檔 vs 目錄＋config-resolver），名稱如實反映即可，各自內部一致即可 |
-| 5 | 檔案長度差異（plan-arch 56 行 vs plan-verify 563 行） | 長度反映複雜度，非結構問題；plan-arch 要補的是契約段而非加長 |
-| 6 | 標題後綴「（零 Notion 呼叫）」與 description「不呼叫 Notion API」 | plan/plan-spec/plan-db/plan-arch/plan-status 共用的區辨訊號，單檔移除反破壞一致性 |
+| 5 | 檔案長度差異（最短的 plan-next 僅數十行 vs 最長的 plan-verify 數百行） | 長度反映複雜度，非結構問題；短檔要補的是缺的契約段而非加長 |
+| 6 | 標題後綴「（零 Notion 呼叫）」與 description「不呼叫 Notion API」 | plan／plan-browse／plan-explore／plan-security 共用的區辨訊號，單檔移除反破壞一致性 |
 | 7 | `Gotchas` 沿用英文標題 | 29 檔已一致，改中文是無收益的攪動 |

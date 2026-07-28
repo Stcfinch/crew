@@ -8,7 +8,8 @@ description: 部署 SQL 執行回報 —— 實際跑完 deploy.sql 後勾選每
 `/plan-close` 把 `deploy.sql` 寫進 Notion 後，DBA / 部署者實際執行需手動回報。
 本指令提供標準化流程：列出待回報 SQL、互動確認、記錄執行時間/環境/執行者、寫回 Notion。
 
-解決原本 deploy-checklist 機制「文件寫了沒人勾，永遠顯示『未執行』」的問題。
+部署進度的唯一權威是 `.spec/{slug}/state.json` 的 `deploy` 欄位（`steps_total` / `steps_confirmed`），
+由單一寫者 `crew-state.py` 更新 —— 取代舊的「文件寫了沒人勾，永遠顯示『未執行』」清單機制。
 
 ---
 
@@ -46,11 +47,23 @@ description: 部署 SQL 執行回報 —— 實際跑完 deploy.sql 後勾選每
 
 兩種來源（合併去重）：
 
-**本地**：掃 `.spec/*/` 含 `deploy.sql` 且 README.md 標示 `status: 已結案` 的任務。
+**本地**：先取任務清單，再逐一唯讀 `state.json` 過濾：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" list --all --format json
+```
+
+對每個 slug 唯讀 `.spec/{slug}/state.json`（**只讀，不寫**），符合以下全部條件才列入：
+
+| 條件 | 判定 |
+|------|------|
+| 已結案 | `steps.close.status == "done"` |
+| 有 SQL 要跑 | `.spec/{slug}/deploy.sql` 存在，且 `deploy.steps_total > 0` |
+| 還沒回報完 | `deploy.steps_confirmed < deploy.steps_total` |
 
 **Notion**（更新鮮）：用 `notion-search` 搜尋同一 Git Repo 下、頁面含「🚀 部署狀態」區塊且該區塊仍有「待執行」項的條目。
 
-> 注意：Notion「狀態」欄位（合法值僅 未開始/進行中/測試中/已完成，無「已結案」）**不作為**此搜尋的過濾條件——plan-close 依情境可能將狀態標為「測試中」或「已完成」，與本地 README `status: 已結案` 是兩套獨立語意。以「🚀 部署狀態含待執行」判斷最可靠。
+> 注意：Notion「狀態」欄位（合法值僅 未開始/進行中/測試中/已完成，無「已結案」）**不作為**此搜尋的過濾條件——plan-close 依情境可能將狀態標為「測試中」或「已完成」，與本地 `steps.close.status == "done"` 是兩套獨立語意。以「🚀 部署狀態含待執行」判斷最可靠。
 
 合併後呈現：
 
@@ -164,17 +177,19 @@ SQL：
 
 每次回報新增一段，舊紀錄保留。
 
-### 7. 更新 .spec/
+### 7. 更新 state.json 的部署進度
 
-更新 `.spec/{slug}/log.md`：
+回報進度不落檔，寫進唯一權威 `state.json`（🔴 不手改 JSON，一律經單一寫者）：
 
-```markdown
-### [2026-05-23 14:25] 部署回報
-- 環境：prod
-- 執行者：cheng
-- Step 結果：1 ✅ / 2 ⚠️ / 3 ⏭️
-- Notion 已同步：🔗 {頁面連結}
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" set \
+  --slug {slug} --deploy-total {deploy.sql 的 Step 總數} --deploy-confirmed {本次累計已確認成功的 Step 數}
 ```
+
+- `--deploy-confirmed` 是**累計值不是增量**：帶「歷次已確認成功的總數」，不是這次新增幾筆。
+- 只有選 1（成功）與選 2（成功但有警告）計入 `steps_confirmed`；選 3（失敗）、選 4（跳過）不計入。
+- `--deploy-total` 每次都帶，順便修正 `/plan db` 當初登記錯的步驟數。
+- 執行環境、執行者、時間等敘述性資訊寫進 Notion 的「執行紀錄」（見上一節），`state.json` 只存兩個計數 —— 事件流由 `history` 自動承接。
 
 ### 8. 回傳結果
 
@@ -199,7 +214,9 @@ SQL：
 
 ## `--list` 模式
 
-不選任務、不互動，純列出待回報清單：
+不選任務、不互動，純列出待回報清單。數字全部來自各任務 `state.json` 的 `deploy` 欄位
+（`SQL 數` = `deploy.steps_total`、`已執行` = `deploy.steps_confirmed`、`待確認` = 兩者相減），
+結案天數取 `steps.close.at`：
 
 ```
 偵測到 {N} 個任務有待回報的 deploy.sql：
@@ -240,14 +257,16 @@ SQL：
 - **deploy.sql 格式不標準**：若 SQL 檔沒有 `-- Step N` 註解，無法精確分段。退回「整個 deploy.sql 作為單一 Step」處理
 - **回滾 SQL 不在本指令範圍**：執行回滾請由 DBA 用對應的 SQL 客戶端執行，本指令只記錄回滾事件（如 `--rollback` 選項，未實作）
 - **跨環境順序**：建議按 dev → staging → prod 順序部署，本指令不強制檢查順序，但回報紀錄會顯示時序，後審視可發現
-- **多人同時回報**：兩個 DBA 同時 /plan-deploy-confirm 同一任務 → 後寫入覆蓋前者的「最後執行」摘要，但「執行紀錄」段落兩筆都會留下（追加模式）
+- **多人同時回報**：兩個 DBA 同時 /plan-deploy-confirm 同一任務 → 後寫入覆蓋前者的「最後執行」摘要，但「執行紀錄」段落兩筆都會留下（追加模式）。`state.json` 那側有檔案鎖保護不會寫壞，但 `--deploy-confirmed` 是累計值，後回報者要**先重讀** `steps_confirmed` 再算，否則會把對方的進度算掉
+- **`deploy.steps_total` 是 0 或與實際 Step 數不符**：`/plan db` 登記的步驟數可能過時（例如事後手改了 deploy.sql）。以實際解析 `deploy.sql` 得到的 Step 數為準，回報時用 `--deploy-total` 一併修正
 
 ---
 
 ## 邊界情況
 
-- **任務未結案**（status ≠ 已結案）：提示「此任務尚未結案，是否仍要回報部署？」（少數情境如 hotfix 直接上線）
+- **任務未結案**（`steps.close.status != "done"`）：提示「此任務尚未結案，是否仍要回報部署？」（少數情境如 hotfix 直接上線）
 - **無 deploy.sql**：提示「此任務無 deploy.sql 需要回報，無需執行本指令」
+- **`state.json` 缺失或壞掉**：跑 `crew-state.py rebuild --slug {slug}` 自我修復，並在回報中標「狀態為推測」；🔴 不要退回「掃哪些檔案存在」猜結案與否
 - **使用者中斷**：已確認的 Step 寫入 Notion 不回滾；未確認的維持原狀，下次可繼續
 - **--all-done 模式無法區分失敗**：明示「批次模式假設全部成功」，若有失敗請使用互動模式
-- **Notion API 失敗**：本地 log.md 仍寫入，提示「Notion 未同步，明天可用 /plan-sync 補上」
+- **Notion API 失敗**：`state.json` 的 `deploy` 進度與 deploy.sql 檔頂的回報註解仍照常寫入，提示「Notion 未同步，稍後可用 /plan-sync 補上」

@@ -1,13 +1,22 @@
 # plan-verify Phase: Word 驗收報告產出
 
-本檔由 [`../SKILL.md`](../SKILL.md) Step 10 引用。
-驗證完成後依序詢問報告風格和引擎，產出 `.spec/{slug}/{功能}-驗收報告.docx`。
+本檔由 [`../SKILL.md`](../SKILL.md)「可選指令：Word／Excel 驗收報告」段引用。
+**不在 `/plan-verify` 主流程**，只有使用者明確下 `--word` / `--excel` 才執行。
+
+- **輸入**：`.spec/{slug}/.cache/verify.md`（`/plan-verify` 留下的一次性暫存，本階段唯一資料來源，不重跑驗證）
+- **輸出**：`build/{功能}-驗收報告.docx` / `.xlsx`（專案根目錄 `build/`，🔴 不寫進 `.spec/`）
+
+```bash
+mkdir -p build            # 輸出目錄；build/ 通常已在 .gitignore
+```
+
+`.cache/verify.md` 不存在 → 提示先跑一次 `/plan-verify`，🔴 不得憑對話記憶或印象生報告。
 
 ---
 
 ### 10. 報告產出（Word 驗收報告）
 
-驗證完成後，依序詢問報告風格和引擎：
+依序詢問報告風格和引擎：
 
 #### 10.0c 環境偵測（在 10.0a 選風格之前執行）
 
@@ -105,9 +114,9 @@ fi
 | 欄位 | 自動來源（優先順序） | 最終 fallback | 存檔位置 |
 |------|-------------------|-------------|---------|
 | 專案名稱 | `projects/{id}.md` 的 `notion_name` → `report-config.md` | 詢問使用者 | `report-config.md` |
-| 功能名稱 | `.spec/{slug}/README.md` 的 `name` | 詢問使用者 | — |
-| 驗證日期 | verify.md 的驗證日期 | 當天日期 | — |
-| 版本號 | `.spec/{slug}/README.md` 的 frontmatter | 詢問使用者（如 `v1.0`） | — |
+| 功能名稱 | `.spec/{slug}/plan.md` frontmatter 的 `name` | 詢問使用者 | — |
+| 驗證日期 | `.cache/verify.md` 的驗證日期 | 當天日期 | — |
+| 版本號 | `report-config.md` 的 `version` | 詢問使用者（如 `v1.0`） | `report-config.md` |
 | 承辦單位 | `report-config.md` 的 `company_name` | `Intumit`（硬編碼預設值） | `report-config.md` |
 | 製作人 | `report-config.md` 的 `author` | OS 使用者名稱（`whoami` 或 `$USER`） | `report-config.md` |
 
@@ -139,11 +148,11 @@ fi
 
 | 欄位 | 自動來源 | 備用來源 |
 |------|---------|---------|
-| 測試 URL | verify.md 摘要的「環境」欄位 | 詢問使用者 |
+| 測試 URL | `.cache/verify.md` 摘要的「環境」欄位 | 詢問使用者 |
 | 瀏覽器 | 自動偵測 | Chromium |
 | 測試帳號角色 | 詢問使用者 | 「系統管理員」 |
 | 測試資料說明 | 詢問使用者（可選） | 「使用測試環境既有資料」 |
-| 前置條件 | `.spec/{slug}/spec.md` 的前置條件區塊 | 詢問使用者 |
+| 前置條件 | `.spec/{slug}/plan.md` 的「目標與範圍」節 | 詢問使用者 |
 
 展示後一次確認：
 
@@ -315,8 +324,8 @@ AI 依以下七段式結構組裝 Markdown 報告內容（作為報告產出引�
 
 ### 參考文件
 
-- 技術規格書：.spec/{slug}/spec.md
-- 驗證技術紀錄：.spec/{slug}/verify.md
+- 規劃文件：.spec/{slug}/plan.md
+- 驗證技術紀錄：.spec/{slug}/.cache/verify.md（一次性暫存）
 ```
 
 #### 10.4a 使用 minimax-docx 產出（report_engine = minimax-docx）
@@ -346,10 +355,10 @@ fi
 #    --framework net8.0：multi-target 專案 dotnet run 必須指定 TFM；net8.0 是下限，
 #    搭配專案的 RollForward=LatestMajor，可在僅安裝較新 runtime（net9/net10）的機器上 roll-forward 執行。
 dotnet run --framework net8.0 --project "$CLI_DIR" -- \
-  --verify .spec/{slug}/verify.md \
+  --verify .spec/{slug}/.cache/verify.md \
   --screenshots .spec/{slug}/screenshots/ \
   --evidence .spec/{slug}/evidence/ \
-  --output .spec/{slug}/verify-report.docx \
+  --output build/{功能}-驗收報告.docx \
   --style {style} \
   --logo "$LOGO" \
   --cover '{"project":"{project}","feature":"{feature}","author":"{author}","date":"{date}","company":"{company}","version":"{version}"}'
@@ -375,10 +384,10 @@ fi
 # 產出 Word 報告
 PYTHONPATH=/tmp/crew-docx-env:$PYTHONPATH python3 \
   {plugin_path}/references/verify-docx-generator.py \
-  --verify .spec/{slug}/verify.md \
+  --verify .spec/{slug}/.cache/verify.md \
   --screenshots .spec/{slug}/screenshots/ \
   --evidence .spec/{slug}/evidence/ \
-  --output .spec/{slug}/verify-report.docx \
+  --output build/{功能}-驗收報告.docx \
   --cover '{"project":"{project}","feature":"{feature}","author":"{author}","date":"{date}","company":"{company}","version":"{version}"}'
 ```
 
@@ -398,7 +407,7 @@ python-docx 產出規格見 `references/verify-docx-template.md`。
 **minimax-docx 產出時：**
 
 ```
-📄 驗收報告已產出：.spec/{slug}/verify-report.docx
+📄 驗收報告已產出：build/{功能}-驗收報告.docx
 
 報告包含：
   • 封面與簽核欄位
@@ -412,7 +421,7 @@ python-docx 產出規格見 `references/verify-docx-template.md`。
 **python-docx 產出時：**
 
 ```
-📄 驗收報告已產出：.spec/{slug}/verify-report.docx
+📄 驗收報告已產出：build/{功能}-驗收報告.docx
 
 報告包含：
   • 封面與簽核欄位
@@ -436,10 +445,10 @@ npm install --prefix "$NPM_TMP" exceljs --no-save --silent
 
 # 產出 Excel 報告（透過 NODE_PATH 注入臨時安裝的 exceljs）
 NODE_PATH="$NPM_TMP/node_modules" node {plugin_path}/references/verify-excel-generator.js \
-  --verify .spec/{slug}/verify.md \
+  --verify .spec/{slug}/.cache/verify.md \
   --screenshots .spec/{slug}/screenshots/ \
   --evidence .spec/{slug}/evidence/ \
-  --output .spec/{slug}/verify-report.xlsx \
+  --output build/{功能}-驗收報告.xlsx \
   --cover '{"project":"{project}","feature":"{feature}","author":"{author}","date":"{date}"}'
 ```
 
@@ -447,7 +456,7 @@ NODE_PATH="$NPM_TMP/node_modules" node {plugin_path}/references/verify-excel-gen
 
 Excel 報告規格見 `references/verify-excel-template.md`。
 
-**--word --excel 同時指定時**：兩份報告從同一個 verify.md 產出，資料一致，格式各取所需。
+**--word --excel 同時指定時**：兩份報告從同一個 `.cache/verify.md` 產出，資料一致，格式各取所需。
 
 #### 向下相容：舊版 verify.md
 
@@ -476,7 +485,7 @@ Excel 報告規格見 `references/verify-excel-template.md`。
 
 ## 邊界情況（報告相關）
 
-> 本節由 [`../SKILL.md`](../SKILL.md)「邊界情況」段引用（下放自 SKILL.md，避免本體過長）。verify.md 無 `human_steps`／無 `evidence` 區塊的相容規則見上方「向下相容：舊版 verify.md」段，不重複列出。
+> 本節由 [`../SKILL.md`](../SKILL.md)「邊界情況」段引用（下放自 SKILL.md，避免本體過長）。`.cache/verify.md` 無 `human_steps`／無 `evidence` 區塊的相容規則見上方「向下相容：舊版 verify.md」段，不重複列出。
 
 - **minimax-docx 和 python-docx 皆不可用**：step 10 提供三選一（安裝 python-docx / 安裝 .NET / 跳過報告），不直接中斷流程
 - **python-docx 安裝失敗**（如無 pip、磁碟滿）：顯示錯誤訊息，提示使用者手動安裝 `python3 -m pip install python-docx`，或改選安裝 .NET

@@ -27,7 +27,7 @@ SHARED_FILES=(
   db-templates.md
   discipline-preamble.md
   notion-backend.md
-  handoff-discipline.md
+  state-discipline.md
   model-policy.md
 )
 SRC_DIR="$REPO_ROOT/plugins/bug-workflow/references"
@@ -52,7 +52,7 @@ usage() {
 
 權威來源：plugins/bug-workflow/（只改這份，改完跑本腳本同步）
 同步目標：plugins/feature-workflow/
-共用 reference：prerequisites.md、db-templates.md、discipline-preamble.md、notion-backend.md、handoff-discipline.md、model-policy.md
+共用 reference：prerequisites.md、db-templates.md、discipline-preamble.md、notion-backend.md、state-discipline.md、model-policy.md
 共用 script：scripts/crew-state.py（來源尚未建立時跳過；目標目錄自動 mkdir -p）
 EOF
 }
@@ -71,7 +71,21 @@ for f in "${SHARED_FILES[@]}"; do
   src="$SRC_DIR/$f"
   dst="$DST_DIR/$f"
   [ -f "$src" ] || { echo "❌ 權威檔不存在：$src"; exit 1; }
-  [ -f "$dst" ] || { echo "❌ 目標檔不存在：$dst"; exit 1; }
+
+  # 目標檔不存在＝新增或改名的共用檔。同步模式下直接建立（權威檔存在就足以確認不是筆誤）；
+  # --check 模式回報缺失並失敗，行為與下方 SHARED_SCRIPTS 迴圈一致。
+  if [ ! -f "$dst" ]; then
+    if [ "$CHECK" -eq 1 ]; then
+      echo "❌ 缺失：${f}（feature-workflow 尚未有同步副本）"
+      fail=1
+      continue
+    fi
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+    echo "🆕 已建立：$f"
+    changed=$((changed + 1))
+    continue
+  fi
 
   if cmp -s "$src" "$dst"; then
     [ "$CHECK" -eq 1 ] && echo "✅ 一致：$f"
