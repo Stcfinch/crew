@@ -79,3 +79,31 @@ jobs:
           python-version: '3.11'
       - name: 檢查每個 SKILL.md 是否同步到根 README + 自家 plugin README
         run: python3 scripts/lint-readme-sync.py
+
+  spec-drift:
+    name: .spec 漂移偵測
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 檢查 plan.md / state.json / deploy.sql 是否漂移
+        run: |
+          SCRIPT=plugins/feature-workflow/scripts/check-spec-drift.py
+          if [ -f "$SCRIPT" ]; then
+            python3 "$SCRIPT" --all --strict
+          else
+            echo "⏭️  $SCRIPT 尚未建立，跳過（重構實作中）"
+          fi
+
+  state-writers:
+    name: 狀態單一寫者防回歸
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 檢查沒有「叫 LLM 手寫狀態欄位」的殘留指示（strict，違規阻擋）
+        run: python3 scripts/lint-state-writers.py --strict

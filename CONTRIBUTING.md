@@ -89,6 +89,9 @@ python3.11 scripts/lint-changelog.py      # CHANGELOG 版本／日期排序
 python3.11 scripts/lint-agent-model.py --strict   # 模型分工政策（違規阻擋）
 python3.11 scripts/lint-skill-contract.py # 觸發詞與內部連結
 python3.11 scripts/lint-readme-sync.py    # README 指令表同步
+python3.11 scripts/lint-state-writers.py --strict  # 狀態單一寫者防回歸（違規阻擋）
+# .spec 漂移偵測（script 尚未建立時 CI 會跳過，本地同理）
+python3.11 plugins/feature-workflow/scripts/check-spec-drift.py --all --strict
 ```
 
 > **易錯點**：本地 lint 讀工作區、CI 讀 commit。commit 後 push 前先跑 `git status`
@@ -181,8 +184,16 @@ git add -f .spec/{slug}/
 
 ```bash
 ./scripts/sync-shared-refs.sh          # 以 bug-workflow 為準同步到 feature-workflow
-./scripts/sync-shared-refs.sh --check  # push 前檢查是否一致（CI 同款檢查，不修改）
+./scripts/sync-shared-refs.sh --check  # push 前檢查是否一致（不修改）
 ```
+
+除 reference 外，**共用 script**（`scripts/crew-state.py`，權威同樣在 bug-workflow）
+也走這支腳本同步；目標目錄不存在會自動建立。
+
+> **兩者嚴格度不同**：`sync-shared-refs.sh --check` 在「權威份存在但同步副本缺失」時
+> 會 exit 1（提醒你跑一次同步）；CI 的 `check-shared-refs.py` 對共用 script 只在
+> **兩份都存在且內容不同**時才 fail，缺檔一律優雅跳過（重構期間 script 還在實作中，
+> 不該擋 CI）。所以本地 `--check` 紅、CI 綠是預期組合，修法就是跑一次不帶參數的同步。
 
 CI 的 `shared-refs-consistency` job（`scripts/check-shared-refs.py`）仍用 sha256
 強制兩份一致，是最後防線：忘了跑同步腳本、或誤改了 feature-workflow 那份，都會被 CI block。
