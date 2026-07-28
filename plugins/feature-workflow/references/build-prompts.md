@@ -8,10 +8,10 @@
 | 變數 | 來源 | 說明 |
 |------|------|------|
 | {slug} | .spec/ 目錄 | 任務 slug |
-| {功能名稱} | README.md | 任務名稱 |
-| {FRONTEND_TECH} | spec.md 判斷區塊 | 前端技術 |
+| {功能名稱} | plan.md frontmatter | 任務名稱（`name`） |
+| {FRONTEND_TECH} | plan.md 決策紀錄的 `D-1 [spec] 範圍判斷` | 前端技術 |
 | {N} | 步驟 3 判斷 | Teammate 數量 |
-| {檔案清單} | files.md 或收集 | 審查範圍 |
+| {檔案清單} | `git diff --name-only` ＋ `git status --porcelain` | 審查範圍 |
 | {db_mcp_instruction} | 步驟 5 檢查 | DB MCP 可用時的指示 |
 | {dry_run_instruction} | 使用者參數 | --dry-run 指示 |
 | {scout_handoff} | 步驟 5 探索官產出 | 「實作交接」內容（相關檔案、呼叫關係、風格範本片段、限制） |
@@ -41,7 +41,7 @@
 
 ## 任務背景
 即將實作功能：{功能名稱}
-設計文件位置：.spec/{slug}/（spec.md、db.md、arch.md）
+規劃文件位置：.spec/{slug}/plan.md（驗收條件 AC-n、決策紀錄 D-n、指路錨點）＋ deploy.sql（表結構事實來源）
 本次要產出的角色：{角色清單}
 
 ## 任務
@@ -79,11 +79,11 @@
 ```
 你是後端程式碼產生器。
 
-## 設計文件
-{arch.md 內容}
+## 規劃文件
+{plan.md 的 驗收條件 AC-n / 決策紀錄 D-n / 已知取捨與風險 / 指路錨點}
 
-## DB 設計
-{db.md 內容}
+## DB 事實來源
+{deploy.sql 全文（表、欄位、索引、約束）；DB_REQUIRED=false 時填「無 DB 變更」}
 
 ## 專案上下文
 {CLAUDE.md 內容}
@@ -133,16 +133,16 @@
 {若 DB_MCP_AVAILABLE = true，包含以下成員：}
 【成員 0：DB 工程師】DB Engineer
 - 專職資料庫工程師，透過 DB MCP（DBHub）直接操作資料庫
-- 讀取設計文件：
-  * .spec/{slug}/db.md（DB 設計 — 新增/修改的表結構）
-  * .spec/{slug}/db.sql（SQL 檔案，若存在）
+- 讀取產物：
+  * .spec/{slug}/deploy.sql（**唯一 SQL 事實來源** — 表、索引、約束、Rollback 段）
+  * .spec/{slug}/plan.md 決策紀錄中 `[db]` 標記的條目（為什麼這樣設計、否決了什麼）
 - 使用 execute_sql 和 search_objects 工具查詢真實資料庫
 - 任務：
-  * 查詢現有表結構，確認 db.md 設計與 DB 現狀的差異
-  * 產生 Migration SQL（CREATE TABLE / ALTER TABLE），放入 db.sql 或專案指定的 migration 目錄
+  * 查詢現有表結構，確認 deploy.sql 與 DB 現狀的差異
+  * 需要補 Migration SQL（CREATE TABLE / ALTER TABLE）時**只改 deploy.sql**（或專案指定的 migration 目錄），🔴 不另開第二個 SQL 檔
   * 檢查既有索引，為新查詢場景建議索引（WHERE / JOIN / ORDER BY 欄位）
   * 查詢 sys.dm_exec_query_stats（MSSQL）或 pg_stat_statements（PostgreSQL），找出與本功能相關的慢查詢
-  * 若發現效能風險，產出索引建議或查詢改寫方案，寫入 .spec/{slug}/db-optimization.md
+  * 若發現效能風險，索引建議或查詢改寫方案**直接回報給 Lead**（🔴 不落檔）；屬取捨的寫成 `D-n [build]` 條目由 Lead 插入 plan.md
   * 確認欄位命名慣例（大小寫、前綴、型別）與既有表一致
   * 檢查 FK / UNIQUE / NOT NULL 約束是否合理
 - **最先開始**，完成後通知 Lead 並向後端工程師分享：
@@ -154,9 +154,9 @@
 
 【成員 1：後端工程師】Backend Engineer
 - 讀取專案 CLAUDE.md 了解架構慣例
-- 讀取設計文件：
-  * .spec/{slug}/arch.md（架構設計 — 類別清單、介面定義）
-  * .spec/{slug}/db.md（DB 設計 — 表結構）
+- 讀取產物：
+  * .spec/{slug}/plan.md（決策紀錄 `[arch]` 條目＝分層與介面切割的取捨；指路錨點＝落點）
+  * .spec/{slug}/deploy.sql（表結構事實來源）
 - 風格範本直接用探索官交接（{scout_handoff}）的片段，不要自行全域掃描 repository
 {若有 DB 工程師：等待 DB 工程師完成，取得確認後的表結構和索引建議}
 - 任務：
@@ -171,9 +171,9 @@
 - 使用繁體中文
 
 【成員 2：API 工程師】API Engineer
-- 讀取設計文件：
-  * .spec/{slug}/spec.md（技術規格 — API 設計、參數驗證規則）
-  * .spec/{slug}/arch.md（架構設計）
+- 讀取產物：
+  * .spec/{slug}/plan.md（驗收條件 AC-n ＝ API 要滿足什麼；決策紀錄 `[spec]`/`[arch]` ＝ 參數驗證與分層規則）
+  * 既有 Controller（由探索官交接指定路徑）＝ API 風格的事實來源
 - 等待後端工程師完成 Service 層後開始
 - 任務：
   * 產生 Controller（含 @RequestMapping、路由設定）
@@ -187,8 +187,8 @@
 
 【成員 3：前端工程師】Frontend Engineer
 - 前端技術棧：{FRONTEND_TECH}
-- 讀取設計文件：
-  * .spec/{slug}/spec.md（技術規格 — 畫面需求、操作流程）
+- 讀取產物：
+  * .spec/{slug}/plan.md（目標與範圍 ＝ 畫面需求；驗收條件 AC-n ＝ 操作流程要達成什麼）
 - 頁面風格範本用探索官交接（{scout_handoff}）的片段，不要自行掃描整個前端目錄
 - 可與後端工程師同時開始（前端不依賴後端實作）
 - 任務：
@@ -249,7 +249,7 @@
 - Subagent 模式（`model: opus`）：在後端工程師提示詞中嵌入 `{db_mcp_instruction}`：
 ```
 專案已安裝 DB MCP（DBHub），你可以直接查詢資料庫：
-- 使用 execute_sql 查詢現有表結構，確認 db.md 設計與實際 DB 是否一致
+- 使用 execute_sql 查詢現有表結構，確認 deploy.sql 與實際 DB 是否一致
 - 使用 search_objects 搜尋相關的表、欄位、索引、預存程序
 - 查詢既有資料表的欄位命名慣例（大小寫、前綴、型別偏好），確保新表設計風格一致
 - 檢查是否有可複用的既有表或欄位，避免重複建立

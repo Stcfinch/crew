@@ -106,9 +106,9 @@ Sonnet 探索完成後產出下列交接，Opus 只讀這份加上指定的設�
 
 | 流程 | 角色 | 模型 | 可改正式程式碼 |
 |------|------|------|----------------|
-| `/plan-spec` | 規格分析（`feature-spec-analyst`） | `sonnet` | ✗ |
-| `/plan-db` | DB 設計（`feature-db-designer`） | `opus` | ✗（只產 `.spec/db.md`、`db.sql`） |
-| `/plan-arch` | 架構設計（`feature-backend-designer`） | `opus` | ✗ |
+| `/plan` spec pass | 規格分析（`feature-spec-analyst`） | `sonnet` | ✗ |
+| `/plan` db pass | DB 設計（`feature-db-designer`） | `opus` | ✗（只產 `deploy.sql` 與決策條目） |
+| `/plan` arch pass | 架構設計（`feature-backend-designer`） | `opus` | ✗ |
 | `/plan-build` | 探索官（專案結構、相似功能、風格範本、交叉引用） | `sonnet` | ✗ |
 | `/plan-build` | DB／後端／API／前端／測試工程師（`feature-code-generator`） | `opus` | ✓ |
 | `/plan-review` | Reviewer 1 邏輯正確性 | `sonnet` | ✗ |

@@ -1,4 +1,4 @@
-# Bug Workflow Plugin `v3.13.0`
+# Bug Workflow Plugin `v4.0.0`
 
 整合 Notion 與 Claude Code，自動化 Bug 生命週期管理。
 
@@ -14,7 +14,7 @@
 | `/bug-update reopen <Bug>` | 重新開啟已結案的 Bug（復發處理） |
 | `/bug-close` | 結案前引導 merge 回 DEV + 從 Git diff 擷取修復細節 + 同步知識庫 |
 | `/project-add` | **偵測專案架構**（簡單型/產品型）→ Notion 註冊 → 可選安裝 DB MCP |
-| `/crew-doctor` | CREW 環境健診 — 18 項依賴與設定檢查，含 `--quick` / `--fix` 模式 |
+| `/crew-doctor` | CREW 環境健診 — 20 項依賴與設定檢查（含 CREW hooks 與 v1 舊任務偵測），含 `--quick` / `--fix` 模式 |
 | `/crew-init` | CREW 一鍵首次設定 — 統合 /bug-setup + /plan-setup + 提示 /init 與 /project-add，含 `--resume` |
 | `/crew-upgrade` | 一次更新 bug-workflow + feature-workflow，顯示 CHANGELOG 摘要 |
 
@@ -51,6 +51,23 @@ claude plugin install bug-workflow
 ```
 
 安裝後 Plugin 會自動啟用。若未自動啟用，手動執行：`claude plugin enable bug-workflow`
+
+### SessionStart hook（自動執行揭露）
+
+本 plugin 安裝一個 **SessionStart hook**。每次開啟 session（新開、`--resume`、`/clear`）時，
+Claude Code 會在**你的本機**執行 `python3 scripts/crew-state.py session-brief`：
+
+- **讀取範圍**：只讀**當前專案**目錄下的 `.spec/*/state.json`（CREW 自己產生的流程狀態檔）
+- **不外送任何資料**：純本機 Python 標準函式庫，零網路呼叫
+- **不寫專案檔案**：只在系統暫存目錄寫一個 session marker，避免與 feature-workflow 的同名 hook 重複輸出
+- **輸出**：未結案任務清單（最多 3 行）＋ 對應的 `/plan-next {slug}` 指令
+- **無 `.spec/` 或全部結案時零輸出**（exit 0，不佔 token）
+- **不阻擋**：任何錯誤都靜默 exit 0，內建 1 秒總體時限（讀 stdin 上限 0.2 秒），實測典型耗時約 80ms
+
+要關掉：`claude plugin disable bug-workflow`（連 Skill 一起關），或刪除已安裝目錄下的
+`hooks/hooks.json` 後重啟 Claude Code（只關 hook、保留 Skill）。hook 變更需**重啟**才生效。
+
+完整說明見[根 README 的 SessionStart hook 段](../../README.md#sessionstart-hook自動執行揭露)。
 
 ### 更新
 
@@ -122,6 +139,45 @@ flowchart TD
 - 模型必須以 Agent tool 的結構化 `model` 參數傳入；只在 prompt 寫「請使用 Sonnet」不算（CI 的 `agent-model` job 會 block）。
 - 沒有根因確認就不進修正（鐵律）；`--verify-only` 不改程式碼，預設 `model: sonnet`。
 
+---
+
+## 斷點保險：中斷了也接得回來
+
+長時間的調查與修復很容易被打斷 —— crash、關機、隔天重開。CREW 的保險是
+`.spec/{slug}/state.json`，目標是**最多損失一個工作單元**。
+
+```
+.spec/{slug}/state.json      # 流程狀態唯一權威，唯一寫者 scripts/crew-state.py
+```
+
+bug 型任務若沒有 `.spec/` 目錄，會建輕量目錄只放這一個檔（slug 取當前 branch 去掉
+`fix/`、`hotfix/` 等前綴）。
+
+**一個工作單元是什麼**：`bug-investigate` 是「一個假說的驗證結果」（確認或否定都算完成），
+`bug-fix` 是「一個修復步驟」—— 根因確認、程式碼修改、迴歸測試各算一個。
+
+**進度即寫。** 每完成一個單元就立刻寫，不准等做完一批再補 —— 中斷不挑時間，事後補寫等於沒有保險。
+
+| 要記的東西 | 去處 |
+|-----------|------|
+| ⚠️ 歧義點與風險 | `work_unit.ambiguities`（`/plan-next` 會印在接手簡報最前面） |
+| 已完成（附證據） | `work_unit.evidence` ＋ `steps[].commit` |
+| 進行中／未完成 | `work_unit.remaining` |
+| 接手前要準備 | `resume_hint`（branch、要啟動的服務、先讀哪些檔） |
+
+**結案不刪除。** 舊版的 `handoff.md` 是純過程性檔案、結案即刪；`state.json` 結案後要保留
+並入版控 —— `/plan-deploy-confirm` 事後要靠它查「這個任務的 SQL 到底跑了沒」。
+
+> 🔴 不要手寫這個 JSON。欄位拼錯不會當場報錯，會在幾天後 `/plan-next` 判位錯誤時才爆；
+> 而且 Agent Teams 多成員同時寫會寫壞檔案（script 有 `flock` 加鎖與原子寫入，手寫沒有）。
+>
+> 完整紀律見共用 reference [`state-discipline.md`](references/state-discipline.md)。
+
+遺失或損壞時跑 `crew-state.py rebuild --slug {slug}`，它會從 git 與檔案系統重建，
+並把 `inferred` 標為 `true` 提醒你人工核對一次。
+
+---
+
 ## 使用範例
 
 ### 調查 Bug（主入口）
@@ -170,7 +226,7 @@ flowchart TD
 
 ```bash
 /crew-init                 # 一鍵首次設定（4 階段含偵測跳過、--resume 中斷續跑）
-/crew-doctor               # 環境健診 18 項（紅/黃/綠/選配）
+/crew-doctor               # 環境健診 20 項（紅/黃/綠/選配）
 /crew-doctor --quick       # 只跑紅燈必要項目
 /crew-doctor --fix         # 健診同時自動修可修項
 /crew-upgrade              # 檢查並更新所有 CREW plugins

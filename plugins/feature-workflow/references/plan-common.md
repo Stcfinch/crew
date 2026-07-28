@@ -1,20 +1,121 @@
 # plan-* 共用邏輯
 
-所有 `plan-spec`、`plan-db`、`plan-arch` 共用以下邏輯。
+`/plan-start` 與 `/plan`（spec／db／arch 三個 pass）等 `plan-*` skill 共用以下邏輯。
+
+`.spec/{slug}/` 只有三種產物：
+
+| 產物 | 角色 |
+|------|------|
+| `plan.md` | 給人與 LLM 讀的**唯一文件**（≤100 行） |
+| `state.json` | 機器可讀的流程狀態，**唯一權威**，單一寫者 `crew-state.py` |
+| `deploy.sql` | **唯一 SQL 事實來源**，給 DBA 執行（含 rollback 註解段） |
+
+> **設計靈魂**：文件只寫**程式碼裡看不到的東西** —— 需求、決策與理由、被否決的方案、驗收條件、已知取捨。
+> 「是什麼」（欄位清單、方法簽章、類別清單、DDL、檔案清單）一律用錨點指過去，**不抄寫**。
+
+---
+
+## plan.md 章節契約
+
+### 骨架（由 `/plan-start` 用 Write 建立一次）
+
+```markdown
+---
+slug: {slug}
+name: {任務名稱}
+type: feature
+verified_at_commit:
+verified_at:
+drift_policy: normal
+---
+
+# {任務名稱}
+
+## 目標與範圍        <!-- crew:goal owner=spec -->
+
+## 驗收條件          <!-- crew:ac   owner=spec -->
+
+## 決策紀錄          <!-- crew:dec  append-only -->
+
+## 已知取捨與風險    <!-- crew:risk append-only -->
+
+## 指路              <!-- crew:map  append-only -->
+
+## 檢查報告摘要      <!-- crew:rep  append-only -->
+```
+
+frontmatter 只留**身分**與**漂移**兩類欄位：`slug` / `name` / `type`（`feature` | `bug`）／
+`verified_at_commit` / `verified_at` / `drift_policy`（`strict` | `normal` | `off`，預設 `normal`）。
+
+- 流程階段、分支、Notion 頁面 ID 等**一律在 `state.json`**，由 `crew-state.py` 讀寫；任何 skill 都不得把這些欄位手寫進 plan.md frontmatter。
+- `verified_at_commit` / `verified_at` 建立時留空，**只有** `/plan-drift` 與 `/plan-close` 在漂移檢查通過後寫入。
+
+### 各節可以寫什麼
+
+| 章節（錨點） | owner | 可以寫 | 禁止寫 | 上限 |
+|---|---|---|---|---|
+| 目標與範圍 `crew:goal` | spec | 為何做、In Scope／Out of Scope | API 表、欄位清單、類別名 | 12 行 |
+| 驗收條件 `crew:ac` | spec | `- [ ] AC-1 {可機器驗證的一句話}` | 實作步驟、selector | 15 行 |
+| 決策紀錄 `crew:dec` | 全階段 | `- D-n [階段] 決策｜理由｜被否決方案＋否決理由` | DDL、方法簽章、Mermaid | 30 行 |
+| 已知取捨與風險 `crew:risk` | 全階段 | 明知的技術債、邊界外情境 | 已修掉的問題 | 8 行 |
+| 指路 `crew:map` | 全階段 | 錨點（見下方「錨點語法」） | 把指到的內容抄一份 | 10 行 |
+| 檢查報告摘要 `crew:rep` | review／security／verify | `- [日期] {類型} {結論}｜🔴n 🟡n` | 逐條發現 | 6 行 |
+
+全檔目標 **≤100 行**（典型 70–85 行）。逼近上限時**壓縮既有條目或 supersede**，不要另開檔案。
+
+### 寫入紀律（四層防覆蓋，所有 skill 與 agent 都必須遵守）
+
+**前提**：骨架由 `/plan-start` 用 Write 建立**一次**，之後**一律用 Edit 對錨點註解插入**。
+🔴 嚴禁用 Write 整檔改寫、嚴禁把整個章節當 `old_string` 取代 —— 那會靜默吃掉同節其他階段寫的條目。
+
+1. **一節一 owner** —— 只有「目標與範圍」「驗收條件」可被改寫，且只有 spec pass 能碰。
+2. **共享節 append-only、以條目為單位** —— dec／risk／map／rep 四節只准新增條目。插入點固定是**該節錨點註解那一整行**（全檔唯一），`new_string` = 原行 ＋ 換行 ＋ 新條目：
+
+   ```text
+   old_string:  ## 決策紀錄          <!-- crew:dec  append-only -->
+   new_string:  ## 決策紀錄          <!-- crew:dec  append-only -->
+                - D-4 [db] 鎖定計數存 Redis｜理由：多節點需共享計數｜否決：in-memory（會漏算）
+   ```
+
+   工具層面因此沒有「取代整段」這個動作，新條目排在該節最前面（最新在上）。
+3. **改變主意用 supersede，不刪舊條目** —— `- D-7 [arch] 取代 D-3：…（原因：…）`。決策史正是這份文件唯一不會過期的價值。
+4. **每條自帶 `[階段]` tag** —— `[spec]` `[db]` `[arch]` `[build]` `[security]` `[verify]` `[review]` `[close]`，後階段一眼看出不是自己寫的。
+
+`AC-n` 與 `D-n` 是 plan.md ↔ state.json 的 join key：**全檔遞增、不重用、不重編號**。
+
+### 錨點語法
+
+正規形 `@code:<relpath>[#<symbol>]` 與 `@sql:deploy.sql#<table>`：
+
+```text
+- D-5 [arch] 鎖定計數改走 Redis｜理由：多節點 in-memory 會漏算｜否決：本機快取
+  → `@code:src/main/java/com/x/service/LoginAttemptService.java#recordFailure` (L88)
+- 表結構見 `@sql:deploy.sql#login_attempt`
+```
+
+- 預設用 **T2（路徑＋符號）**；只有整檔級別的指路才用 T1（僅路徑）。
+- **`(L88)` 刻意放在 token 外面** —— 行號只是給人看的提示，`check-spec-drift.py` 只回報新行號、不會 FAIL。符號名在寫程式當下就在上下文，不需要算行號。
+- 極少數關鍵不變量可用 T3：`@code:<path>#<symbol>@sha1:ab12cd`（內容指紋，僅 WARN）。
+- 逃生閥：行內 `<!-- drift-ignore: D2 reason=已改用新介面 -->`（`reason` 必填）；整份關閉用 frontmatter `drift_policy: off`。
 
 ---
 
 ## 定位活躍任務
 
-按優先順序匹配：
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" list --format json
+```
 
-1. 從 Git branch 匹配：讀取 `.spec/_index.md`，找「分支」欄位與當前 `git branch --show-current` 匹配的任務
-2. 若匹配到的任務 status 為 `暫停` → 提示「此任務已暫停，是否恢復？[Y/n]」，確認後執行 unpark 流程（見 `/plan-status --unpark`）再繼續
-3. 若只有一個進行中任務 → 自動選定
-4. 若多個進行中 → 列出供選擇
-5. 若無進行中 → 提示先執行 `/plan-start`
+1. 指令帶 slug → 直接用
+2. `git branch --show-current` 對得上某任務的分支或 slug → 自動選定
+3. 只有一個未結案任務 → 自動選定
+4. 多個未結案 → 列出讓使用者選（**不得自行挑一個**）
+5. 清單為空 → 提示先執行 `/plan-start`
+6. 選定的任務 `parked` 非 null → 先問是否 `/plan-status --unpark <slug>`，確認後才繼續
 
-選定後讀取 `.spec/{slug}/README.md`，取得 `type`、`name`、`status`、`tech_stack` 等元資訊。
+選定後讀 `.spec/{slug}/plan.md` 取得 `name`、`type` 與既有章節內容。
+**流程位置一律以 `state.json` 為準**，不要用「哪些檔案存在」反推階段。
+`list` 讀不到任務 → `crew-state.py rebuild --slug <slug>` 自我修復（結果會標 `inferred`）。
 
 ---
 
@@ -26,7 +127,9 @@
 
 ### 技術棧資訊
 
-從 `.spec/{slug}/README.md` 的 `tech_stack` 欄位取得技術棧 ID，依 `references/config-resolver.md` 的第 3 層載入邏輯讀取對應定義：
+技術棧 ID 從設定目錄的 `projects/{sanitized-repo-id}.md` 的 `stack` 欄位取得（**不在 plan.md 另存一份副本**），
+再依 plugin 根目錄 `references/config-resolver.md` 的第 3 層載入邏輯讀取定義：
+
 - 內建技術棧 → `stacks/_builtin.md`
 - 自訂技術棧 → `stacks/{id}.md`
 
@@ -37,73 +140,27 @@
 ### 規範檔案
 
 讀取可用的規範檔案：
+
 - `~/.claude/rules/database.md`（DB 設計時）
 - `~/.claude/rules/design-patterns.md`（架構設計時）
 - `~/.claude/rules/java-performance.md`（效能相關）
 
 ---
 
----
-
-## 一致性驗證（自動）
-
-每個 Skill 完成後，**自動**執行交叉比對，使用者無需手動觸發。
-
-### 檢查項目
-
-| 檢查項目 | 比對來源 | 具體檢查 |
-|---------|---------|---------|
-| API-DB 一致性 | spec.md ↔ db.md | spec 中每個 API 的請求/回應欄位，db.md 是否有對應表欄位 |
-| DB-Arch 一致性 | db.md ↔ arch.md | db.md 的每個表，arch.md 是否有對應 POJO 和 Mapper |
-| API-Arch 一致性 | spec.md ↔ arch.md | spec 的每個 API 端點，arch.md 是否有對應 Controller 方法 |
-| 判斷區塊完整性 | spec.md | FRONTEND_REQUIRED / DB_REQUIRED 是否為 true/false |
-| DB_TABLES 對應 | spec.md ↔ db.md | 判斷區塊的 DB_TABLES 是否與 db.md 表清單一致 |
-
-> **觸發條件**：僅在比對的兩端檔案都存在時才執行該項檢查。例如執行 `/plan-spec` 時，因 db.md 和 arch.md 不存在，僅檢查「判斷區塊完整性」。
-
-### 分類
-
-- 🔴 **不一致**：文件間矛盾（如 spec 定義的 API 欄位在 db.md 找不到對應表欄位）
-- 🟡 **遺漏**：缺少預期內容（如 db.md 有表但缺少索引建議）
-- 🟢 **良好**：交叉比對通過
-
-### 自動修復流程
-
-發現問題時：
-1. 顯示「發現 N 個不一致，修復中...（第 1/2 輪）」
-2. 備份受影響的文件（`{file}.bak`）
-3. 直接修改受影響的文件，補齊遺漏或修正矛盾
-4. 重新執行檢查（最多 **2 輪**）
-5. 2 輪後仍有問題 → 列出剩餘摘要，**不阻擋流程**
-
----
-
-## 更新日誌
-
-每次規劃完成，在 `.spec/{slug}/log.md` 追加一筆紀錄：
-
-```markdown
-### [{日期}] {Skill 名稱}完成
-- 產出檔案：{檔案路徑}
-- 摘要：{一句話描述}
-```
-
-若 `log.md` 不存在則建立。
-
----
-
 ## 共用 Gotchas
 
-- **spec.md「判斷」區塊格式是 plan-build 的入口**：`FRONTEND_REQUIRED` 和 `DB_REQUIRED` 的值直接決定 plan-build 的團隊組成。格式錯誤（如用中文「是/否」而非 `true/false`）會 fallback 到預設值。
+- **`D-1 [spec] 範圍判斷` 條目是 plan-build 的入口**：`FRONTEND_REQUIRED` 和 `DB_REQUIRED` 的值直接決定 plan-build 的團隊組成。格式錯誤（如用中文「是/否」而非 `true/false`）會 fallback 到預設值。它是決策紀錄的第一條，**不可刪除**；要改判斷用 supersede（`D-n [階段] 取代 D-1：…`）。
 - **Agent subagent 的 model 參數**：prompt 中寫「使用 Opus 模型」只是自然語言指示，不保證生效。必須在 Agent tool 的 `model` 參數實際設定 `"opus"`。**哪個角色該用哪個模型、以及探索／實作如何拆分，一律以共用 reference `model-policy.md` 為準**（本檔不重複那份政策）。
-- **重新執行覆蓋已有檔案**：覆蓋前會備份到 `{file}.bak`，但 `.bak` 只保留一份。
+- **plan.md 沒有 `.bak` 回退**：舊流程「覆蓋前備份 `{file}.bak`」已不適用 —— plan.md 只能增量 Edit，寫壞了要靠 `git diff` 或 `git checkout` 回退，不是靠備份檔。
+- **重跑某個 pass 不等於重寫該節**：重跑時先讀既有條目，只補新的或用 supersede 修正；把同一件事再寫一條新的 `D-n` 是可接受的，把舊條目刪掉不是。
+- **`.spec/` 預設在 `.gitignore` 內**：要進版控由 `/plan-close` 以 `git add -f` 處理，其他 skill 不要擅自改 `.gitignore` 規則。
 
 ## 共用邊界情況
 
 - **`.spec/` 目錄不存在**：提示先執行 `/plan-start`
-- **找不到活躍任務**：提示先執行 `/plan-start` 或檢查 `_index.md`
-- **前置檔案不存在**：提示建議先執行前置步驟，但不強制阻擋
-- **重新執行同一 Skill**：覆蓋已有檔案（先備份舊版到 `{file}.bak`）
+- **找不到活躍任務**：提示先執行 `/plan-start`，或用 `/plan-status` 確認任務清單
+- **`state.json` 缺失或壞掉**：跑 `crew-state.py rebuild --slug <slug>`，並在回報中標「狀態為推測」
+- **前置階段未完成**：提示建議先執行的指令，但不強制阻擋（`crew-state.py next` 會給出正解）
 
 ---
 
@@ -112,6 +169,7 @@
 ### 使用場景
 
 所有需要呼叫 `post-page` 建立 Notion 頁面的 Skill 都需要此解析：
+
 - plan-start（建立任務頁面）
 - plan-sync（補建 Notion 條目）
 - plan-close（同步到知識庫：功能設計庫 / Bug 知識庫）
@@ -132,110 +190,6 @@
 
 - `retrieve-a-data-source` 失敗 → 嘗試直接用 Data Source ID 作為 database_id（向下相容）
 - 回傳結果中無 `parent.database_id` 欄位 → 同上
-
----
-
-## 本地檔案 ↔ Notion 區塊對應表
-
-供 `/plan-close`、`/plan-sync` 共用，決定 `.spec/{slug}/` 下每個本地檔案要寫入頁面的哪個 Notion 區塊。
-
-**Feature 類型**：
-
-| 檔案 | Notion 區塊 |
-|------|------------|
-| spec.md | 📐 技術規格 |
-| db.md | 🗄️ 資料庫設計 |
-| arch.md | 🏗️ 架構設計 |
-| deploy-checklist.md | 🚀 上線前置作業 |
-| deploy.sql | 🗄️ 資料庫設計 → 「部署 SQL」子區塊 |
-| files.md | 📁 程式碼清單 |
-| review.md | 📋 程式碼審查（插入於「📝 開發日誌」前） |
-| verify.md | 🧪 驗證報告（插入於「📋 程式碼審查」後、「📝 開發日誌」前） |
-| log.md | 📝 開發日誌（附加） |
-| handoff.md | （不同步 —— 斷點交接檔，結案時刪除，見 `handoff-discipline.md`） |
-
-**Bug 類型**：
-
-| 檔案 | Notion 區塊 |
-|------|------------|
-| investigation.md | 🔍 調查過程 |
-| root-cause.md | 🧠 根因分析 |
-| fix.md | ✅ 修復方案 |
-| log.md | 📝 經驗教訓（附加） |
-| handoff.md | （不同步 —— 斷點交接檔，結案時刪除，見 `handoff-discipline.md`） |
-
-> 使用差異各 Skill 自行說明：`/plan-close` 是批次同步「所有」存在的檔案（另需初始化「🚀 部署狀態」追蹤區塊，見該 skill 5-2a）；`/plan-sync` 只同步使用者選定的項目，且不建立「🚀 部署狀態」區塊。
-
----
-
-## deploy-checklist.md 格式規範
-
-### 檔案路徑
-
-`.spec/{slug}/deploy-checklist.md`
-
-### 檔案結構
-
-```markdown
----
-slug: {slug}
-created: {YYYY-MM-DD}
-last_synced: {最後一次同步到 Notion 的時間，初始為空}
-notion_block_id: {🚀 區塊的 block ID，首次同步後回填}
----
-
-# 上線前置作業
-
-## SQL 遷移
-
-- [ ] `CREATE TABLE {table_name}` — {說明}
-- [ ] `CREATE INDEX {index_name} ON {table_name}` — {說明}
-
-## 設定檔變更
-
-- [ ] `{檔案路徑}` — {變更說明}
-
-## 其他前置作業
-
-（使用者手動新增）
-```
-
-### 生命週期
-
-| 階段 | 動作 | 觸發者 |
-|------|------|--------|
-| plan-db 完成 | 建立檔案，填入 SQL 遷移項目 | plan-db 自動 |
-| plan-build 完成 | 追加設定檔變更項目（若有偵測到） | plan-build 自動 |
-| 開發中 | 使用者手動勾選已完成的項目 | 使用者 |
-| plan-sync | 同步到 Notion 🚀 區塊 | 使用者手動觸發 |
-| plan-close | 讀取並檢查所有 checkbox 狀態 + 同步 Notion | plan-close 自動 |
-
-### SQL 擷取規則
-
-從 `.spec/{slug}/db.sql` 中擷取以下 DDL/DML：
-
-| SQL 類型 | 擷取內容 |
-|---------|---------|
-| CREATE TABLE | 表名 |
-| ALTER TABLE | 表名 + 操作類型 |
-| CREATE INDEX | 索引名 + 表名 |
-| INSERT INTO | 表名（初始資料） |
-| DROP TABLE | 表名（高風險標記 ⚠️） |
-
-### 設定檔偵測模式
-
-| 模式 | 說明 |
-|------|------|
-| `**/mapper/**/*.xml` | MyBatis Mapper XML |
-| `**/web.xml` | Web 應用設定 |
-| `**/application.properties` | Spring Boot 設定 |
-| `**/application*.yml` | Spring Boot YAML 設定 |
-| `**/pom.xml` | Maven 依賴 |
-| `**/build.gradle` | Gradle 依賴 |
-| `**/Dockerfile` | Docker 映像 |
-| `**/docker-compose*.yml` | Docker Compose |
-| `**/*nginx*.conf` | Nginx 設定 |
-| `**/logback*.xml` | Log 設定 |
 
 ---
 

@@ -1,7 +1,9 @@
 # Agent Team Review Prompt 模板
 
 > 此檔案由 plan-review 步驟 5「完整審查（Agent Teams）」按需載入。
-> 模板中的 `{slug}` `{檔案清單}` 需替換為實際值。
+> 模板中的 `{slug}` 需替換為實際值。
+> `{檔案清單}` 一律由 `git diff --name-only <base>...HEAD` 取得（三點語法自動以 merge-base 為起點；`<base>` 讀 `.spec/{slug}/state.json` 的 `git.base`，缺值時用專案正式分支）——
+> **審查範圍以 git 為唯一事實來源**，不再讀任何「本次改了哪些檔」的清單檔（那種清單一寫下去就開始漂移）。
 
 ## 模型配置（硬性）
 
@@ -25,10 +27,10 @@ Code Review 分工，spawn 3 個 Reviewer（每個一次 Agent tool 呼叫，帶
 
 【Reviewer 1：邏輯正確性】Logic Reviewer
 - 讀取專案 CLAUDE.md 了解架構慣例
-- 讀取設計文件：
-  * .spec/{slug}/spec.md（技術規格）
-  * .spec/{slug}/arch.md（架構設計）
-- 若 .spec/{slug}/verify.md 存在：
+- 讀取 .spec/{slug}/plan.md：目標與範圍、驗收條件（`AC-n`）、決策紀錄（`[spec]`／`[arch]` 條目）、已知取捨與風險
+  * 指路節的 `@code:` 錨點指到哪，就 Read 哪個檔案的哪個符號
+  * 「已知取捨與風險」列出的技術債**不算發現**，不要重複回報
+- 若 .spec/{slug}/.cache/verify.md 存在：
   * 讀取驗證結果，關注 ❌ FAIL 項目
   * 檢查失敗原因是否對應到程式碼問題
   * 審查報告中引用驗證結果作為佐證
@@ -62,7 +64,8 @@ Code Review 分工，spawn 3 個 Reviewer（每個一次 Agent tool 呼叫，帶
 
 【Reviewer 3：效能審查】Performance Reviewer
 - 讀取專案 CLAUDE.md 了解效能相關配置
-- 讀取 .spec/{slug}/db.md 了解 DB 設計
+- 讀取 .spec/{slug}/deploy.sql 了解表結構與索引（唯一 SQL 事實來源），
+  並讀 .spec/{slug}/plan.md 的 `[db]` 決策條目了解索引／正規化的取捨理由
 - 讀取本次新增/修改的所有程式碼檔案：
   {檔案清單}
 - 效能檢查：

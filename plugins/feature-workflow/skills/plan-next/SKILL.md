@@ -1,163 +1,62 @@
 ---
 name: plan-next
-description: 智慧推薦 CREW 當前任務下一步 —— 讀 .spec/{slug}/ 檔案、Git 狀態、verify.md 判斷流程位置並建議下一個 /plan-* 或 /bug-* 指令。當使用者提到 /plan-next、「CREW 下一步指令」、「這個 spec 接下來做什麼」時觸發此 Skill。
+description: 智慧推薦 CREW 當前任務下一步 —— 呼叫 crew-state.py 讀 state.json 算出下一個 /plan-* 指令並轉成人話。當使用者提到 /plan-next、「CREW 下一步指令」、「這個 spec 接下來做什麼」時觸發此 Skill。
 argument-hint: "[<slug>] [--all]"
 ---
 
 # plan-next — 智慧推薦下一步
 
-讀取當前任務 `.spec/{slug}/` 的既有檔案、Git 狀態、verify.md 結果，
-判斷流程目前在哪一步，並建議下一個指令與理由。
-
-省去使用者記得「plan-start → spec → db → arch → build → security → verify → review → close」
-完整 9 步流程的負擔，特別適合新使用者或久未碰專案的回鍋。
-
----
-
-## 紀律護欄
+流程位置由 `state.json`（唯一權威）決定。**本 skill 不自行推理流程**：呼叫 `crew-state.py` 拿結構化答案，只負責轉成人話並附環境提醒。
 
 > 紀律護欄：`../../references/discipline-preamble.md`（通用紀律）＋ `../../references/anti-rationalizations.md`「plan-next 專用」＋ `../../references/boundaries.md`「plan-next」段。
 
----
+> **v1 舊任務**：`.spec/{slug}/plan.md` 不存在 → 這是 v1 結構（無 `state.json`），依
+> `../../references/legacy-v1.md` 的相容模式判位並提示一次。
+> 過渡期限定，到期本段連同該檔一併刪除。
 
 ## 使用方式
 
-```
-/plan-next               # 推薦當前活躍任務的下一步
-/plan-next <slug>        # 明確指定任務 slug
-/plan-next --all         # 列出所有活躍任務 + 各自下一步
-```
-
----
+`/plan-next`（當前活躍任務）｜`/plan-next <slug>`（指定任務）｜`/plan-next --all`（所有活躍任務）
 
 ## 流程
 
-### 1. 定位活躍任務
+### 1. 定位任務
 
-與 `/plan` 相同邏輯：
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" list --format json
+```
 
-1. Git branch 匹配 → 自動選定
-2. 多個活躍任務 → 列出選擇
-3. 無活躍任務 → 推薦 `/plan-start <任務名>`
+帶 `<slug>` → 直接用。否則：`git branch --show-current` 對上某任務 slug → 自動選定；只有一個未結案任務 → 自動選定；多個 → 列出讓使用者選（**不得自行挑一個**）；空清單 → 提示 `/plan-start <任務名>`。`parked` 非 null 的任務先問是否 `/plan-status --unpark <slug>`。
 
-### 2. 掃描 `.spec/{slug}/` 既有檔案
+### 2. 取得下一步
 
-依序檢查：
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" next --slug <slug> --format json
+```
 
-| 檔案 | 代表意義 |
-|------|---------|
-| `README.md` | plan-start 完成 |
-| `spec.md` | plan-spec 完成（含「判斷」區塊） |
-| `db.md` | plan-db 完成 |
-| `db.sql` / `deploy.sql` | DB 設計含 SQL 產物 |
-| `arch.md` | plan-arch 完成 |
-| `files.md` | plan-build 完成 |
-| `verify.md` | plan-verify 完成（解析狀態） |
-| `review.md` | plan-review 完成 |
-| `security.md` | plan-security 完成 |
-| `handoff.md` | 存在進行中的斷點交接（**優先讀取**，見下方『讀取 handoff.md』一節） |
+回傳的 `command` 與 `reason` 就是答案，照實轉述，**不得改寫或另給建議**。`command` 為 `null`（例：已結案）→ 不推薦任何指令，只轉述 `reason`。exit 1（查無任務／參數錯）→ 見 Gotchas；其他非 0 exit（例：取不到檔案鎖）→ 照 script 訊息明說「讀不到狀態」，**不要猜流程位置**。`--all` 直接用步驟 1 結果（每筆已含 `next`），不必逐一再呼叫。
+接手中斷任務時，若 `.spec/<slug>/state.json` 的 `work_unit.ambiguities` 非空，把那些歧義點列在建議**之前**（中斷前留下的未決問題，先看再動手）。
 
-### 3. 解析 verify.md 狀態（若存在）
+### 3. 順帶提醒（獨立於主建議，最多 3 行）
 
-讀取 `verify.md` 的「## 摘要」或「## 統計」段落：
-
-- 「全部 PASS」「✅ 全部通過」→ 視為 PASS
-- 含 `❌ FAIL` 項目 → 視為 FAIL
-- 含 `⚠️ WARN` 項目（無 FAIL）→ 視為 WARN
-
-### 4. 讀取 handoff.md（若存在）
-
-`handoff.md` 是斷點交接檔（格式與紀律見 `../../references/handoff-discipline.md`），
-存在代表上一個 session 在某個 skill 執行中途中斷。讀取後：
-
-1. **產生接手簡報**（置於推薦輸出之前）：
-   - 目標：任務在做什麼（取自 handoff 頁首與 README.md）
-   - 階段進度：中斷在哪個 skill、第幾個工作單元（如 `plan-build（3/7 檔案）`）
-   - 歧義點：照抄 handoff「⚠ 歧義點與風險」段
-   - 下一步：續跑中斷的 skill（含未完成單元清單）
-2. **新鮮度交叉驗證**：handoff 宣稱的完成項要與檔案實況逐一比對
-   （例：handoff 說 plan-build 完成 7 檔 → 實際檢查那些檔案是否存在、與 files.md 是否一致）。
-   不一致時**以檔案實況為準**，並在簡報中標注「handoff 已過期，以下為實況修正」。
-
-驗證通過的 handoff 進度可作為『推薦邏輯』的補充輸入（優先建議續跑中斷的 skill）；
-handoff 不存在時跳過本節，照原決策表推薦。
-
-### 5. 推薦邏輯
-
-按以下決策表推薦下一步（**第一個匹配的規則勝出**）：
-
-| 條件 | 推薦 | 理由 |
-|------|------|------|
-| 無 `.spec/{slug}/` | `/plan-start <任務名>` | 還沒開始 |
-| README.md 但無 spec.md | `/plan-spec` | 需先產出技術規格 |
-| spec.md 但無 db.md（且 spec 判斷區塊 DB_REQUIRED ≠ false） | `/plan-db` | DB 設計缺 |
-| spec.md 但無 db.md（DB_REQUIRED = false） | `/plan-arch` | 不需 DB，跳過 |
-| db.md 但無 arch.md | `/plan-arch` | 架構設計缺 |
-| arch.md 但無 files.md | `/plan-build` | 可以開始產 code |
-| verify.md = FAIL | `/plan-build`（修正） or `/plan-verify --recheck` | 有失敗項目要優先處理，即使 security.md 缺失也不應被下列缺檔判斷蓋過 |
-| verify.md = WARN | `/plan-verify --recheck` 或 `/plan-review` | WARN 可選擇處理或繼續 |
-| verify.md = PASS 但無 review.md | `/plan-review` | 程式碼審查缺 |
-| files.md 但無 security.md | `/plan-security` | 安全掃描缺 |
-| security.md 但無 verify.md | `/plan-verify` | 驗收驗證缺 |
-| review.md 有 🔴 嚴重發現 | `/plan-build`（依審查修正） | 審查發現嚴重問題 |
-| review.md 通過 | `/plan-close` | 全部完成可結案 |
-| 已 `/plan-close` 完成 | 無建議（任務結束） | — |
-
-### 6. 額外檢查（補強建議）
-
-獨立於主決策，這些情況附加為「順帶建議」：
-
-| 條件 | 順帶建議 |
-|------|---------|
-| 當前 branch ≠ README.md 中記錄的開發分支 | 提示切換分支 `git checkout <branch>` |
+| 條件 | 提醒 |
+|------|------|
+| `inferred` 為 `true`（狀態由 `rebuild` 推測而來） | ⚠️ 狀態為推測，請確認後再繼續 |
+| 當前 branch ≠ 任務分支（唯讀取 `.spec/<slug>/state.json` 的 `resume_hint.branch`，非 null 才比） | 提示 `git checkout <branch>` |
 | CLAUDE.md 不存在 | 提示 `/init` |
 | 專案未在 `projects/` 註冊 | 提示 `/project-add` |
-| `.spec/{slug}/deploy-checklist.md` 存在且有未勾選項目 | 提示「上線前確認部署清單」 |
 
-### 7. 輸出格式
+### 4. 輸出格式
 
-```
-📋 任務：{slug}（{name}）
-🌿 分支：{branch}
-📂 進度：spec ✅  db ✅  arch ✅  build ⏳ ...
-
-══════════════════════════════════════════
-💡 下一步建議
-
-  /plan-build
-
-理由：arch.md 已產出，可進入 Agent Teams 程式碼產生階段。
-══════════════════════════════════════════
-
-📌 順帶提醒（如有）：
-  • 部署清單 deploy-checklist.md 有 2 個未勾選項目
-```
-
-`--all` 模式：列出所有活躍任務各自的「下一步建議」摘要，不顯示順帶提醒。
-
----
+一行標頭（`{name}（{slug}）｜🌿 {branch}｜📂 階段：{phase}`；`list` 沒有 branch 欄位，`{branch}` 取步驟 3 讀到的 `resume_hint.branch`，為 null 就整段省略）＋ `💡 下一步：{command}` ＋ `理由：{reason}` ＋ 順帶提醒（如有）。
+`--all` 模式每任務一行 `{slug}（{phase}｜停滯 N 天）→ {command}`，不顯示順帶提醒。
 
 ## 何時不用
 
-- 一般對話「接下來呢」→ 非 skill，直接回答
-- 看任務清單 → /plan-status
-- 瀏覽規劃內容 → /plan-browse
-
----
+一般對話「接下來呢」→ 直接回答｜任務清單 → /plan-status｜規劃內容 → /plan-browse｜文件與程式碼是否同步 → /plan-drift
 
 ## Gotchas
 
-- **`.spec/{slug}/README.md` 缺失**：若 `.spec/{slug}/handoff.md` 存在 → 優先走『讀取 handoff.md』節接手，不適用本條（bug 型輕量交接目錄本來就只有 handoff.md）。否則視為 plan-start 未完成；`/plan-start` 無 `--resume` 旗標，應提示使用者確認該目錄狀態後，重新執行 `/plan-start <同任務簡述>`（若 slug 衝突，plan-start 會加數字後綴或詢問，需留意可能產生重複目錄）
-- **verify.md 解析失敗**：若摘要段落格式變動 → 退回「verify.md 存在但狀態不明」處理，推薦 `/plan-review`
-- **多階段並進**：使用者可能跳過某步（如 DB_REQUIRED=false 跳 plan-db），按決策表第一匹配規則處理即可，不視為缺失
-- **bug 類型任務**：本 skill 主要服務 feature 任務；bug 流程的下一步建議由 `/bug-investigate` / `/bug-fix` 內建邏輯處理，不在本 skill 範圍。例外：若 `.spec/{slug}/handoff.md` 存在（bug skill 中斷留下的斷點交接）→ 優先走『讀取 handoff.md』節接手，不適用本條
-- **任務已 close**：若 `_index.md` 中該任務列於「已完成」區段（`/plan-close` 的『更新 _index.md 與 README.md status』一節會將任務從「進行中」移至此區段）→ 不推薦任何指令，提示「任務已結案，可用 /plan-start 開新任務」
-
----
-
-## 邊界情況
-
-- **無 `.spec/` 目錄**：提示 `/plan-start` 開新任務
-- **`_index.md` 不存在但 `.spec/{slug}/` 存在**：跳過 index 直接掃 `.spec/*/`，列出可選任務
-- **使用者明確 `/plan-next <slug>`**：略過 Git branch 匹配，直接用 slug
-- **同時有 verify.md FAIL + review.md PASS**：以 verify.md FAIL 為準（先解決失敗驗收），review 結果保留
+- **狀態檔缺失或 exit 1**：不要退回「猜哪些檔案存在」。先跑 `crew-state.py rebuild --slug <slug>` 自我修復（結果會標 `inferred`），仍失敗才提示確認目錄狀態後重跑 `/plan-start <同任務簡述>`。
+- **決策表不在本檔**：流程決策是 `crew-state.py next` 的 Python 實作。要改流程改那裡，**別在 SKILL.md 複製一份**（複製即漂移）。
+- **bug 型任務走同一套階段機**：`next` 的決策**不看 `type`**，bug 與 feature 拿到的都是 `/plan-*` 指令（實作見 `crew-state.py` 的 `_compute_next_rule`）。`/bug-investigate`／`/bug-fix` 不在 `next` 的回傳範圍；使用者做的是 bug 調查時照 script 建議轉述並補一句說明，**不要自行改推 `/bug-*`**。

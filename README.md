@@ -36,6 +36,140 @@ claude plugin install feature-workflow
 
 ---
 
+## `.spec/` 長什麼樣，為什麼這樣設計
+
+一個任務只有三個檔：
+
+```
+.spec/{slug}/
+├── plan.md      唯一給人與 LLM 讀的文件（六章節，典型 50–80 行）
+├── state.json   流程狀態，機器讀的，唯一寫者是 crew-state.py
+└── deploy.sql   唯一 SQL 事實來源，給 DBA 執行
+```
+
+### 文件只寫程式碼裡看不到的東西
+
+`plan.md` 六個章節：**目標與範圍**、**驗收條件**、**決策紀錄**、**已知取捨與風險**、**指路**、**檢查報告摘要**。
+
+共同點是「翻程式碼翻不到」：為什麼要做、為什麼選 A 不選 B、當初知道但決定先不處理的坑。
+這些不會因為改一行程式就過期。
+
+反過來說，**欄位清單、方法簽章、類別清單、DDL、檔案清單一律不准寫進 `plan.md`**。
+這些東西程式碼才是事實，抄一份進文件只會得到兩個結果：Token 變貴，以及一份改天就變成謊話的抄本。
+要指涉它們就用錨點：
+
+```markdown
+- 鎖定計數改走 Redis（原因：多節點 in-memory 會漏算）
+  → `@code:src/main/java/.../LoginAttemptService.java#recordFailure` (L88)
+- 表結構見 `@sql:deploy.sql#login_attempt`
+```
+
+行號 `(L88)` 寫在錨點外面，是給人看的提示 —— 程式碼上下位移不算漂移。
+
+### 這樣做的代價
+
+錨點自己會失效：檔案改名、符號被刪、程式碼改了但決策沒更新。所以有三道防線：
+
+| 防線 | 做什麼 | 會不會擋你 |
+|------|--------|-----------|
+| `check-spec-drift.py` | 驗錨點是否還指得到東西（D1–D7 分級） | 不會，它只回報 |
+| `/plan-drift` | 機械型（改名、行號位移）自動修；語意型逐條問過你才改 | 不會 |
+| `/plan-close` 硬關卡 | 結案前擋在 `git add` 與 Notion 同步**之前** | **會** —— FAIL 擋，WARN 逐筆問過才放行 |
+
+硬關卡只設在結案這一刻，因為此時程式碼已穩定、誤殺最低；而錯過這一刻，漂移的文件會被
+原樣推進 Notion 知識庫長期腐爛 —— 把不可信的內容傳播出去，比不同步更糟。
+
+會 FAIL 的只有兩種情況：錨點指的**檔案真的不在**、**符號真的不在檔案裡**。
+其餘一律 WARN。這是刻意的 —— 誤報太多會讓人把檢查關掉，那比沒有檢查更糟。
+
+> 完整的設計理由與被否決的方案見 [ADR-006](docs/adr/006-anchors-over-transcription.md)。
+
+### 實測
+
+| 指標 | v4 | v5 |
+|------|-----|-----|
+| `.spec/` 純文字 | 1893–2385 行 | **186 行** |
+| 產出檔數 | 12–17 | **3** |
+| `/plan-next` 餵給模型 | 讀多個檔案，再讓模型讀 18 列決策表推理 | **85 bytes** 結構化答案 |
+| 漂移偵測 | 2 項單向抽查，WARN 不擋 | 錨點檢查 ＋ 結案硬關卡 |
+
+（`state.json` 111 行看起來不小，但它是機器讀的 —— `/plan-next` 拿到的是 script 算好的答案，不是 JSON 原文。）
+
+---
+
+## 從 v4 升級
+
+`bug-workflow@4.0.0` 與 `feature-workflow@5.0.0` 是 **major 版，含破壞性變更**。
+
+**手上的舊任務不會壞。** v1 任務（`.spec/{slug}/plan.md` 不存在）會自動走相容模式跑完，
+過渡期為**一個 minor 版或 90 天**。
+
+| 情況 | 怎麼做 |
+|------|--------|
+| 任務已跑到 build 之後，只差收尾 | **照舊跑完**（預設）。不建議中途換軌 —— 遷移搬得動結構、搬不動語意 |
+| 任務還在規劃早期，或打算長期維護這份文件 | `/plan-status --migrate <slug>` |
+
+`--migrate` 只做機械搬移：舊文件原封搬進 `archive/`（一個字不改）、`db.sql` 併入 `deploy.sql`、
+frontmatter 轉 `state.json`、`plan.md` 各章節留 `TODO(migrate)` 佔位由你補。
+
+**刻意不做自動語意轉換** —— 把 425 行的 `spec.md` 交給 LLM 壓成 80 行，壓縮不可驗證，
+而且會幻覺出當初根本沒討論過的決策，被後人當成史實。一份誠實的空白比一份看似完整的幻覺有用。
+
+跑 `/crew-doctor` 會告訴你當前專案有沒有 v1 舊任務。詳見
+[`legacy-v1.md`](plugins/feature-workflow/references/legacy-v1.md)。
+
+### 廢除與新增
+
+| 廢除 | 取代者 |
+|------|--------|
+| `/plan-spec`、`/plan-db`、`/plan-arch` | `/plan` 的三個 pass（仍可 `/plan spec\|db\|arch` 單跑） |
+| `spec.md`、`db.md`、`arch.md`、任務層 `README.md` | `plan.md` |
+| `db.sql`、`deploy-checklist.md` | `deploy.sql` ＋ `state.json` 的 `deploy` |
+| `files.md` | `git diff --name-only` |
+| `log.md`、`handoff.md`、`.spec/_index.md` | `state.json` |
+| `review.md`、`security.md` | 不落檔，摘要一行進 `plan.md` |
+| `verify.md` | `.cache/`（一次性暫存） |
+
+新增：`/plan-drift`（漂移檢查與修復）。
+
+---
+
+## SessionStart hook（自動執行揭露）
+
+**安裝 bug-workflow 或 feature-workflow 後，你的機器上會多一個自動執行的東西。** 這裡寫清楚它是什麼。
+
+兩個 plugin 各安裝一個 **SessionStart hook**。每次開啟 session（新開、`--resume`、`/clear`）時，
+Claude Code 會在**你的本機**執行一行指令：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" session-brief --cwd "${CLAUDE_PROJECT_DIR}"
+```
+
+| 問題 | 答案 |
+|------|------|
+| 它讀什麼 | 只讀**當前專案**目錄下的 `.spec/*/state.json`（CREW 自己產生的流程狀態檔） |
+| 它寫什麼 | 不寫任何專案檔案。只在系統暫存目錄寫一個 session marker，用來讓兩個 plugin 同裝時不重複輸出 |
+| 它送什麼到網路上 | **不外送任何資料。** 純本機 Python 標準函式庫，沒有任何網路呼叫 |
+| 它輸出什麼 | 未結案任務清單（最多 3 行）＋ 對應的 `/plan-next {slug}` 指令 |
+| 沒有 `.spec/` 或全部結案時 | **零輸出、exit 0**，不佔任何 token |
+| 它會不會擋住我 | 不會。任何錯誤都靜默 exit 0；內建 1 秒總體時限（讀 stdin 上限 0.2 秒），逾時就放棄。實測典型耗時約 80ms |
+| 原始碼在哪 | [`plugins/bug-workflow/scripts/crew-state.py`](plugins/bug-workflow/scripts/crew-state.py) 的 `session-brief` 子命令；hook 設定在各 plugin 的 `hooks/hooks.json` |
+
+輸出長這樣：
+
+```
+[CREW] 2 個未結案任務
+• push-tag-query（feature｜build 3/7｜停滯 6 天）→ /plan-next push-tag-query
+• sso-login-fix（bug｜fix 1/3｜停滯 21 天）→ /plan-next sso-login-fix
+```
+
+**不想要它**：`claude plugin disable bug-workflow`（與 `feature-workflow`）可整個關掉 plugin；
+或刪除已安裝目錄下的 `hooks/hooks.json` 後重啟 Claude Code，只關掉 hook、保留所有 Skill。
+
+> hook 變更不會熱載入。裝好或改動後要**重啟 Claude Code** 才生效。
+
+---
+
 ## 完整工作流
 
 從安裝到日常使用的完整流程：
@@ -65,7 +199,7 @@ flowchart TD
     subgraph Phase2["🚀 Phase 2：日常使用"]
         direction TB
         bugFlow["/bug-investigate → /bug-fix → /bug-close"]
-        planFlow["/plan-start → /plan-spec → /plan-db → /plan-arch<br/>→ /plan-build → /plan-security → /plan-verify → /plan-review → /plan-close"]
+        planFlow["/plan-start → /plan<br/>→ /plan-build → /plan-security → /plan-verify → /plan-review → /plan-close"]
     end
 
     Phase0 --> Phase1 --> Phase2
@@ -119,7 +253,7 @@ flowchart TD
 | `/bug-update reopen <Bug>` | 重新開啟已結案 Bug |
 | `/project-add` | **偵測專案架構** + Notion 註冊 + DB MCP 安裝 |
 | `/crew-init` | **一鍵首次設定** — 統合 /bug-setup + /plan-setup + 提示 /init 與 /project-add，含 --resume |
-| `/crew-doctor` | 環境健診（檢查 18 項依賴與設定，含 --quick / --fix） |
+| `/crew-doctor` | 環境健診（檢查 20 項依賴與設定，含 CREW hooks 與 v1 舊任務偵測；支援 --quick / --fix） |
 | `/crew-upgrade` | 一次更新所有 CREW plugins |
 
 詳細說明見 [plugins/bug-workflow/README.md](plugins/bug-workflow/README.md)
@@ -137,7 +271,7 @@ flowchart TD
     start["/plan-start<br/><i>建立 Notion + .spec/ + Git branch</i>"]
     explore["/plan-explore<br/><i>思考夥伴（可選）</i>"]
     browse["/plan-browse<br/><i>規劃瀏覽（可選）</i>"]
-    plan["/plan-spec → /plan-db → /plan-arch<br/><i>本地規劃</i>"]
+    plan["/plan（spec → db → arch 三 pass）<br/><i>本地規劃，產出寫進單一 plan.md</i>"]
     build["/plan-build<br/><i>Agent Teams 產生程式碼</i>"]
     security["/plan-security<br/><i>三層安全掃描</i>"]
     ide(["IDE 啟動 + Chrome 開啟頁面"])
@@ -165,10 +299,7 @@ flowchart TD
 | `/plan-start <任務簡述>` | 建立 Notion 條目 + `.spec/` 目錄 + Git branch（含退出驗證） | **3-5 次** |
 | `/plan-explore [主題]` | 思考夥伴：探索想法、調查問題、比較方案 | **0 次** |
 | `/plan-browse [slug]` | 規劃瀏覽：深度閱讀、跨任務比較、模式搜尋 | **0 次** |
-| `/plan` | 完整規劃串接（自動依序 spec→db→arch） | **0 次** |
-| `/plan-spec` | 技術規格書 | **0 次** |
-| `/plan-db` | 資料庫設計 | **0 次** |
-| `/plan-arch` | 架構設計 | **0 次** |
+| `/plan [spec\|db\|arch]` | 規劃三 pass（不帶參數＝全跑），產出寫進單一 `plan.md` | **0 次** |
 | `/plan-build [--dry-run]` | 探索官（Sonnet）+ Agent Teams 最多 5 人產生程式碼（Opus，含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描 | **0 次** |
 | `/plan-verify [--excel/--e2e]` | 瀏覽器驗收驗證 + 驗證記憶 + Word 多風格報告（3 種風格可選）+ Excel 報告 + E2E Runner（含截圖穩定化、i18n 4 語系） | **0 次** |
@@ -177,7 +308,8 @@ flowchart TD
 | `/plan-sync` | 手動中途同步（按需） | **2-3 次** |
 | `/plan-deploy-confirm [slug]` | SQL 執行回報 — DBA 逐 Step 確認 deploy.sql 寫回 Notion「🚀 部署狀態」（含 --env / --all-done / --list） | **3-5 次** |
 | `/plan-status` | 列出所有活躍任務 | **0 次** |
-| `/plan-next [slug]` | 智慧推薦下一步指令（讀 .spec/ + Git branch + verify.md 狀態，含 --all） | **0 次** |
+| `/plan-next [slug]` | 智慧推薦下一步指令（讀 `state.json` 判位，含 --all） | **0 次** |
+| `/plan-drift [slug]` | 文件漂移檢查與修復 — 驗證 `plan.md` 錨點是否失效，機械型自動修、語意型逐條確認 | **0 次** |
 | `/plan-demo [自訂題目]` | 純本地評估模式 — 不依賴 Notion 產出範例 .spec/demo-{slug}/ | **0 次** |
 
 詳細說明見 [plugins/feature-workflow/README.md](plugins/feature-workflow/README.md)
@@ -247,7 +379,7 @@ flowchart LR
 | **專案已註冊？** | 提示執行 `/project-add` | bug-start/update/close、plan-start/close/sync |
 
 > 💡 `/init` 建立的 CLAUDE.md 建議 **commit + push**，讓團隊成員進入專案時不需重新執行。
-> 進階：跑 `/crew-doctor` 額外檢查 MCP、Agent Teams、Notion 可達性等 18 項。
+> 進階：跑 `/crew-doctor` 額外檢查 MCP、Agent Teams、Notion 可達性、CREW hooks 是否載入等 20 項。
 
 ---
 

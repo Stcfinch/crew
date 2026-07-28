@@ -1,4 +1,4 @@
-# Feature Workflow Plugin `v4.26.0`
+# Feature Workflow Plugin `v5.0.0`
 
 功能開發工作流 — 整合 Notion 與 Claude Code，以 `.spec/` 目錄做本地規劃，Agent Teams 產生程式碼與審查，瀏覽器驗收驗證，結案時批次同步 Notion。
 
@@ -14,6 +14,23 @@ claude plugin install feature-workflow
 安裝後 Plugin 會自動啟用。若未自動啟用，手動執行：`claude plugin enable feature-workflow`
 
 首次使用前執行 `/plan-setup` 完成設定引導。
+
+### SessionStart hook（自動執行揭露）
+
+本 plugin 安裝一個 **SessionStart hook**。每次開啟 session（新開、`--resume`、`/clear`）時，
+Claude Code 會在**你的本機**執行 `python3 scripts/crew-state.py session-brief`：
+
+- **讀取範圍**：只讀**當前專案**目錄下的 `.spec/*/state.json`（CREW 自己產生的流程狀態檔）
+- **不外送任何資料**：純本機 Python 標準函式庫，零網路呼叫
+- **不寫專案檔案**：只在系統暫存目錄寫一個 session marker，避免與 bug-workflow 的同名 hook 重複輸出
+- **輸出**：未結案任務清單（最多 3 行）＋ 對應的 `/plan-next {slug}` 指令
+- **無 `.spec/` 或全部結案時零輸出**（exit 0，不佔 token）
+- **不阻擋**：任何錯誤都靜默 exit 0，內建 1 秒總體時限（讀 stdin 上限 0.2 秒），實測典型耗時約 80ms
+
+要關掉：`claude plugin disable feature-workflow`（連 Skill 一起關），或刪除已安裝目錄下的
+`hooks/hooks.json` 後重啟 Claude Code（只關 hook、保留 Skill）。hook 變更需**重啟**才生效。
+
+完整說明見[根 README 的 SessionStart hook 段](../../README.md#sessionstart-hook自動執行揭露)。
 
 ### 更新
 
@@ -46,7 +63,7 @@ flowchart TD
     subgraph dev["🚀 開發循環（每個功能重複）"]
         direction TB
         start["/plan-start &lt;功能簡述&gt;<br/><i>建立 Notion + .spec/ + Git branch</i>"]
-        plan["/plan-spec → /plan-db → /plan-arch<br/><i>本地規劃（零 Notion 呼叫）</i>"]
+        plan["/plan（spec → db → arch 三 pass）<br/><i>本地規劃，產出寫進單一 plan.md（零 Notion 呼叫）</i>"]
         build["/plan-build<br/><i>Agent Teams 最多 5 人產生程式碼</i>"]
         security["/plan-security<br/><i>三層安全掃描</i>"]
         ide(["IDE 啟動本地服務<br/>Chrome 開啟頁面"])
@@ -76,6 +93,90 @@ flowchart TD
 
 ---
 
+## `.spec/` 產出結構
+
+一個任務三個檔，跑完整個流程也不會變多：
+
+```
+.spec/{slug}/
+├── plan.md      唯一給人與 LLM 讀的文件（六章節，典型 50–80 行，硬上限 100）
+├── state.json   流程狀態，機器讀的，唯一寫者是 scripts/crew-state.py
+├── deploy.sql   唯一 SQL 事實來源（由 /plan 的 db pass 產出）
+└── .cache/      一次性報告暫存（gitignore，verify.md 等）
+    screenshots/ evidence/   驗收證據（gitignore，binary 不進 context）
+```
+
+### plan.md 的六個章節
+
+```markdown
+---
+slug: login-lock
+name: 登入鎖定
+type: feature
+verified_at_commit: 3f2a91c      # 由 /plan-drift 或 /plan-close 蓋章
+verified_at: 2026-07-28
+drift_policy: normal              # strict | normal | off
+---
+
+## 目標與範圍        <!-- crew:goal owner=spec -->
+## 驗收條件          <!-- crew:ac   owner=spec -->
+## 決策紀錄          <!-- crew:dec  append-only -->
+## 已知取捨與風險    <!-- crew:risk append-only -->
+## 指路              <!-- crew:map  append-only -->
+## 檢查報告摘要      <!-- crew:rep  append-only -->
+```
+
+| 章節 | 可以寫 | **禁止寫** | 上限 |
+|------|--------|-----------|------|
+| 目標與範圍 | 為何做、In/Out of Scope | API 表、欄位、類別名 | 12 行 |
+| 驗收條件 | `- [ ] AC-1 {可機器驗證的一句話}` | 實作步驟、selector | 15 行 |
+| 決策紀錄 | `D-n [階段] 決策｜理由｜被否決方案＋否決理由` | DDL、方法簽章、Mermaid | 30 行 |
+| 已知取捨與風險 | 明知的技術債、邊界外情境 | 已修掉的問題 | 8 行 |
+| 指路 | 錨點（見下） | 把指到的內容抄一份 | 10 行 |
+| 檢查報告摘要 | `[日期] {類型} {結論}｜🔴n 🟡n` | 逐條發現 | 6 行 |
+
+禁止欄的共同點是 **code-truth** —— 程式碼才是事實的東西。抄進來只會得到一份改天變謊話的抄本。
+
+### 錨點語法
+
+```markdown
+- 鎖定計數改走 Redis（原因：多節點 in-memory 會漏算）
+  → `@code:src/main/java/.../LoginAttemptService.java#recordFailure` (L88)
+- 表結構見 `@sql:deploy.sql#login_attempt`
+```
+
+`@code:<相對路徑>[#<符號>]`、`@sql:deploy.sql#<表名>`。
+行號 `(L88)` 在 token **外面** —— 給人看的，程式碼上下位移不算漂移。
+
+### 寫入紀律（四層防覆蓋）
+
+骨架由 `/plan-start` 用 Write 建立**一次**，之後**一律用 Edit 對 HTML 錨點註解插入**：
+
+1. **一節一 owner** —— 只有「目標與範圍／驗收條件」可被改寫，且只有 spec pass 能碰
+2. **共享節 append-only，以條目為單位** —— db／arch／build 各 pass 只能插入新 `D-n`
+3. **改變主意用 supersede** —— `D-7 [arch] 取代 D-3：…（原因…）`，不刪除舊條目
+4. **每條自帶 `[階段]` tag** —— 一眼看出是哪個階段寫的
+
+> 🔴 整檔改寫或把整個章節當 `old_string` 取代，會**靜默吃掉**同一節裡其他階段寫的條目。
+> 決策史是這份文件唯一不會過期的價值，弄丟了沒有任何 lint 抓得到。
+
+### 三道漂移防線
+
+| 時機 | 機制 | 會不會擋 |
+|------|------|---------|
+| 隨時 | `/plan-drift` — 機械型自動修，語意型逐條問過才改 | 否 |
+| `plan-build` 退出驗證 | E5/E6 錨點有效性 | 否（剛產完碼符號正在流動，誤殺率最高） |
+| `plan-review` | R0 pre-check，報告當 Reviewer 1 的輸入 | 否 |
+| **`plan-close`** | **唯一硬關卡**，在 `git add -f` 與 Notion 同步**之前** | **FAIL 擋、WARN 逐筆明示放行** |
+
+`verified_at_commit` 只有 `/plan-drift` 與 `/plan-close` 能寫 ——
+`plan-build` 剛改完程式碼就自己蓋章等於作廢。
+
+> 設計理由見 [ADR-006](../../docs/adr/006-anchors-over-transcription.md)；
+> v1 舊任務的相容與遷移見 [`references/legacy-v1.md`](references/legacy-v1.md)。
+
+---
+
 ## Skill 清單
 
 | Skill | 說明 | Notion 呼叫 |
@@ -85,10 +186,7 @@ flowchart TD
 | `/plan-explore` | 思考夥伴：探索想法、調查問題、比較方案 | **0 次** |
 | `/plan-browse` | 規劃瀏覽：深度閱讀、跨任務比較、模式搜尋 | **0 次** |
 | `/plan-start` | 建立任務到 .spec/ + Notion（含退出驗證） | **3-5 次** |
-| `/plan` | 完整規劃串接（自動依序 spec→db→arch） | **0 次** |
-| `/plan-spec` | 技術規格書 | **0 次** |
-| `/plan-db` | 資料庫設計 | **0 次** |
-| `/plan-arch` | 架構設計 | **0 次** |
+| `/plan [spec\|db\|arch]` | 規劃三 pass（不帶參數＝全跑），產出寫進單一 `plan.md` | **0 次** |
 | `/plan-build` | 探索官（Sonnet）+ Agent Teams 最多 5 人產生程式碼（Opus，含 DB Engineer） | **0 次** |
 | `/plan-security` | 三層安全掃描（靜態規則/上下文感知/對抗性思維） | **0 次** |
 | `/plan-verify` | 瀏覽器驗收驗證 + Health Score + 驗證記憶（--excel Excel / --word Word 多風格報告 / --e2e E2E Runner） | **0 次** |
@@ -98,6 +196,7 @@ flowchart TD
 | `/plan-deploy-confirm` | SQL 執行回報 — DBA 逐 Step 確認 deploy.sql 執行狀態並寫回 Notion「🚀 部署狀態」 | **3-5 次** |
 | `/plan-status` | 查看任務狀態 | **0 次** |
 | `/plan-next` | 智慧推薦當前任務的下一步指令（含 `--all` 列所有任務） | **0 次** |
+| `/plan-drift` | 文件漂移檢查與修復 — 驗證 `plan.md` 錨點是否失效，機械型自動修、語意型逐條確認 | **0 次** |
 | `/plan-demo` | 純本地評估模式 — 不依賴 Notion 產出範例 .spec/demo-{slug}/，給評估者 5 分鐘看到效果 | **0 次** |
 | `/project-add` | 新增或更新專案對應（來自 bug-workflow） | 1-2 次 |
 

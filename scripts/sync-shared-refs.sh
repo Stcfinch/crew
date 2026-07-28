@@ -27,22 +27,33 @@ SHARED_FILES=(
   db-templates.md
   discipline-preamble.md
   notion-backend.md
-  handoff-discipline.md
+  state-discipline.md
   model-policy.md
 )
 SRC_DIR="$REPO_ROOT/plugins/bug-workflow/references"
 DST_DIR="$REPO_ROOT/plugins/feature-workflow/references"
 
+# 共用 script 清單（權威 = bug-workflow）。與 scripts/check-shared-refs.py 的
+# SHARED_SCRIPTS 一致。路徑相對 plugin root。
+# 與共用 reference 的差別：**來源尚未建立時跳過**（script 可能正在實作中），
+# 目標目錄不存在則自動 mkdir -p。
+SHARED_SCRIPTS=(
+  scripts/crew-state.py
+)
+SRC_PLUGIN="$REPO_ROOT/plugins/bug-workflow"
+DST_PLUGIN="$REPO_ROOT/plugins/feature-workflow"
+
 usage() {
   cat <<'EOF'
 用法：
-  sync-shared-refs.sh            # 以 bug-workflow 為權威，同步 6 個共用 reference 到 feature-workflow
+  sync-shared-refs.sh            # 以 bug-workflow 為權威，同步共用 reference 與 script 到 feature-workflow
   sync-shared-refs.sh --check    # 僅檢查兩份是否一致（不修改；不一致 exit 1，CI / push 前用）
   sync-shared-refs.sh -h | --help
 
-權威來源：plugins/bug-workflow/references/（只改這份，改完跑本腳本同步）
-同步目標：plugins/feature-workflow/references/
-共用檔：prerequisites.md、db-templates.md、discipline-preamble.md、notion-backend.md、handoff-discipline.md、model-policy.md
+權威來源：plugins/bug-workflow/（只改這份，改完跑本腳本同步）
+同步目標：plugins/feature-workflow/
+共用 reference：prerequisites.md、db-templates.md、discipline-preamble.md、notion-backend.md、state-discipline.md、model-policy.md
+共用 script：scripts/crew-state.py（來源尚未建立時跳過；目標目錄自動 mkdir -p）
 EOF
 }
 
@@ -60,7 +71,21 @@ for f in "${SHARED_FILES[@]}"; do
   src="$SRC_DIR/$f"
   dst="$DST_DIR/$f"
   [ -f "$src" ] || { echo "❌ 權威檔不存在：$src"; exit 1; }
-  [ -f "$dst" ] || { echo "❌ 目標檔不存在：$dst"; exit 1; }
+
+  # 目標檔不存在＝新增或改名的共用檔。同步模式下直接建立（權威檔存在就足以確認不是筆誤）；
+  # --check 模式回報缺失並失敗，行為與下方 SHARED_SCRIPTS 迴圈一致。
+  if [ ! -f "$dst" ]; then
+    if [ "$CHECK" -eq 1 ]; then
+      echo "❌ 缺失：${f}（feature-workflow 尚未有同步副本）"
+      fail=1
+      continue
+    fi
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+    echo "🆕 已建立：$f"
+    changed=$((changed + 1))
+    continue
+  fi
 
   if cmp -s "$src" "$dst"; then
     [ "$CHECK" -eq 1 ] && echo "✅ 一致：$f"
@@ -74,13 +99,44 @@ for f in "${SHARED_FILES[@]}"; do
   fi
 done
 
+# --- 共用 script（容忍來源尚未建立；目標目錄自動建立）------------------------
+for s in "${SHARED_SCRIPTS[@]}"; do
+  src="$SRC_PLUGIN/$s"
+  dst="$DST_PLUGIN/$s"
+
+  if [ ! -f "$src" ]; then
+    echo "⏭️  跳過：${s}（權威副本尚未建立，實作中）"
+    continue
+  fi
+
+  if [ -f "$dst" ] && cmp -s "$src" "$dst"; then
+    [ "$CHECK" -eq 1 ] && echo "✅ 一致：${s}"
+    continue
+  fi
+
+  if [ "$CHECK" -eq 1 ]; then
+    if [ -f "$dst" ]; then
+      echo "❌ 不一致：${s}（feature-workflow 那份與權威 bug-workflow 不同）"
+    else
+      echo "❌ 缺失：${s}（feature-workflow 尚未有同步副本）"
+    fi
+    fail=1
+    continue
+  fi
+
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
+  echo "🔄 已同步：$s"
+  changed=$((changed + 1))
+done
+
 if [ "$CHECK" -eq 1 ]; then
   if [ "$fail" -eq 1 ]; then
     echo
-    echo "修法：只改 plugins/bug-workflow/references/ 那份，再跑 ./scripts/sync-shared-refs.sh 同步。"
+    echo "修法：只改 plugins/bug-workflow/ 那份（references/ 或 scripts/），再跑 ./scripts/sync-shared-refs.sh 同步。"
     exit 1
   fi
-  echo "共用 reference 全部一致。"
+  echo "共用 reference 與 script 全部一致。"
   exit 0
 fi
 

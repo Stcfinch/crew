@@ -3,7 +3,152 @@
 所有 CREW plugins（bug-workflow、feature-workflow）的變更紀錄。
 
 格式：每個版本一個區塊，以 `## [plugin@version]` 開頭。
+尚未發版的變更暫放在最上方的 `## [Unreleased]` 區塊，發版時併入該版號區塊。
 `/crew-upgrade` 會讀取此檔案，顯示上次更新以來的變更摘要。
+
+---
+
+## [feature-workflow@5.0.0] - 2026-07-28
+
+> **major 版：`.spec/` 結構重構。** 文件只寫程式碼裡看不到的東西，「是什麼」用錨點指過去。
+> 一招同時解掉 Token 昂貴與文件漂移兩個問題。含 SessionStart hook 與 v1 遷移路徑。
+
+### ⚠️ 重要變更：安裝後會在你的機器上自動執行程式（SessionStart hook）
+
+**這是 plugin 行為的實質變更，不是單純加一個功能。** 升級到含此變更的版本後，
+`bug-workflow` 與 `feature-workflow` 各會註冊一個 **SessionStart hook**——
+在你每次開啟 Claude Code session 時（新開、`--resume`、`/clear`），
+**不會逐次詢問**，直接在你的本機執行一行指令：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crew-state.py" session-brief --cwd "${CLAUDE_PROJECT_DIR}"
+```
+
+決定要不要升級之前，先讀完這張表：
+
+| 面向 | 事實 |
+|------|------|
+| 讀什麼 | 只讀**當前專案**目錄下的 `.spec/*/state.json`。不掃家目錄、不掃其他專案 |
+| 寫什麼 | **不寫任何專案檔案。** 只在系統暫存目錄寫一個 session marker（兩 plugin 同裝時去重用） |
+| 網路 | **完全不外送資料。** 純 Python 標準函式庫，程式碼裡沒有任何網路呼叫 |
+| 執行者 | 你本機的 `python3`。找不到 `python3` 時整個 hook 靜默失效，不報錯 |
+| 輸出 | 未結案任務最多 3 行＋`/plan-next {slug}`；超過 3 個時多印一行「另有 N 個」 |
+| 沒東西可報時 | **零輸出、exit 0**，不佔任何 token |
+| 失敗時 | 一律靜默 exit 0，**絕不阻擋 session**。內建 1 秒總體時限（讀 stdin 上限 0.2 秒）與非阻塞 stdin 讀取；實測典型耗時約 80ms |
+| 怎麼關 | `claude plugin disable <plugin>`（連 Skill 一起關）；或刪掉已安裝目錄的 `hooks/hooks.json` 後重啟（只關 hook） |
+
+動機：中斷的任務會被遺忘，`plan-close` 因此沒做到。在此之前兩個 plugin 全樹零 hook，
+完全靠使用者自己記得打 `/plan-status`。
+
+### 新增
+
+- **`plugins/bug-workflow/hooks/hooks.json`、`plugins/feature-workflow/hooks/hooks.json`** —
+  SessionStart hook 設定。matcher `startup|resume|clear`（不掛 `compact`，避免自動壓縮後重複提醒），
+  `timeout: 5` 秒上限。輸出以 `hookSpecificOutput.additionalContext` 形式注入
+  （純 stdout 在 Claude Code 只會顯示成 hook 狀態行、不會進模型 context，故必須包一層 JSON）
+- **兩個 `plugin.json` 新增 `"hooks": "./hooks/hooks.json"`** — 明確宣告 hook 設定路徑
+- **`crew-doctor` 新增 #11「CREW hooks 已載入」** — 🟡 強烈建議層級，永遠不會是紅燈（hook 只做提醒，
+  缺少不影響任何 Skill）。檢查 hook 設定檔存在／`python3` 可執行／指令實跑 exit 0 三項。
+  原 #11–18 順延為 #12–19，健診總項數 18 → 19
+- **根 README 與兩個 plugin README 新增「SessionStart hook（自動執行揭露）」段** —
+  逐項寫明讀什麼、寫什麼、不外送、何時零輸出、怎麼關
+
+### ⚠️ 破壞性變更：`.spec/` 結構從 12–17 檔縮成 3 檔
+
+一個 feature 原本產 12–17 個檔、實測純文字 1893–2385 行。根因是文件大量**抄寫**了
+「程式碼才是唯一事實」的內容（欄位清單、方法簽章、類別清單、DDL、檔案清單）——
+抄寫本身是 Token 昂貴的主因，而抄本在程式碼一改就變成謊話，且沒有任何檢查抓得到。
+
+新結構：
+
+```
+.spec/{slug}/
+├── plan.md      六章節，只寫程式碼裡看不到的東西（需求、決策與理由、
+│                被否決方案、驗收條件、取捨）；「是什麼」用 @code: 錨點指過去
+├── state.json   流程狀態唯一權威，唯一寫者 crew-state.py
+└── deploy.sql   唯一 SQL 事實來源
+```
+
+實測：`plan.md` 47 行 ＋ `deploy.sql` 28 行 ＋ `state.json` 111 行 = **186 行**，
+較舊結構減約 **90–92%**。且 `state.json` 是機器讀的——`/plan-next` 實際餵給模型的
+只有 **85 bytes** 的結構化答案，不是 2055 bytes 的 JSON 原文。
+
+**廢除的產物**：`README.md`（任務層）、`spec.md`、`db.md`、`arch.md`、`db.sql`、
+`deploy-checklist.md`、`files.md`、`log.md`、`handoff.md`、`.spec/_index.md`；
+`review.md`／`security.md` 不再落檔（摘要一行進 plan.md）；
+`verify.md` 降為 `.cache/` 暫存；Word/Excel 報告移出主流程改為可選指令。
+
+**廢除的 skill**：`/plan-spec`、`/plan-db`、`/plan-arch` → 併為 `/plan` 的三個 pass
+（仍可 `/plan spec|db|arch` 單跑，且單跑不等於可以跳過確認）。
+
+**新增的 skill**：`/plan-drift` —— 檢查 `plan.md` 錨點是否失效。機械型（改名、行號位移）
+自動修，語意型逐條請使用者確認；符號消失常代表決策變了，該改的是決策紀錄而非硬改指標。
+
+**新增的硬關卡**：`/plan-close` 結案前跑漂移檢查，FAIL 擋、WARN 逐筆明示放行
+（不提供「全部放行」選項——那等於沒問）。通過才蓋 `verified_at_commit` 的章。
+這是全流程唯一會擋下結案的檢查，因為錯過這一刻，漂移的文件會被**原樣**推到 Notion
+並長期腐爛，把不可信的內容傳播出去比不同步更糟。
+
+### 舊任務怎麼辦（過渡期一個 minor 版或 90 天）
+
+**預設：照舊跑完。** v1 任務（`.spec/{slug}/plan.md` 不存在）會自動走相容模式，
+相容邏輯集中在 `feature-workflow/references/legacy-v1.md`，各 skill 只放一行分支引用。
+**不建議中途換軌**——遷移搬得動結構，搬不動語意，中途換軌會讓你在收尾階段面對一份半空的
+`plan.md`。
+
+**要遷移：`/plan-status --migrate <slug>`。** 只做**機械搬移**：舊文件原封搬進
+`archive/`（一個字不改）、`db.sql` 併入 `deploy.sql`、frontmatter 轉 `state.json`、
+`plan.md` 各章節留 `TODO(migrate)` 佔位**由人補**。
+
+🔴 **刻意不做自動語意轉換。** 把 425 行的 `spec.md` 壓成 80 行看起來很適合交給 LLM，
+但壓縮不可驗證、會幻覺出從未做過的決策，而且原文搬進 `archive/` 後不會有人再去對照。
+一份誠實的空白，比一份看似完整的幻覺有用。
+
+`crew-doctor` 新增 #16 偵測 v1 舊任務（健診總項數 19 → 20）。
+
+### 已知限制
+
+- hook 變更**不會熱載入**。安裝或升級後必須**重啟 Claude Code** 才生效；
+  `/crew-doctor` #11 在「檔案已在但尚未重啟」時會誤報綠燈
+- hook 指令寫死 `python3`。環境若只有 `python3.11` 而無 `python3`，hook 會靜默不執行
+
+---
+
+## [bug-workflow@4.0.0] - 2026-07-28
+
+> **major 版：斷點保險從 `handoff.md` 檔案改為 `state.json`，且結案不再刪除。**
+> 與 feature-workflow@5.0.0 同批發布，兩者共用 `crew-state.py` 與 `state-discipline.md`。
+
+### ⚠️ 破壞性變更
+
+- **共用 reference `handoff-discipline.md` 更名為 `state-discipline.md`** —— 內容從
+  「怎麼寫 `handoff.md`」改為「怎麼用 `crew-state.py` 維護 `state.json`」。
+  保留原有紀律道理（進度即寫、歧義點當場記、已完成必附證據），只換載體；
+  新增「唯一寫者」與「自我修復 `rebuild`」兩節
+- **`bug-close` 不再刪除斷點檔** —— 舊版結案時 `rm -f handoff.md`；新版改為
+  `crew-state.py set --step close --status done`，**保留 `state.json` 並入版控**。
+  `/plan-deploy-confirm` 事後要靠它查 `steps.close.status` 與 `deploy` 執行進度，
+  刪掉就查不到「這個任務的 SQL 到底跑了沒」
+- **bug 型輕量目錄只放 `state.json`**（原本只放 `handoff.md`），用
+  `crew-state.py init --type bug` 建立
+
+### 新增
+
+- **`scripts/crew-state.py`（共用 script，權威副本在本 plugin）** —— `.spec/{slug}/state.json`
+  的單一寫者。子命令 `init/set/unit/result/next/list/park/unpark/rebuild/validate/session-brief`。
+  `flock` 加鎖 ＋ `os.replace()` 原子寫入；`rebuild` 可從 git 與檔案系統重建並標 `inferred`。
+  純 stdlib、python 3.11
+- **SessionStart hook** —— 見上方 feature-workflow@5.0.0 的揭露段
+- **`crew-doctor` #11 CREW hooks 已載入、#16 v1 舊結構任務偵測** —— 健診項數 18 → 20
+- **`scripts/check-shared-refs.py` 新增 `SHARED_SCRIPTS`** —— 共用 script 也納入 sha256
+  一致性檢查（與 reference 的差別：來源尚未建立時優雅跳過）
+
+### 修正
+
+- **`sync-shared-refs.sh` 的改名陷阱** —— 目標檔不存在時原本直接 `exit 1`，導致共用檔
+  無法改名。改為同步模式自動建立、`--check` 模式回報缺失，行為與 `SHARED_SCRIPTS` 迴圈一致
+- **`model-policy.md` 角色對照表** —— `/plan-db` 已廢除、`db.md`／`db.sql` 已廢除，
+  改為 `/plan` 的三個 pass 與 `deploy.sql`
 
 ---
 
