@@ -14,6 +14,17 @@ jobs:
       - name: 檢查 plugin.json / marketplace.json / README.md 三處版本一致
         run: bash scripts/bump-version.sh --check
 
+  plugin-manifest:
+    name: plugin.json 宣告一致性
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 檢查 skills 陣列／hooks／marketplace source 與實際檔案相符
+        run: python3 scripts/lint-plugin-manifest.py
+
   skill-md-lint:
     name: SKILL.md 格式檢查
     runs-on: ubuntu-latest
