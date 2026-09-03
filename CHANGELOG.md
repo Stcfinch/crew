@@ -31,6 +31,17 @@
 `lint-skills.py`、`lint-readme-sync.py` 都以「掃 `skills/` 實際目錄」為基準，
 不比對 `plugin.json` 陣列，因此陣列與目錄不一致屬於檢查盲區。
 
+### 防回歸
+
+- **`scripts/lint-plugin-manifest.py`（新增）** —— 補上「manifest 宣告 vs 實際檔案」這個維度，
+  檢查六項：skills 陣列宣告但目錄不存在、目錄存在但未宣告、陣列重複宣告、
+  宣告的 skill 缺少或空白 `SKILL.md`、`hooks` 路徑不存在、
+  `marketplace.json` 的 `source` 與 `plugins/` 未一一對應。
+  以 5.0.0 當時的 `plugin.json` 實測，會輸出 4 個錯誤並讓 CI 紅燈。
+- **CI job `plugin-manifest`（新增）** —— 於 `lint.yml` 以 python 3.11 執行上述腳本，違規阻擋。
+- **CONTRIBUTING.md 新增「新增／刪除 Skill Checklist」** —— 明訂動 `skills/` 目錄時
+  同一個 commit 必須同步 `plugin.json` 陣列、兩份 README 指令表與 CHANGELOG。
+
 ---
 
 ## [feature-workflow@5.0.0] - 2026-07-28

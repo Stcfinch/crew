@@ -1,5 +1,18 @@
 # 開發與發版指南
 
+## 新增／刪除 Skill Checklist
+
+動到 `plugins/{plugin}/skills/` 的目錄時，**同一個 commit** 必須同步：
+
+- `plugins/{plugin}/.claude-plugin/plugin.json` 的 `"skills"` 陣列 —— 新增要加、刪除要移除
+- `plugins/{plugin}/README.md` 與根 `README.md` 的指令表
+- `CHANGELOG.md`
+
+> **易錯點**：`lint-skills.py`、`lint-readme-sync.py` 都以「掃 `skills/` 實際目錄」為基準，
+> 抓不到陣列與目錄不一致。feature-workflow@5.0.0 刪了三個 skill 目錄卻沒改陣列，
+> 導致 Claude Code 載入時報 `skills path not found`，存活 37 天才被發現。
+> 現由 `scripts/lint-plugin-manifest.py` 把關（CI job `plugin-manifest`）。
+
 ## 版本升級 Checklist
 
 升版時**必須完成以下所有步驟**，缺一不可：
@@ -83,6 +96,7 @@ gh release create {plugin}-v{X.Y.Z} --title "{plugin} v{X.Y.Z} — {一句話}" 
 
 ```bash
 bash scripts/bump-version.sh --check      # 版本一致性（plugin.json / marketplace.json / README 三處）
+python3.11 scripts/lint-plugin-manifest.py # plugin.json skills 陣列／hooks／marketplace source 與實際檔案相符
 python3.11 scripts/lint-skills.py         # SKILL.md frontmatter 與行數
 python3.11 scripts/check-shared-refs.py   # 共用 reference sha256 防漂移
 python3.11 scripts/lint-changelog.py      # CHANGELOG 版本／日期排序
