@@ -8,6 +8,31 @@
 
 ---
 
+## [feature-workflow@5.0.1] - 2026-09-03
+
+> **修 `plugin.json` 的 skills 清單。** 5.0.0 刪了三個 skill 目錄但沒同步陣列，
+> 導致 plugin 載入時報 `skills path not found`。純清單修正，無功能變更。
+
+### Fixed
+
+- `plugin.json` 的 `skills` 陣列移除三個已在 5.0.0 刪除的路徑：`plan-spec`、`plan-db`、`plan-arch`。
+  這三個 skill 在 5.0.0（plan.md 單一文件契約）已併入 `/plan`，目錄不存在，
+  Claude Code 載入 plugin 時會在 `/plugin` 介面顯示
+  `skills path not found: .../skills/plan-spec` 紅字。
+- `plugin.json` 補上漏宣告的 `plan-drift`（5.0.0 新增的 skill，目錄一直存在但從未寫進陣列）。
+
+### 影響範圍
+
+不影響技能可用性 —— Claude Code 以掃 `skills/` 目錄為主，陣列中不存在的路徑只印錯誤、
+不中斷其餘 skill 載入（`plan-drift` 未被宣告仍可正常呼叫即為證據）。此版純粹消除該錯誤訊息。
+
+### 為何 CI 沒攔到
+
+`lint-skills.py`、`lint-readme-sync.py` 都以「掃 `skills/` 實際目錄」為基準，
+不比對 `plugin.json` 陣列，因此陣列與目錄不一致屬於檢查盲區。
+
+---
+
 ## [feature-workflow@5.0.0] - 2026-07-28
 
 > **major 版：`.spec/` 結構重構。** 文件只寫程式碼裡看不到的東西，「是什麼」用錨點指過去。
