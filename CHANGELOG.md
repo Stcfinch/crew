@@ -8,6 +8,27 @@
 
 ---
 
+## [feature-workflow@5.0.2] - 2026-09-03
+
+> **移除 `plugin.json` 的 `hooks` 欄位。** 標準路徑 `hooks/hooks.json` 會被 Claude Code
+> 自動載入，manifest 再宣告一次會被判為重複，**整份 hook 因此完全不載入**。
+> 亦即 5.0.2 之前的 SessionStart hook（`crew-state.py session-brief`）實際上是失效的。
+
+### Fixed
+
+- 移除 `plugin.json` 的 `"hooks": "./hooks/hooks.json"`。Claude Code 的錯誤原文：
+  `Duplicate hooks file detected: ./hooks/hooks.json resolves to already-loaded file …
+  The standard hooks/hooks.json is loaded automatically, so manifest.hooks should only
+  reference additional hook files.`
+  檔案本身無需改動，`hooks/hooks.json` 仍會自動載入。
+
+### Changed
+
+- **`scripts/lint-plugin-manifest.py` 新增第 7 項檢查** —— `hooks` 欄位（字串或陣列）
+  不得宣告標準路徑 `hooks/hooks.json`；指向額外 hook 檔案仍合法。
+
+---
+
 ## [feature-workflow@5.0.1] - 2026-09-03
 
 > **修 `plugin.json` 的 skills 清單。** 5.0.0 刪了三個 skill 目錄但沒同步陣列，
@@ -41,6 +62,17 @@
 - **CI job `plugin-manifest`（新增）** —— 於 `lint.yml` 以 python 3.11 執行上述腳本，違規阻擋。
 - **CONTRIBUTING.md 新增「新增／刪除 Skill Checklist」** —— 明訂動 `skills/` 目錄時
   同一個 commit 必須同步 `plugin.json` 陣列、兩份 README 指令表與 CHANGELOG。
+
+---
+
+## [bug-workflow@4.0.1] - 2026-09-03
+
+> 與 feature-workflow@5.0.2 同批發布，同一個 `hooks` 重複宣告問題。
+
+### Fixed
+
+- 移除 `plugin.json` 的 `"hooks": "./hooks/hooks.json"`，修正
+  `Duplicate hooks file detected` 導致整份 hook 不載入。詳見 feature-workflow@5.0.2 區塊。
 
 ---
 

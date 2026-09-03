@@ -120,9 +120,11 @@ python3.11 plugins/feature-workflow/scripts/check-spec-drift.py --all --strict
 - **Minor（Y）**：新功能、新 Skill
 - **Patch（Z）**：Bug 修復、文案修正、小改善
 
-兩個 Plugin 版號獨立遞增：
-- `bug-workflow` 目前 v3.x
-- `feature-workflow` 目前 v4.x
+兩個 Plugin 版號獨立遞增。**當前版號不寫在本檔**（會過期），一律查權威來源：
+
+```bash
+bash scripts/bump-version.sh --check   # 印出兩個 plugin 的當前版號
+```
 
 ---
 
@@ -130,7 +132,7 @@ python3.11 plugins/feature-workflow/scripts/check-spec-drift.py --all --strict
 
 ```
 company-marketplace/
-├── .github/workflows/    # CI lint（版本一致性、SKILL.md 格式、共用 ref 漂移）
+├── .github/workflows/    # CI lint（版本一致性、manifest 宣告一致性、SKILL.md 格式、共用 ref 漂移）
 ├── .gitignore
 ├── CHANGELOG.md          # 所有 Plugin 的變更紀錄（/crew-upgrade 讀取）
 ├── CONTRIBUTING.md       # 本文件

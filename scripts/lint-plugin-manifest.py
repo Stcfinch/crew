@@ -16,6 +16,9 @@
   4. 宣告的 skill 目錄缺少 SKILL.md 或其內容為空
   5. hooks 欄位指向的檔案不存在
   6. marketplace.json 的 source 目錄不存在，或與 plugins/ 下實際 plugin 未一一對應
+  7. hooks 欄位宣告標準路徑 hooks/hooks.json（該檔會自動載入，重複宣告會讓
+     Claude Code 報 Duplicate hooks file detected，整份 hook 因此完全不載入；
+     manifest 的 hooks 只該引用額外的 hook 檔案）
 
 退出碼：
   0 = 無錯誤
@@ -23,12 +26,14 @@
 """
 
 import json
+import posixpath
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 PLUGINS_DIR = REPO / "plugins"
 MARKETPLACE_JSON = REPO / ".claude-plugin" / "marketplace.json"
+STANDARD_HOOKS = "hooks/hooks.json"
 
 
 def lint_plugin(plugin_dir: Path, errors: list[str]) -> int:
@@ -79,10 +84,25 @@ def lint_plugin(plugin_dir: Path, errors: list[str]) -> int:
         if count > 1:
             errors.append(f"{rel}: skills 陣列重複宣告 `{name}` {count} 次")
 
-    # 5：hooks 路徑
+    # 5 + 7：hooks 宣告
     hooks = data.get("hooks")
-    if isinstance(hooks, str) and not (plugin_dir / hooks).is_file():
-        errors.append(f"{rel}: hooks 宣告 `{hooks}` 但檔案不存在")
+    if isinstance(hooks, str):
+        entries = [hooks]
+    elif isinstance(hooks, list):
+        entries = [e for e in hooks if isinstance(e, str)]
+    else:
+        entries = []
+
+    for entry in entries:
+        if posixpath.normpath(entry) == STANDARD_HOOKS:
+            errors.append(
+                f"{rel}: hooks 不可宣告標準路徑 `{entry}` —— "
+                f"`{STANDARD_HOOKS}` 會被自動載入，再宣告一次會讓 Claude Code 報 "
+                f"Duplicate hooks file detected 並整份 hook 載入失敗；"
+                f"manifest 的 hooks 只該引用額外的 hook 檔案"
+            )
+        elif not (plugin_dir / entry).is_file():
+            errors.append(f"{rel}: hooks 宣告 `{entry}` 但檔案不存在")
 
     return len(declared)
 
