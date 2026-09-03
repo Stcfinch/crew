@@ -1,4 +1,4 @@
-# Bug Workflow Plugin `v4.0.0`
+# Bug Workflow Plugin `v4.0.1`
 
 整合 Notion 與 Claude Code，自動化 Bug 生命週期管理。
 
