@@ -13,4 +13,3 @@ description: 建立 CREW 功能任務、plan.md、流程狀態與工作分支。
 檢查工作區、目前分支和使用者選定基底，再建立 feature/<slug> 或沿用已指定的工作分支；將真實 branch/base/commit 用 state set 記錄。
 需要 Notion 時讀 [Notion 整合](../../codex/references/notion.md)，建立或關聯 task，回讀後才記錄 page ID。
 不在 start 階段提前把規劃或實作標為完成。
-

@@ -13,4 +13,3 @@ description: 檢查與修正 CREW plan.md 中失效的程式碼/SQL 錨點與過
 符號消失或內容變更涉及語意，先查證並依使用者決策局部修改，不能只改錨點讓檢查變綠。
 完整讀過受影響內容後才能更新 verified_at_commit 為實際 HEAD，再重跑檢查。
 不靠 drift_policy off 或忽略記號掩蓋缺失。
-

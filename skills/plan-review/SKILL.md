@@ -12,4 +12,3 @@ description: 審查 CREW 任務的程式邏輯、品質與效能；支援 quick 
 執行 drift 檢查並回報結果，引用實際路徑/行號和能觸發問題的輸入。
 以一位 agent 即可完成三個角度；不宣稱獨立審查或並行團隊，除非真的使用且已有委派授權。
 state result review 保存 status、critical、warnings，set review done/failed；plan.md 保存一行摘要。
-

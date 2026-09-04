@@ -142,4 +142,3 @@ CI matrix 為 Windows/Linux、Python 3.10/3.12；實際執行結果以 Actions �
 
 套件格式參照 [OpenAI Build plugins](https://learn.chatgpt.com/docs/build-plugins)
 與 [Build skills](https://learn.chatgpt.com/docs/build-skills)。
-

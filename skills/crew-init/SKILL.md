@@ -12,4 +12,3 @@ description: 初始化 CREW for Codex 專案；建立本機設定、檢查環境
 讀取 AGENTS.md；若使用者需要專案說明而檔案不存在，依實際程式碼建立精簡 AGENTS.md。
 若使用者要求 Notion，讀 [Notion 整合](../../codex/references/notion.md) 完成資料庫選擇與欄位映射，再以 `crew-project.py mode --value notion` 切換。
 輸出設定位置、實測依賴狀態與 `$plan-demo` / `$plan-start` 用法。
-

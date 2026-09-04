@@ -14,4 +14,3 @@ description: 執行 CREW 功能規劃的 spec、db、arch 三階段，產出單�
 每個完成 pass 用 state set <step> done；不需 DB 時標 skipped 並記錄理由。
 未解決且會影響實作的決策放進 unit ambiguity，不假裝已完成。
 規劃本身不等於授權執行正式資料庫 SQL。
-

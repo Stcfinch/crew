@@ -12,4 +12,3 @@ description: 建立 CREW Bug 任務與重現紀錄；尚不調查或修復程式
 初始 db/arch 為 skipped，設計影響歸入調查的 spec；發現 schema/架構變動再重新開啟該階段。
 Notion 模式依 [Notion 整合](../../codex/references/notion.md) 去重並建立 task。
 回報 slug 和 `$bug-investigate <slug>`。
-

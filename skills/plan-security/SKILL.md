@@ -12,4 +12,3 @@ description: 針對 CREW 任務變更執行安全審查，記錄具體可驗證�
 只回報可具體指向的風險、利用前提、影響與修法。
 用 state result --kind security --status PASS|WARN|FAIL --set critical=<n> 保存结果，並更新 security 步驟 done/failed。
 掃描範圍或環境不足時保留未完成狀態，報告局限。
-

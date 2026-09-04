@@ -31,4 +31,3 @@ tasks、projects、bug_knowledge、feature_knowledge（可設 null）。
 - 寫入後回讀核對；中途失敗保持尚未同步，重新執行前先查剛才是否已寫入，避免重複建立。
 - 成功後才用 state set --notion-page-id / --mirrored-status / --synced-now 寫入本機。
 - 選用知識庫同步，以精簡根因/方案摘要連回 task；成功寫 task 不等於知識庫也成功。
-

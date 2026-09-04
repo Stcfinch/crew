@@ -15,4 +15,3 @@ WARN 必須逐項呈現，只有已獲使用者接受時才帶 --allow-warnings�
 若使用者已要求外部動作卻失敗，記入 unit remaining，保留未完成。
 部署 SQL 可能在程式碼結案後由 DBA 執行；列出未部署狀態，不偽造執行結果。
 完成所有要求後才 state set close done；保留任務資料供續查與 reopen。
-

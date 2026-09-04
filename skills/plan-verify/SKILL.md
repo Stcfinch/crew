@@ -14,4 +14,3 @@ description: 驗證 CREW 任務的驗收條件，支援瀏覽器、E2E 與選用
 `--excel` 使用可用 spreadsheets 技能輸出報告；要求 Word 時使用 documents 技能；沒有相應能力則提供 Markdown，清楚說明未產出原格式。
 產物放 .spec/<slug>/.cache/，plan.md 只留摘要及證據路徑。
 全部驗證完成才 set verify done；result status 依實際輸出為 PASS/WARN/FAIL，不把缺少工具改為 PASS。
-

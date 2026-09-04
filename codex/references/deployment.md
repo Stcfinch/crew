@@ -13,4 +13,3 @@ state.deploy 的 steps_total/steps_confirmed 是最近明確回報環境的摘�
 收到 --all-done 但没有執行回報，先詢問是否已在該環境全部執行成功。
 Notion 部署狀態依實際欄位映射更新，寫入後回讀；
 失敗留待同步摘要，保持本機證據。
-

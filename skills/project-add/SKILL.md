@@ -12,4 +12,3 @@ description: 偵測專案技術棧、建置方式與 Git remote，選用註冊�
 技術棧不限定 Java；遵循現有分層與資料存取方式。
 使用者要求 Notion 註冊時讀 [Notion 整合](../../codex/references/notion.md)，依正規化的 host/owner/repo 去重後建立/更新正確 project，回讀確認。
 DB 連線整合只在任務需要時設定，不將密碼寫入文件或版本控制。
-

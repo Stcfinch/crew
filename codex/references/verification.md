@@ -18,4 +18,3 @@ PASS 代表實際執行且符合條件；FAIL 代表有反例；WARN 包含未�
 報告暫存於 .spec/<slug>/.cache/。Word/Excel 依當前對應技能產出與驗證，
 沒安裝時交付 Markdown 並標記未完成格式。原上游的品牌樣式與特定 runner 不自動安裝。
 plan.md 只記摘要和產物位置；狀態透過 state result + state set 更新。
-

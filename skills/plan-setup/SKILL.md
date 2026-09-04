@@ -11,4 +11,3 @@ description: 設定 CREW 功能開發工作流與選用 Notion 功能設計庫�
 共用同一份 .crew/config.json，不建立另一套 Bug/Feature 設定。
 需要 Notion 時讀 [Notion 整合](../../codex/references/notion.md)，沿用已確認的 task/project 映射並設定 feature_knowledge。
 技術棧從實際專案偵測；必要時呼叫 `$plan-stack`，不安裝模型或其他 agent 設定。
-

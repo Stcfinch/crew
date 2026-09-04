@@ -14,4 +14,3 @@ description: 依 CREW plan.md 實作功能並維護可續接的工作單元；�
 保留原本 UI/架構慣例，SQL 寫 deploy.sql；檢查建置與與變更直接相關的測試。
 本技能不要求建立多代理團隊；僅在使用者或既有專案指示要求且 host 支援時，委派可獨立的工作，遵循 host 工具契約並繼承模型。
 程式改動後把舊 security/verify/review 步驟改 pending、result 改 STALE 並將 critical 重設 0；最後 set build done，清空 work_unit。
-

@@ -12,4 +12,3 @@ description: 在驗收、審查和漂移檢查完成後結束 CREW 功能任務�
 Git commit/merge/push 依使用者授權與 repo 工作方式完成；只包含本任務檔案，不以 git add . 把無關改動帶入。
 有未完成外部動作且使用者要求時，保存 remaining，不標 close done。
 已授權工作完成才 set close done，保留 state、plan、deploy.sql，輸出驗證結果與剩餘部署事項。
-

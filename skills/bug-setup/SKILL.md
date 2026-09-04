@@ -11,4 +11,3 @@ description: 設定 CREW Bug 工作流的本機環境或 Notion 任務庫、Bug 
 本機模式即可開始 Bug 調查。
 需要 Notion 時讀 [Notion 整合](../../codex/references/notion.md)，確認 task、project、bug_knowledge 的 ID、schema 與權限。
 完成後以 `crew-project.py doctor` 回驗，明確區分本機可用與 Notion 可用。
-

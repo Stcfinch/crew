@@ -13,4 +13,3 @@ description: 調查 CREW Bug 的重現條件與根因，以假說和證據定位
 三次失敗的同類假說後重新檢視問題模型，避免重複猜測。
 根因已證實且修復驗收條件清楚時，state set spec done；否則保持 in_progress 並用 unit 保存證據、剩餘項目與歧義。
 將 schema 或架構影響記入決策紀錄；需要獨立設計時將 db/arch 改為 pending。
-

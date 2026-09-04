@@ -12,4 +12,3 @@ description: 更新已安裝的 CREW Codex plugin；適用使用者明確要求�
 從 checkout 執行 `python scripts/install-codex.py --update`；此程式建立備份和版本快取識別，再重新安裝 personal marketplace 的 crew。
 若是其他 marketplace，依實際來源的 Codex 更新指令操作，不覆蓋成 personal。
 顯示 CHANGELOG 的實際差异，成功後提示開啟新 Codex 任務載入新版。
-

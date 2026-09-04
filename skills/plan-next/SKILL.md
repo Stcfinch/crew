@@ -11,4 +11,3 @@ description: 根據 CREW state.json 推薦下一步或續接中斷工作。
 `--all` 或無法唯一定位時用 state list，不擅自選擇第一個任務。
 輸出工具計算的 command、reason 和證據缺口；inferred 狀態需標明。
 使用者只詢問下一步時不執行該步；已要求繼續工作時讀對應 skill 並續做。
-
