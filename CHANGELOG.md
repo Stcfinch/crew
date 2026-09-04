@@ -8,6 +8,15 @@
 
 ---
 
+## [crew@0.1.0] - 2026-09-05
+
+### 新增
+- Codex 原生 plugin manifest 與 27 個 skills，統整 Bug、Feature、診斷與初始化入口。
+- 本機模式、專案級設定、可續接狀態與結案檢查；Notion 作為選用整合。
+- Windows 檔案鎖、UTF-8 輸出、Codex 下一步語法、Bug 專用路由與路徑檢查。
+- 個人 marketplace 安裝程式，隔離原版 hooks，保留其他套件設定與更新備份。
+- 本機行為測試與 Windows/Linux CI；安裝與相容範圍見 docs/codex.md。
+
 ## [feature-workflow@5.0.2] - 2026-09-03
 
 > **移除 `plugin.json` 的 `hooks` 欄位。** 標準路徑 `hooks/hooks.json` 會被 Claude Code

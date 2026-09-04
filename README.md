@@ -1,4 +1,18 @@
-# CREW — Claude Code Plugins
+# CREW — Codex + Claude Code Workflows
+
+本 fork 新增 **CREW for Codex**：27 個原生 skills、本機模式、Windows 相容狀態腳本，以及個人 marketplace 安裝程式。
+
+```bash
+git clone --branch codex-plugin https://github.com/Stcfinch/crew.git
+cd crew
+python scripts/install-codex.py
+```
+
+安裝後開啟新的 Codex 任務，輸入 `$crew-init` 或 `$plan-demo`。
+完整安裝、相容範圍與指令表見 [Codex 使用指南](docs/codex.md)。
+Notion、瀏覽器與 Word/Excel 依實際連接的工具提供；本機流程可直接使用。
+
+## 原版 Claude Code 工作流
 
 整合 Notion 與 Claude Code 的自訂 Plugin 集合，涵蓋 Bug 處理與功能開發的完整工作流。
 

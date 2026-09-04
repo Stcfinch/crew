@@ -1,0 +1,23 @@
+{
+  "name": "crew",
+  "version": "0.1.0",
+  "description": "CREW for Codex：Bug 調查、功能規劃、實作、驗收與 Notion 同步工作流。",
+  "author": {
+    "name": "Stcfinch",
+    "url": "https://github.com/Stcfinch"
+  },
+  "homepage": "https://github.com/Stcfinch/crew/blob/codex-plugin/docs/codex.md",
+  "repository": "https://github.com/Stcfinch/crew",
+  "license": "MIT",
+  "keywords": ["codex", "workflow", "bugs", "planning", "notion"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CREW for Codex",
+    "shortDescription": "Bug 與功能開發工作流，支援本機狀態與 Notion。",
+    "longDescription": "提供 27 個 Codex skills，從調查與規劃，到實作、驗收、程式碼審查和結案。可先用本機模式，再選擇連接 Notion。保留 CREW 的 plan.md、state.json 與 deploy.sql 契約。",
+    "developerName": "Stcfinch · based on CREW by Cheng",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": ["$crew-init 幫我設定這個專案的工作流", "$plan-demo 示範功能開發流程", "$bug-investigate 調查這個問題"]
+  }
+}

@@ -11,6 +11,11 @@ task_plan.md
 __pycache__/
 *.pyc
 
+# Codex 本機設定、驗證依賴與打包產物
+.crew/
+.tools/
+dist/
+
 # OS / 編輯器產物
 .DS_Store
 Thumbs.db

@@ -1,5 +1,15 @@
 # 開發與發版指南
 
+## Codex 移植版
+
+Codex 的 manifest 位於根 `.codex-plugin/plugin.json`，原生技能位於 `skills/`，
+執行腳本與參考文件位於 `codex/`。原平台的 `plugins/` 保留，勿將兩種 runtime 指示混用。
+修改 Codex 功能後執行 `python scripts/validate-codex.py` 與
+`python -m unittest discover -s tests -v`；同步 `docs/codex.md` 與 CHANGELOG。
+目前移植工作分支為 `codex-plugin`，安裝與更新見 [Codex 使用指南](docs/codex.md)。
+
+下列原版發版規則適用於 `plugins/` 中的 Claude Code plugins。
+
 ## 新增／刪除 Skill Checklist
 
 動到 `plugins/{plugin}/skills/` 的目錄時，**同一個 commit** 必須同步：
